@@ -113,10 +113,7 @@ public abstract class SummaryCollector implements Database.PacketVisitor
 				BulletinHistory history = bhp.getHistory();
 				if(history.size() > 0)
 				{
-					StringBuffer localIds = new StringBuffer();
-					for(int i = 0; i < history.size(); ++i)
-						localIds.append(history.get(i) + " ");
-					summary += BulletinSummary.fieldDelimeter + new String(localIds);
+					summary += BulletinSummary.fieldDelimeter + history.toString();
 				}
 			}
 			else
