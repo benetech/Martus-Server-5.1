@@ -29,6 +29,7 @@ package org.martus.server.forclients;
 import java.util.Vector;
 
 import org.martus.common.BulletinSummary;
+import org.martus.common.LoggerInterface;
 import org.martus.common.MartusUtilities;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
@@ -72,7 +73,7 @@ public abstract class SummaryCollector implements Database.PacketVisitor
 			if(!isAuthorized(bhp))
 				return;
 			
-			String summary = extractSummary(bhp, getDatabase(), retrieveTags);
+			String summary = extractSummary(bhp, getDatabase(), retrieveTags, server.getLogger());
 			summaries.add(summary);
 		}
 		catch (Exception e)
@@ -92,7 +93,7 @@ public abstract class SummaryCollector implements Database.PacketVisitor
 		return summaries;	
 	}
 	
-	public static String extractSummary(BulletinHeaderPacket bhp, ReadableDatabase db, Vector tags)
+	public static String extractSummary(BulletinHeaderPacket bhp, ReadableDatabase db, Vector tags, LoggerInterface logger)
 	{
 		String summary = bhp.getLocalId() + BulletinSummary.fieldDelimeter;
 		summary  += bhp.getFieldDataPacketId();
@@ -117,7 +118,7 @@ public abstract class SummaryCollector implements Database.PacketVisitor
 				}
 			}
 			else
-				System.out.println("WARNING: requested unknown summary tag: " + tag);
+				logger.logWarning("requested unknown summary tag: " + tag);
 		}
 		return summary;
 	}

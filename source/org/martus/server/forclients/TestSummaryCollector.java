@@ -141,7 +141,7 @@ public class TestSummaryCollector extends TestCaseEnhanced
 		
 		String minimalSummary = bhp.getLocalId() + "=" + fdpLocalId;
 		
-		String noTags = SummaryCollector.extractSummary(bhp, db, tags);
+		String noTags = SummaryCollector.extractSummary(bhp, db, tags, server.getLogger());
 		assertEquals(minimalSummary, noTags);
 		
 		String history = original.getLocalId() + " " + firstClone.getLocalId() + " ";
@@ -152,7 +152,7 @@ public class TestSummaryCollector extends TestCaseEnhanced
 		tags.add(NetworkInterfaceConstants.TAG_BULLETIN_SIZE);
 		tags.add(NetworkInterfaceConstants.TAG_BULLETIN_DATE_SAVED);
 		tags.add(NetworkInterfaceConstants.TAG_BULLETIN_HISTORY);
-		String gotSizeDateHistory = SummaryCollector.extractSummary(bhp, db, tags);
+		String gotSizeDateHistory = SummaryCollector.extractSummary(bhp, db, tags, server.getLogger());
 		assertEquals(expectedSizeDateHistory, gotSizeDateHistory);
 		
 		
@@ -162,7 +162,7 @@ public class TestSummaryCollector extends TestCaseEnhanced
 		tags.add(NetworkInterfaceConstants.TAG_BULLETIN_HISTORY);
 		tags.add(NetworkInterfaceConstants.TAG_BULLETIN_DATE_SAVED);
 		tags.add(NetworkInterfaceConstants.TAG_BULLETIN_SIZE);
-		String gotHistoryDateSize = SummaryCollector.extractSummary(bhp, db, tags);
+		String gotHistoryDateSize = SummaryCollector.extractSummary(bhp, db, tags, server.getLogger());
 		assertEquals(expectedHistoryDateSize, gotHistoryDateSize);
 	}
 

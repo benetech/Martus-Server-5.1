@@ -63,7 +63,7 @@ public class AuthorizeLog
 			while( (line = reader.readLine()) != null)
 			{
 				if(line.trim().length() == 0)
-					logger.logDebug("Warning: Found blank line in " + authorizeLogFile.getPath());
+					logger.logWarning("Found blank line in " + authorizeLogFile.getPath());
 				else
 					add(new AuthorizeLogEntry(line));
 			}

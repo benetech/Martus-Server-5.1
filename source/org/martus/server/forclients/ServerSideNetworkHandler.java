@@ -84,7 +84,7 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 			
 			if(server.shouldSimulateBadConnection())
 			{
-				logError("WARNING: Simulating bad connection!");
+				logWarning("Simulating bad connection!");
 				int ONE_MINUTE_OF_MILLIS = 60*1000;
 				try
 				{

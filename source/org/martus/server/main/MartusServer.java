@@ -1828,10 +1828,10 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		if(MartusServer.class.getResource("ForceListenOnNonPrivilegedPorts.txt") == null)
 			return false;
 		
-		logNotice("*********************************************");
-		logNotice("WARNING: Development mode selected;");
-		logNotice("         Using non-privileged ports!");
-		logNotice("*********************************************");
+		logWarning("*********************************************");
+		logWarning("         Development mode selected.");
+		logWarning("         Using non-privileged ports!");
+		logWarning("*********************************************");
 		return true;
 	}
 
