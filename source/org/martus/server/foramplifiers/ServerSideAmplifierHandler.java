@@ -89,7 +89,7 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 		
 		result.add(NetworkInterfaceConstants.OK);
 		result.add(visitor.getAccounts());
-		log("getAccountIds exit OK");
+		log("getAccountIds: exit OK : # accounts=" + visitor.getAccounts().size());
 		return result;
 	}
 
@@ -110,8 +110,10 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 			log("getAccountContactInfo incomplete request");
 			return result;
 		}
-
-		result = server.getContactInfo((String)parameters.get(0));
+		
+		String accountIdToRetrieve = (String)parameters.get(0);
+		log("getAccountContactInfo exit OK: for account:" + MartusCrypto.formatAccountIdForLog(accountIdToRetrieve));
+		result = server.getContactInfo(accountIdToRetrieve);
 		return result;
 	}
 	
@@ -134,6 +136,7 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 		
 		result.add(NetworkInterfaceConstants.OK);
 		result.add(collector.infos);
+		log("getPublicBulletinLocalIds exit OK: for account:"+	 MartusCrypto.formatAccountIdForLog(accountString) + " ="+collector.infos.size());
 		
 		return result;
 	}
