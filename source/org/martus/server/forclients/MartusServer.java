@@ -44,6 +44,7 @@ import java.util.Iterator;
 import java.util.TimerTask;
 import java.util.Vector;
 
+import org.martus.amplifier.*;
 import org.martus.amplifier.main.MartusAmplifier;
 import org.martus.common.LoggerInterface;
 import org.martus.common.LoggerToConsole;
@@ -89,7 +90,7 @@ import org.martus.util.UnicodeReader;
 import org.martus.util.XmlRpcThread;
 import org.martus.util.Base64.InvalidBase64Exception;
 
-public class MartusServer implements NetworkInterfaceConstants
+public class MartusServer implements NetworkInterfaceConstants, ServerCallbackInterface
 {
 	public static void main(String[] args)
 	{
@@ -167,15 +168,14 @@ public class MartusServer implements NetworkInterfaceConstants
 					MartusCrypto.CryptoInitializationException, IOException, InvalidPublicKeyFileException, PublicInformationInvalidException
 	{
 		dataDirectory = dir;
-		logger = loggerToUse;
+		setLogger(loggerToUse);
 		security = securityToUse;
 
 		getTriggerDirectory().mkdirs();
 		getStartupConfigDirectory().mkdirs();
-		setStaticSecurity(security);
 		serverForClients = new ServerForClients(this);
-		serverForMirroring = new ServerForMirroring(this, logger);
-		serverForAmplifiers = new ServerForAmplifiers(this, logger);
+		serverForMirroring = new ServerForMirroring(this, getLogger());
+		serverForAmplifiers = new ServerForAmplifiers(this, getLogger());
 		amp = new MartusAmplifier(this);
 		failedUploadRequestsPerIp = new Hashtable();
 	}
@@ -253,6 +253,26 @@ public class MartusServer implements NetworkInterfaceConstants
 		database = databaseToUse;
 	}
 	
+	public void setAmpIpAddress(String ampIpAddress)
+	{
+		this.ampIpAddress = ampIpAddress;
+	}
+
+	public String getAmpIpAddress()
+	{
+		return ampIpAddress;
+	}
+
+	public void setLogger(LoggerInterface logger)
+	{
+		this.logger = logger;
+	}
+
+	public LoggerInterface getLogger()
+	{
+		return logger;
+	}
+
 	public MartusCrypto getSecurity()
 	{
 		return security;
@@ -1433,7 +1453,7 @@ public class MartusServer implements NetworkInterfaceConstants
 
 	public synchronized void log(String message)
 	{
-		logger.log(message);
+		getLogger().log(message);
 	}
 	
 	String getServerName()
@@ -1776,7 +1796,7 @@ public class MartusServer implements NetworkInterfaceConstants
 			if(argument.equals("nopassword"))
 				insecurePassword = "password".toCharArray();
 			if(argument.startsWith(ampipTag))
-				ampIpAddress = argument.substring(ampipTag.length());
+				setAmpIpAddress(argument.substring(ampipTag.length()));
 
 			if(argument.startsWith(indexEveryXHourTag))
 			{	
@@ -1879,7 +1899,7 @@ public class MartusServer implements NetworkInterfaceConstants
 		try
 		{
 			UnicodeReader reader = new UnicodeReader(isHiddenFile);
-			loadHiddenPacketsList(reader, database, logger);
+			loadHiddenPacketsList(reader, database, getLogger());
 		}
 		catch(FileNotFoundException nothingToWorryAbout)
 		{
@@ -1930,16 +1950,6 @@ public class MartusServer implements NetworkInterfaceConstants
 	public File getDataDirectory()
 	{
 		return dataDirectory;
-	}
-
-	public static void setStaticSecurity(MartusCrypto staticSecurity)
-	{
-		MartusServer.staticSecurity = staticSecurity;
-	}
-
-	public static MartusCrypto getStaticSecurity()
-	{
-		return staticSecurity;
 	}
 
 	private class UploadRequestsMonitor extends TimerTask
@@ -2004,12 +2014,12 @@ public class MartusServer implements NetworkInterfaceConstants
 	
 	Hashtable failedUploadRequestsPerIp;
 	
-	public LoggerInterface logger;
+	private LoggerInterface logger;
 	String serverName;
 	
 	private boolean secureMode;
 	private static String mainIpAddress; 
-	public String ampIpAddress;
+	private String ampIpAddress;
 
 	public char[] insecurePassword;
 	public long dataSynchIntervalMillis;
@@ -2027,9 +2037,4 @@ public class MartusServer implements NetworkInterfaceConstants
 	private static final long shutdownRequestIntervalMillis = 1000;
 	private static final long MINUTES_TO_MILLI = 60 * 1000;
 
-	// NOTE: The following members *MUST* be static because they are 
-	// used by servlets that do not have access to a server object! 
-	// USE THEM CAREFULLY!
-	private static MartusCrypto staticSecurity;
-	
 }
