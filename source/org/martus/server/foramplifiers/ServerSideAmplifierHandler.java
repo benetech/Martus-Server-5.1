@@ -66,7 +66,7 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 
 				LocallIdOfPublicBulletinsCollector collector = new LocallIdOfPublicBulletinsCollector();
 				Database db = server.getDatabase();
-				db.visitAllRecordsForAccount(collector, accountString);
+				db.visitAllNonHiddenRecordsForAccount(collector, accountString);
 				if(collector.infos.size() > 0 && ! accounts.contains(accountString))
 					accounts.add(accountString);
 			}
@@ -129,7 +129,7 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 
 		LocallIdOfPublicBulletinsCollector collector = new LocallIdOfPublicBulletinsCollector();
 		Database db = server.getDatabase();
-		db.visitAllRecordsForAccount(collector, accountString);
+		db.visitAllNonHiddenRecordsForAccount(collector, accountString);
 		
 		result.add(NetworkInterfaceConstants.OK);
 		result.add(collector.infos);
