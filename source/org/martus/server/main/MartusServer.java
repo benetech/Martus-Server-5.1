@@ -112,6 +112,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			if(!server.hasAccount())
 			{
 				System.out.println("***** Key pair file not found *****");
+				System.out.println(server.getKeyPairFile());
 				System.exit(EXIT_KEYPAIR_FILE_MISSING);
 			}
 
