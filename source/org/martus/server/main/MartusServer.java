@@ -1701,13 +1701,25 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	}
 
 	BulletinHeaderPacket loadBulletinHeaderPacket(Database db, DatabaseKey key)
-		throws
-			IOException,
-			CryptoException,
-			InvalidPacketException,
-			WrongPacketTypeException,
-			SignatureVerificationException,
-			DecryptionException
+	throws
+		IOException,
+		CryptoException,
+		InvalidPacketException,
+		WrongPacketTypeException,
+		SignatureVerificationException,
+		DecryptionException
+	{
+		return loadBulletinHeaderPacket(db, key, security);
+	}
+	
+	public static BulletinHeaderPacket loadBulletinHeaderPacket(Database db, DatabaseKey key, MartusCrypto security)
+	throws
+		IOException,
+		CryptoException,
+		InvalidPacketException,
+		WrongPacketTypeException,
+		SignatureVerificationException,
+		DecryptionException
 	{
 		InputStreamWithSeek in = db.openInputStream(key, security);
 		//TODO:combine the next 2 lines into a static in bhp.
@@ -1715,6 +1727,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		bhp.loadFromXml(in, security);
 		in.close();
 		return bhp;
+	
 	}
 
 	public class UnexpectedExitException extends Exception{}

@@ -37,11 +37,13 @@ import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.FileDatabase;
 import org.martus.common.database.ServerFileDatabase;
+import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.server.foramplifiers.ServerForAmplifiers;
 import org.martus.server.forclients.AuthorizeLog;
 import org.martus.server.forclients.AuthorizeLogEntry;
 import org.martus.server.forclients.ServerForClients;
+import org.martus.server.main.MartusServer;
 import org.martus.util.UnicodeReader;
 import org.martus.util.UnicodeWriter;
 import org.martus.util.Base64.InvalidBase64Exception;
@@ -306,7 +308,7 @@ public class CreateStatistics
 			{
 				try
 				{
-					if(!key.getLocalId().startsWith("B-"))
+					if(!BulletinHeaderPacket.isValidLocalId(key.getLocalId()))
 						return;
 					
 					String localId = key.getLocalId();
@@ -332,8 +334,24 @@ public class CreateStatistics
 					String wasBurCreatedByThisServer = wasOriginalServer(burKey);
 					String dateBulletinWasCreated = getOriginalUploadDate(burKey);
 					
+					String allPrivate = "";
+					try
+					{
+						BulletinHeaderPacket bhp = MartusServer.loadBulletinHeaderPacket(fileDatabase, key, security);
+						if(bhp.isAllPrivate())
+							allPrivate = BULLETIN_ALL_PRIVATE_TRUE;
+						else
+							allPrivate = BULLETIN_ALL_PRIVATE_FALSE;
+					}
+					catch(Exception e1)
+					{
+						allPrivate = "Error: " + e1;
+					}
+					
+					
 					String bulletinInfo =  getNormalizedString(localId) + DELIMITER +
 					getNormalizedString(bulletinType) + DELIMITER + 
+					getNormalizedString(allPrivate) + DELIMITER + 
 					getNormalizedString(wasBurCreatedByThisServer) + DELIMITER + 
 					getNormalizedString(dateBulletinWasCreated) + DELIMITER + 
 					getNormalizedString(publicCode);
@@ -482,6 +500,7 @@ public class CreateStatistics
 	
 	final String BULLETIN_HEADER_PACKET = "bulletin id";
 	final String BULLETIN_TYPE = "bulletin type";
+	final String BULLETIN_ALL_PRIVATE = "all private";
 	final String BULLETIN_ORIGINALLY_UPLOADED_TO_THIS_SERVER = "original server";
 	final String BULLETIN_DATE_UPLOADED = "date uploaded";
 	
@@ -489,11 +508,13 @@ public class CreateStatistics
 	final String BULLETIN_ORIGINALLY_UPLOADED_TO_THIS_SERVER_FALSE = "0";
 	final String BULLETIN_DRAFT = "draft";
 	final String BULLETIN_SEALED = "sealed";
-	
+	final String BULLETIN_ALL_PRIVATE_TRUE = "1";
+	final String BULLETIN_ALL_PRIVATE_FALSE = "0";
 	
 	final String BULLETIN_STATISTICS_HEADER = 
 		getNormalizedString(BULLETIN_HEADER_PACKET) + DELIMITER +
 		getNormalizedString(BULLETIN_TYPE) + DELIMITER +
+		getNormalizedString(BULLETIN_ALL_PRIVATE) + DELIMITER +
 		getNormalizedString(BULLETIN_ORIGINALLY_UPLOADED_TO_THIS_SERVER) + DELIMITER +
 		getNormalizedString(BULLETIN_DATE_UPLOADED) + DELIMITER +
 		getNormalizedString(ACCOUNT_PUBLIC_CODE);
