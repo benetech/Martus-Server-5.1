@@ -220,6 +220,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	{
 		MartusUtilities.startTimer(new ShutdownRequestMonitor(), shutdownRequestIntervalMillis);
 		MartusUtilities.startTimer(new UploadRequestsMonitor(), magicWordsGuessIntervalMillis);
+		MartusUtilities.startTimer(new BackgroundTimerTick(), ServerForMirroring.mirroringIntervalMillis);
 		if(isAmplifierEnabled())
 			MartusUtilities.startTimer(new SyncAmplifierWithServersMonitor(), amplifierDataSynchIntervalMillis);
 	}
@@ -2125,19 +2126,6 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		}
 	}
 	
-	class SyncAmplifierWithServersMonitor extends TimerTask
-	{	
-		public void run()
-		{
-			if(! amp.isAmplifierSyncing() )
-			{
-				amp.startSynch();
-				amp.pullNewDataFromServers(amp.backupServersList);
-				amp.endSynch();
-			}
-		}
-	}
-
 	private class ShutdownRequestMonitor extends TimerTask
 	{
 		public void run()
@@ -2160,6 +2148,39 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			}
 		}
 	}
+	
+	class SyncAmplifierWithServersMonitor extends TimerTask
+	{	
+		public void run()
+		{
+			MartusServer.needsAmpSync = true;
+		}
+	}
+
+	private class BackgroundTimerTick extends TimerTask
+	{
+		BackgroundTimerTick()
+		{
+		}
+		
+		public void run()
+		{
+			protectedRun();
+		}
+		
+		synchronized void protectedRun()
+		{
+			serverForMirroring.doBackgroundTick();
+			if(MartusServer.needsAmpSync)
+			{
+				amp.startSynch();
+				amp.pullNewDataFromServers(amp.backupServersList);
+				amp.endSynch();
+				MartusServer.needsAmpSync = false;
+			}
+		}
+	}
+	
 
 	public MartusCrypto security;
 
@@ -2168,6 +2189,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	public ServerForAmplifiers serverForAmplifiers;
 	public MartusAmplifier amp;
 	private boolean amplifierEnabled;
+	static boolean needsAmpSync; 
 	private boolean clientListenerEnabled;
 	private boolean mirrorListenerEnabled;
 	private boolean amplifierListenerEnabled;

@@ -29,7 +29,6 @@ package org.martus.server.formirroring;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.TimerTask;
 import java.util.Vector;
 
 import org.martus.common.LoggerInterface;
@@ -40,7 +39,9 @@ import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.network.MartusXmlRpcServer;
-import org.martus.common.network.mirroring.*;
+import org.martus.common.network.mirroring.CallerSideMirroringGateway;
+import org.martus.common.network.mirroring.CallerSideMirroringGatewayForXmlRpc;
+import org.martus.common.network.mirroring.MirroringInterface;
 import org.martus.common.network.mirroring.CallerSideMirroringGatewayForXmlRpc.SSLSocketSetupException;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
@@ -122,8 +123,7 @@ public class ServerForMirroring implements ServerSupplierInterface
 		SupplierSideMirroringHandler supplierHandler = new SupplierSideMirroringHandler(this, getSecurity());
 		MartusXmlRpcServer.createSSLXmlRpcServer(supplierHandler, MirroringInterface.DEST_OBJECT_NAME, port, mainIpAddress);
 
-		MartusUtilities.startTimer(new MirroringTask(retrieversWeWillCall), mirroringIntervalMillis);
-		log("Mirroring port opened and mirroring task scheduled");
+		log("Mirroring port opened");
 	}
 
 	// Begin ServerSupplierInterface
@@ -299,26 +299,13 @@ public class ServerForMirroring implements ServerSupplierInterface
 		return new CallerSideMirroringGateway(xmlRpcGateway);
 	}
 
-	private class MirroringTask extends TimerTask
+	
+	public void doBackgroundTick()
 	{
-		MirroringTask(Vector retrieversToUse)
-		{
-			retrievers = retrieversToUse;
+		for(int i = 0; i < retrieversWeWillCall.size(); ++i)
+		{	
+			((MirroringRetriever)retrieversWeWillCall.get(i)).retrieveNextBulletin();
 		}
-		
-		public void run()
-		{
-			protectedRun();
-		}
-		
-		synchronized void protectedRun()
-		{
-			for(int i = 0; i < retrievers.size(); ++i)
-			{	
-				((MirroringRetriever)retrievers.get(i)).retrieveNextBulletin();
-			}
-		}
-		Vector retrievers;
 	}
 	
 	MartusServer coreServer;
@@ -328,6 +315,6 @@ public class ServerForMirroring implements ServerSupplierInterface
 	Vector retrieversWeWillCall;
 
 	static final String MIRRORCONFIGFILENAME = "mirrorConfig.txt";	
-	static long mirroringIntervalMillis = 10 * 1000;	// TODO: Probably 60 seconds
+	public static long mirroringIntervalMillis = 10 * 1000;	// TODO: Probably 60 seconds
 	static long inactiveSleepMillis = 15 * 60 * 1000;
 }
