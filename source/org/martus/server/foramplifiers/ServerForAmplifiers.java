@@ -61,6 +61,7 @@ import org.martus.common.packet.Packet.SignatureVerificationException;
 import org.martus.common.packet.Packet.WrongPacketTypeException;
 import org.martus.server.main.MartusServer;
 import org.martus.util.Base64;
+import org.martus.util.DirectoryUtils;
 import org.martus.util.InputStreamWithSeek;
 import org.martus.util.Base64.InvalidBase64Exception;
 import org.martus.util.xmlrpc.XmlRpcThread;
@@ -84,6 +85,7 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 	
 	public void deleteStartupFiles()
 	{
+		DirectoryUtils.deleteEntireDirectoryTree(getAuthorizedAmplifiersDirectory());
 		MartusUtilities.deleteAllFiles(getDeleteOnStartupFiles());
 	}
 	

@@ -46,6 +46,7 @@ import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.server.main.MartusServer;
 import org.martus.server.formirroring.CallerSideMirroringGatewayForXmlRpc.SSLSocketSetupException;
 import org.martus.util.Base64;
+import org.martus.util.DirectoryUtils;
 import org.martus.util.InputStreamWithSeek;
 
 public class ServerForMirroring implements ServerSupplierInterface
@@ -65,6 +66,8 @@ public class ServerForMirroring implements ServerSupplierInterface
 	
 	public void deleteStartupFiles()
 	{
+		DirectoryUtils.deleteEntireDirectoryTree(getMirrorsWeWillCallDirectory());
+		DirectoryUtils.deleteEntireDirectoryTree(getAuthorizedCallersDirectory());
 		MartusUtilities.deleteAllFiles(getDeleteOnStartupFiles());
 	}
 	
