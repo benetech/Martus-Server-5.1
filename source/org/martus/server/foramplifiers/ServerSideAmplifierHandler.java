@@ -212,6 +212,12 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 				
 				DatabaseKey burKey = MartusServerUtilities.getBurKey(key);
 				String burInDatabase = server.getDatabase().readRecord(burKey, server.getSecurity());
+				if(burInDatabase == null)
+				{	
+					log("Error: Missing BUR packet for bulletin:" +key.getUniversalId());
+					return;
+				}
+				
 				if(!MartusServerUtilities.wasBurCreatedByThisCrypto(burInDatabase, server.getSecurity()))
 					return;				
 							
