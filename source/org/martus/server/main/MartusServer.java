@@ -121,7 +121,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			if(passphrase == null)
 				passphrase = ServerSideUtilities.getPassphraseFromConsole(server.getTriggerDirectory(),"MartusServer.main");
 			server.loadAccount(passphrase);
-			server.initalizeDatabase();
+			server.initalizeBulletinStore();
 			server.verifyAndLoadConfigurationFiles();
 			server.displayStatistics();
 
@@ -293,7 +293,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		return database;
 	}
 	
-	public void setDatabase(Database databaseToUse)
+	private void setDatabase(Database databaseToUse)
 	{
 		database = databaseToUse;
 	}
@@ -988,7 +988,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		File contactFile;
 		try
 		{
-			contactFile = database.getContactInfoFile(accountId);
+			contactFile = getDatabase().getContactInfoFile(accountId);
 			if(!contactFile.exists())
 			{
 				results.add(NetworkInterfaceConstants.NOT_FOUND);
@@ -1770,7 +1770,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			summary  += bhp.getFieldDataPacketId();
 			if(retrieveTags.contains(NetworkInterfaceConstants.TAG_BULLETIN_SIZE))
 			{
-				int size = MartusUtilities.getBulletinSize(database, bhp);
+				int size = MartusUtilities.getBulletinSize(getDatabase(), bhp);
 				summary += MartusConstants.regexEqualsDelimeter + size;
 			}
 			if(retrieveTags.contains(NetworkInterfaceConstants.TAG_BULLETIN_DATE_SAVED))
@@ -2049,14 +2049,18 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		return InetAddress.getByName(getListenersIpAddress());
 	}
 
-	private void initalizeDatabase()
+	private void initalizeBulletinStore()
 	{
-		File dataDirectory = getDataDirectory();
-		File packetsDirectory = new File(dataDirectory, "packets");
+		File packetsDirectory = new File(getDataDirectory(), "packets");
 		Database diskDatabase = new ServerFileDatabase(packetsDirectory, getSecurity());
+		initializeBulletinStore(diskDatabase);
+	}
+
+	public void initializeBulletinStore(Database databaseToUse)
+	{
 		try
 		{
-			store.doAfterSigninInitialization(dataDirectory, diskDatabase);
+			store.doAfterSigninInitialization(getDataDirectory(), databaseToUse);
 		}
 		catch(FileDatabase.MissingAccountMapException e)
 		{
@@ -2077,7 +2081,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			System.exit(7);
 		}
 		
-		setDatabase(diskDatabase);
+		setDatabase(databaseToUse);
 	}
 
 	protected File getKeyPairFile()
@@ -2200,7 +2204,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	private boolean amplifierListenerEnabled;
 	
 	private File dataDirectory;
-	protected Database database;
+	private Database database;
 	private BulletinStore store;
 	private String complianceStatement; 
 	

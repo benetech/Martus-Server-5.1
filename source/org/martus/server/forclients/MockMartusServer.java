@@ -38,30 +38,35 @@ import org.martus.common.database.Database;
 import org.martus.common.database.MockServerDatabase;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.utilities.MartusServerUtilities;
-import org.martus.server.main.*;
+import org.martus.server.main.MartusServer;
 import org.martus.util.Base64;
 
 public class MockMartusServer extends MartusServer implements ServerForClientsInterface, ServerForNonSSLClientsInterface
 {
 	public MockMartusServer() throws Exception
 	{
-		this(new TempDirectory());
+		this(new TempDirectory(), new MockServerDatabase());
+	}
+	
+	public MockMartusServer(Database databaseToUse) throws Exception
+	{
+		this(new TempDirectory(), databaseToUse);
 	}
 	
 	public MockMartusServer(File dataDir) throws Exception
 	{
+		this(dataDir, new MockServerDatabase());
+	}
+	
+	public MockMartusServer(File dataDir, Database databaseToUse) throws Exception
+	{
 		super(dataDir, new LoggerForTesting());
-		setDatabase(new MockServerDatabase());
+		initializeBulletinStore(databaseToUse);
 	}
 	
 	public void setSecurity(MartusCrypto securityToUse)
 	{
 		security = securityToUse;
-	}
-	
-	public void setDatabase(Database databaseToUse)
-	{
-		database = databaseToUse;
 	}
 	
 	public void verifyAndLoadConfigurationFiles() throws Exception

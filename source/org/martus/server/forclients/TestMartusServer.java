@@ -916,7 +916,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 
 		testServer.serverForClients.clearCanUploadList();
 		testServer.allowUploads(clientSecurity.getPublicKeyString());
-		assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ZipBytes.length, b1ZipString, clientSecurity));
+		assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ZipBytes.length, b1ZipString, clientSecurity));
 
 		Database db = testServer.getDatabase();
 		assertNotNull("no database?", db);
@@ -924,7 +924,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		Bulletin got = BulletinLoader.loadFromDatabase(db, key, clientSecurity);
 		assertEquals("id", b1.getLocalId(), got.getLocalId());
 
-		assertEquals(NetworkInterfaceConstants.DUPLICATE, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ZipBytes.length, b1ZipString, clientSecurity));
+		assertEquals(NetworkInterfaceConstants.DUPLICATE, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ZipBytes.length, b1ZipString, clientSecurity));
 
 		TRACE_END();
 	}
@@ -939,8 +939,8 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 
 		testServer.serverForClients.clearCanUploadList();
 		testServer.allowUploads(clientSecurity.getPublicKeyString());
-		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ChunkBytes0.length, b1ChunkData0, clientSecurity));
-		assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, b1ChunkBytes0.length, b1ChunkBytes1.length, b1ChunkData1, clientSecurity));
+		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ChunkBytes0.length, b1ChunkData0, clientSecurity));
+		assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, b1ChunkBytes0.length, b1ChunkBytes1.length, b1ChunkData1, clientSecurity));
 
 		assertTrue("BUR not created?", serverDatabase.doesRecordExist(burKey));
 		TRACE_END();
@@ -962,10 +962,10 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 
 		testServer.serverForClients.clearCanUploadList();
 		testServer.allowUploads(clientSecurity.getPublicKeyString());
-		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ChunkBytes0.length, b1ChunkData0, clientSecurity));
-		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b2.getLocalId(), b2ZipBytes.length, 0, b2ChunkBytes0.length, b2ChunkData0, clientSecurity));
-		assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, b1ChunkBytes0.length, b1ChunkBytes1.length, b1ChunkData1, clientSecurity));
-		assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b2.getLocalId(), b2ZipBytes.length, b2ChunkBytes0.length, b2ChunkBytes1.length, b2ChunkData1, clientSecurity));
+		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ChunkBytes0.length, b1ChunkData0, clientSecurity));
+		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b2.getLocalId(), b2ZipBytes.length, 0, b2ChunkBytes0.length, b2ChunkData0, clientSecurity));
+		assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, b1ChunkBytes0.length, b1ChunkBytes1.length, b1ChunkData1, clientSecurity));
+		assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b2.getLocalId(), b2ZipBytes.length, b2ChunkBytes0.length, b2ChunkBytes1.length, b2ChunkData1, clientSecurity));
 
 		TRACE_END();
 	}
@@ -976,9 +976,9 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 
 		testServer.serverForClients.clearCanUploadList();
 		testServer.allowUploads(clientSecurity.getPublicKeyString());
-		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ChunkBytes0.length, b1ChunkData0, clientSecurity));
-		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ChunkBytes0.length, b1ChunkData0, clientSecurity));
-		assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, b1ChunkBytes0.length, b1ChunkBytes1.length, b1ChunkData1, clientSecurity));
+		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ChunkBytes0.length, b1ChunkData0, clientSecurity));
+		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ChunkBytes0.length, b1ChunkData0, clientSecurity));
+		assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, b1ChunkBytes0.length, b1ChunkBytes1.length, b1ChunkData1, clientSecurity));
 
 		TRACE_END();
 	}
@@ -989,14 +989,14 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 
 		testServer.serverForClients.clearCanUploadList();
 		testServer.allowUploads(clientSecurity.getPublicKeyString());
-		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), NetworkInterfaceConstants.MAX_CHUNK_SIZE*2, 0, b1ChunkBytes0.length, b1ChunkData0, clientSecurity));
-		assertEquals(NetworkInterfaceConstants.INVALID_DATA, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), NetworkInterfaceConstants.MAX_CHUNK_SIZE*2, b1ChunkBytes0.length, NetworkInterfaceConstants.MAX_CHUNK_SIZE+1, b1ChunkData1, clientSecurity));
+		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), NetworkInterfaceConstants.MAX_CHUNK_SIZE*2, 0, b1ChunkBytes0.length, b1ChunkData0, clientSecurity));
+		assertEquals(NetworkInterfaceConstants.INVALID_DATA, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), NetworkInterfaceConstants.MAX_CHUNK_SIZE*2, b1ChunkBytes0.length, NetworkInterfaceConstants.MAX_CHUNK_SIZE+1, b1ChunkData1, clientSecurity));
 
-		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ChunkBytes0.length, b1ChunkData0, clientSecurity));
-		assertEquals(NetworkInterfaceConstants.INVALID_DATA, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, b1ChunkBytes0.length, NetworkInterfaceConstants.MAX_CHUNK_SIZE+1, b1ChunkData1, clientSecurity));
+		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ChunkBytes0.length, b1ChunkData0, clientSecurity));
+		assertEquals(NetworkInterfaceConstants.INVALID_DATA, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, b1ChunkBytes0.length, NetworkInterfaceConstants.MAX_CHUNK_SIZE+1, b1ChunkData1, clientSecurity));
 
-		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ChunkBytes0.length, b1ChunkData0, clientSecurity));
-		assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, b1ChunkBytes0.length, b1ChunkBytes1.length, b1ChunkData1, clientSecurity));
+		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ChunkBytes0.length, b1ChunkData0, clientSecurity));
+		assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, b1ChunkBytes0.length, b1ChunkBytes1.length, b1ChunkData1, clientSecurity));
 
 
 		TRACE_END();
@@ -1008,10 +1008,10 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 
 		testServer.serverForClients.clearCanUploadList();
 		testServer.allowUploads(clientSecurity.getPublicKeyString());
-		assertEquals(NetworkInterfaceConstants.INVALID_DATA, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), 90, 0, 100, "", clientSecurity));
+		assertEquals(NetworkInterfaceConstants.INVALID_DATA, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), 90, 0, 100, "", clientSecurity));
 
-		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ChunkBytes0.length, b1ChunkData0, clientSecurity));
-		assertEquals(NetworkInterfaceConstants.INVALID_DATA, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length-1, b1ChunkBytes0.length, b1ChunkBytes1.length, b1ChunkData1, clientSecurity));
+		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ChunkBytes0.length, b1ChunkData0, clientSecurity));
+		assertEquals(NetworkInterfaceConstants.INVALID_DATA, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length-1, b1ChunkBytes0.length, b1ChunkBytes1.length, b1ChunkData1, clientSecurity));
 
 		TRACE_END();
 	}
@@ -1022,14 +1022,14 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 
 		testServer.serverForClients.clearCanUploadList();
 		testServer.allowUploads(clientSecurity.getPublicKeyString());
-		assertEquals("1 chunk invalid offset -1",NetworkInterfaceConstants.INVALID_DATA, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, -1, b1ZipBytes.length, b1ZipString, clientSecurity));
-		assertEquals("1 chunk invalid offset 1",NetworkInterfaceConstants.INVALID_DATA, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 1, b1ZipBytes.length, b1ZipString, clientSecurity));
+		assertEquals("1 chunk invalid offset -1",NetworkInterfaceConstants.INVALID_DATA, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, -1, b1ZipBytes.length, b1ZipString, clientSecurity));
+		assertEquals("1 chunk invalid offset 1",NetworkInterfaceConstants.INVALID_DATA, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 1, b1ZipBytes.length, b1ZipString, clientSecurity));
 
-		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ChunkBytes0.length, b1ChunkData0, clientSecurity));
-		assertEquals(NetworkInterfaceConstants.INVALID_DATA, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, b1ChunkBytes0.length-1, b1ChunkBytes1.length, b1ChunkData1, clientSecurity));
+		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ChunkBytes0.length, b1ChunkData0, clientSecurity));
+		assertEquals(NetworkInterfaceConstants.INVALID_DATA, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, b1ChunkBytes0.length-1, b1ChunkBytes1.length, b1ChunkData1, clientSecurity));
 			
-		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ChunkBytes0.length, b1ChunkData0, clientSecurity));
-		assertEquals(NetworkInterfaceConstants.INVALID_DATA, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, b1ChunkBytes0.length+1, b1ChunkBytes1.length, b1ChunkData1, clientSecurity));
+		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ChunkBytes0.length, b1ChunkData0, clientSecurity));
+		assertEquals(NetworkInterfaceConstants.INVALID_DATA, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, b1ChunkBytes0.length+1, b1ChunkBytes1.length, b1ChunkData1, clientSecurity));
 
 		TRACE_END();
 	}
@@ -1041,12 +1041,12 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		testServer.serverForClients.clearCanUploadList();
 		testServer.allowUploads(clientSecurity.getPublicKeyString());
 
-		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ChunkBytes0.length, b1ChunkData0, clientSecurity));
-		assertEquals(NetworkInterfaceConstants.INVALID_DATA, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, b1ChunkBytes0.length, b1ChunkBytes1.length-1, b1ChunkData1, clientSecurity));
-		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ChunkBytes0.length, b1ChunkData0, clientSecurity));
-		assertEquals(NetworkInterfaceConstants.INVALID_DATA, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ChunkBytes0.length+1, b1ChunkData0, clientSecurity));
-		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ChunkBytes0.length, b1ChunkData0, clientSecurity));
-		assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, b1ChunkBytes0.length, b1ChunkBytes1.length, b1ChunkData1, clientSecurity));
+		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ChunkBytes0.length, b1ChunkData0, clientSecurity));
+		assertEquals(NetworkInterfaceConstants.INVALID_DATA, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, b1ChunkBytes0.length, b1ChunkBytes1.length-1, b1ChunkData1, clientSecurity));
+		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ChunkBytes0.length, b1ChunkData0, clientSecurity));
+		assertEquals(NetworkInterfaceConstants.INVALID_DATA, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ChunkBytes0.length+1, b1ChunkData0, clientSecurity));
+		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ChunkBytes0.length, b1ChunkData0, clientSecurity));
+		assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, b1ChunkBytes0.length, b1ChunkBytes1.length, b1ChunkData1, clientSecurity));
 
 		TRACE_END();
 	}
@@ -1121,12 +1121,18 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		String draftZipString = BulletinForTesting.saveToZipString(clientDatabase, draft, clientSecurity);
 		byte[] draftZipBytes = Base64.decode(draftZipString);
 
-		Database originalDatabase = testServer.getDatabase();
-		testServer.setDatabase(new MockDraftDatabase());
-		testServer.serverForClients.clearCanUploadList();
-		testServer.allowUploads(clientSecurity.getPublicKeyString());
-		assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), draft.getLocalId(), draftZipBytes.length, 0, draftZipBytes.length, draftZipString, clientSecurity));
-		testServer.setDatabase(originalDatabase);
+		MockMartusServer tempServer = new MockMartusServer(new MockDraftDatabase());
+		try
+		{
+			tempServer.setSecurity(serverSecurity);
+			tempServer.loadBannedClients();
+			tempServer.allowUploads(clientSecurity.getPublicKeyString());
+			assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(tempServer, clientSecurity.getPublicKeyString(), draft.getLocalId(), draftZipBytes.length, 0, draftZipBytes.length, draftZipString, clientSecurity));
+		}
+		finally
+		{
+			tempServer.deleteAllData();
+		}
 
 		TRACE_END();
 	}
@@ -1196,7 +1202,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		testServer.allowUploads(clientSecurity.getPublicKeyString());
 		Database serverDatabase = testServer.getDatabase();
 
-		assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(testServerInterface, 
+		assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(testServer, 
 			clientSecurity.getPublicKeyString(), b.getLocalId(), draft1ZipBytes.length, 0, 
 			draft1ZipBytes.length, draft1ZipString, clientSecurity));
 
@@ -1207,7 +1213,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		assertEquals("Header 2 does not exists?", true, serverDatabase.doesRecordExist(draftHeader2));
 		assertEquals("Header 3 exists?", false, serverDatabase.doesRecordExist(sealedHeader3));
 
-		assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(testServerInterface, 
+		assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(testServer, 
 			clientSecurity.getPublicKeyString(), b.getLocalId(), draft2ZipBytes.length, 0, 
 			draft2ZipBytes.length, draft2ZipString, clientSecurity));
 
@@ -1218,7 +1224,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		assertEquals("Header 2 does not exists?", true, serverDatabase.doesRecordExist(draftHeader2));
 		assertEquals("Header 3 exists?", false, serverDatabase.doesRecordExist(sealedHeader3));
 
-		assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(testServerInterface, 
+		assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(testServer, 
 			clientSecurity.getPublicKeyString(), b.getLocalId(), sealedZipBytes.length, 0, 
 			sealedZipBytes.length, sealedZipString, clientSecurity));
 
@@ -1229,11 +1235,11 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		assertEquals("Header 2 exists?", false, serverDatabase.doesRecordExist(draftHeader2));
 		assertEquals("Header 3 does not exists?", true, serverDatabase.doesRecordExist(sealedHeader3));
 
-		assertEquals(NetworkInterfaceConstants.SEALED_EXISTS, uploadBulletinChunk(testServerInterface, 
+		assertEquals(NetworkInterfaceConstants.SEALED_EXISTS, uploadBulletinChunk(testServer, 
 			clientSecurity.getPublicKeyString(), b.getLocalId(), draft1ZipBytes.length, 0, 
 			draft1ZipBytes.length, draft1ZipString, clientSecurity));
 
-		assertEquals(NetworkInterfaceConstants.DUPLICATE, uploadBulletinChunk(testServerInterface, 
+		assertEquals(NetworkInterfaceConstants.DUPLICATE, uploadBulletinChunk(testServer, 
 			clientSecurity.getPublicKeyString(), b.getLocalId(), sealedZipBytes.length, 0, 
 			sealedZipBytes.length, sealedZipString, clientSecurity));
 
@@ -1244,13 +1250,18 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 	{
 		TRACE_BEGIN("testUploadSealedStatus");
 
-
-		Database originalDatabase = testServer.getDatabase();
-		testServer.setDatabase(new MockSealedDatabase());
-		testServer.serverForClients.clearCanUploadList();
-		testServer.allowUploads(clientSecurity.getPublicKeyString());
-		assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ZipBytes.length, b1ZipString, clientSecurity));
-		testServer.setDatabase(originalDatabase);
+		MockMartusServer tempServer = new MockMartusServer(new MockSealedDatabase());
+		try
+		{
+			tempServer.setSecurity(serverSecurity);
+			tempServer.loadBannedClients();
+			tempServer.allowUploads(clientSecurity.getPublicKeyString());
+			assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(tempServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ZipBytes.length, b1ZipString, clientSecurity));
+		}
+		finally
+		{
+			tempServer.deleteAllData();
+		}
 
 		TRACE_END();
 	}
@@ -1266,14 +1277,14 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 
 		assertEquals("didn't verify sig?", NetworkInterfaceConstants.SIG_ERROR, testServer.uploadBulletin(clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipString));
 
-		assertEquals("didn't verify sig for 1 chunk?", NetworkInterfaceConstants.SIG_ERROR, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ZipBytes.length, b1ZipString, clientSecurity));
+		assertEquals("didn't verify sig for 1 chunk?", NetworkInterfaceConstants.SIG_ERROR, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ZipBytes.length, b1ZipString, clientSecurity));
 
-		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ChunkBytes0.length, b1ChunkData0, clientSecurity));
-		assertEquals("didn't verify sig for chunks?", NetworkInterfaceConstants.SIG_ERROR, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, b1ChunkBytes0.length, b1ChunkBytes1.length, b1ChunkData1, clientSecurity));
+		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ChunkBytes0.length, b1ChunkData0, clientSecurity));
+		assertEquals("didn't verify sig for chunks?", NetworkInterfaceConstants.SIG_ERROR, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, b1ChunkBytes0.length, b1ChunkBytes1.length, b1ChunkData1, clientSecurity));
 
 		testServer.security = serverSecurity;
-		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ChunkBytes0.length, b1ChunkData0, clientSecurity));
-		assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, b1ChunkBytes0.length, b1ChunkBytes1.length, b1ChunkData1, clientSecurity));
+		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ChunkBytes0.length, b1ChunkData0, clientSecurity));
+		assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, b1ChunkBytes0.length, b1ChunkBytes1.length, b1ChunkData1, clientSecurity));
 
 		TRACE_END();
 	}
@@ -1288,13 +1299,13 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 
 		assertEquals("not base64", NetworkInterfaceConstants.INVALID_DATA, testServer.uploadBulletin(authorClientId, bulletinLocalId, "not a valid bulletin!"));
 
-		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ChunkBytes0.length, b1ChunkData0, clientSecurity));
-		assertEquals("not base64 chunk", NetworkInterfaceConstants.INVALID_DATA, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, b1ChunkBytes0.length, 100, "not a valid bulletin!", clientSecurity));
-		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ChunkBytes0.length, b1ChunkData0, clientSecurity));
-		assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(testServerInterface, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, b1ChunkBytes0.length, b1ChunkBytes1.length, b1ChunkData1, clientSecurity));
+		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ChunkBytes0.length, b1ChunkData0, clientSecurity));
+		assertEquals("not base64 chunk", NetworkInterfaceConstants.INVALID_DATA, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, b1ChunkBytes0.length, 100, "not a valid bulletin!", clientSecurity));
+		assertEquals(NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ChunkBytes0.length, b1ChunkData0, clientSecurity));
+		assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, b1ChunkBytes0.length, b1ChunkBytes1.length, b1ChunkData1, clientSecurity));
 
 		assertEquals("empty fullupload", NetworkInterfaceConstants.INVALID_DATA, testServer.uploadBulletin(authorClientId, bulletinLocalId, ""));
-		assertEquals("empty chunk", NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServerInterface, authorClientId, bulletinLocalId, 1, 0, 0, "", clientSecurity));
+		assertEquals("empty chunk", NetworkInterfaceConstants.CHUNK_OK, uploadBulletinChunk(testServer, authorClientId, bulletinLocalId, 1, 0, 0, "", clientSecurity));
 		
 		ByteArrayOutputStream out2 = new ByteArrayOutputStream();
 		ZipOutputStream zipWithBadEntry = new ZipOutputStream(out2);
@@ -1882,7 +1893,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		assertEquals("requestUploadRights", NetworkInterfaceConstants.SERVER_DOWN, strResult );
 		assertEquals("requestUploadRights", 1, serverForClients.getNumberActiveClients() );
 		
-		strResult = uploadBulletinChunk(testServerInterface, clientId, bogusStringParameter, 0, 0, 0, bogusStringParameter, clientSecurity);
+		strResult = uploadBulletinChunk(testServer, clientId, bogusStringParameter, 0, 0, 0, bogusStringParameter, clientSecurity);
 		assertEquals("uploadBulletinChunk", NetworkInterfaceConstants.SERVER_DOWN, strResult );
 		assertEquals("uploadBulletinChunk", 1, serverForClients.getNumberActiveClients() );
 
@@ -1965,14 +1976,14 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		return draftZipString;
 	}
 	
-	String uploadBulletinChunk(NetworkInterface server, String authorId, String localId, int totalLength, int offset, int chunkLength, String data, MartusCrypto signer) throws Exception
+	String uploadBulletinChunk(MartusServer server, String authorId, String localId, int totalLength, int offset, int chunkLength, String data, MartusCrypto signer) throws Exception
 	{
 		String stringToSign = authorId + "," + localId + "," + Integer.toString(totalLength) + "," + 
 					Integer.toString(offset) + "," + Integer.toString(chunkLength) + "," + data;
 		byte[] bytesToSign = stringToSign.getBytes("UTF-8");
 		byte[] sigBytes = signer.createSignatureOfStream(new ByteArrayInputStream(bytesToSign));
 		String signature = Base64.encode(sigBytes);
-		return testServer.uploadBulletinChunk(authorId, localId, totalLength, offset, chunkLength, data, signature);
+		return server.uploadBulletinChunk(authorId, localId, totalLength, offset, chunkLength, data, signature);
 	}
 	
 	static File tempFile;
