@@ -135,7 +135,7 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 	{
 		assertFalse("initial shouldsleep wrong?", realRetriever.shouldSleepNextCycle);
 		// get account list (empty)
-		realRetriever.tick();
+		realRetriever.retrieveNextBulletin();
 		assertNull("tick asked for account?", supplier.gotAccount);
 		assertNull("tick asked for id?", supplier.gotLocalId);
 		assertTrue("not ready to sleep?", realRetriever.shouldSleepNextCycle);
@@ -171,12 +171,12 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		realRetriever.shouldSleepNextCycle = false;
 		assertEquals("before tick a", 0, db.getRecordCount());
 		// get account list
-		realRetriever.tick();
+		realRetriever.retrieveNextBulletin();
 		assertNull("tick a asked for account?", supplier.gotAccount);
 		assertNull("tick a asked for id?", supplier.gotLocalId);
 		assertEquals("after tick a", 0, db.getRecordCount());
 		//get bulletin list
-		realRetriever.tick();
+		realRetriever.retrieveNextBulletin();
 		assertNull("tick b asked for account?", supplier.gotAccount);
 		assertNull("tick b asked for id?", supplier.gotLocalId);
 		assertEquals("after tick b", 0, db.getRecordCount());
@@ -188,17 +188,17 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 			Bulletin expectedBulletin = (Bulletin)bulletins.get(goodTick);
 			supplier.returnZipData = getZipString(fakeDatabase, expectedBulletin, clientSecurity);
 			supplier.addBur(expectedBulletin.getAccount(), expectedBulletin.getLocalId(), burs[goodTick]);
-			realRetriever.tick();
+			realRetriever.retrieveNextBulletin();
 			assertEquals("tick " + goodTick + " wrong account?", clientSecurity.getPublicKeyString(), supplier.gotAccount);
 			assertEquals("tick " + goodTick + " wrong id?", ((Bulletin)bulletins.get(goodTick)).getLocalId(), supplier.gotLocalId);
 			assertEquals("after tick " + goodTick, (goodTick+1)*databaseRecordsPerBulletin, db.getRecordCount());
 			assertFalse("shouldsleep " + goodTick + " wrong?", realRetriever.shouldSleepNextCycle);
 		}
-		realRetriever.tick();
+		realRetriever.retrieveNextBulletin();
 		assertEquals("after extra tick", 3*databaseRecordsPerBulletin, db.getRecordCount());
 		assertEquals("extra tick got uids?", 0, realRetriever.uidsToRetrieve.size());
 		assertTrue("after extra tick shouldsleep false?", realRetriever.shouldSleepNextCycle);
-		realRetriever.tick();
+		realRetriever.retrieveNextBulletin();
 		assertEquals("after extra tick2", 3*databaseRecordsPerBulletin, db.getRecordCount());
 		assertEquals("extra tick2 got uids?", 0, realRetriever.uidsToRetrieve.size());
 	}

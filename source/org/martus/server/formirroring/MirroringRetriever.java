@@ -64,7 +64,7 @@ public class MirroringRetriever
 	
 	static class MissingBulletinUploadRecordException extends Exception {}
 	
-	public void tick()
+	public void retrieveNextBulletin()
 	{
 		UniversalId uid = getNextUidToRetrieve();
 		if(uid == null)

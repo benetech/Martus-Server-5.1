@@ -313,17 +313,11 @@ public class ServerForMirroring implements ServerSupplierInterface
 		
 		synchronized void protectedRun()
 		{
-			if(retrievers.size() == 0)
-				return;
-			++nextRetriever;
-			if(nextRetriever >= retrievers.size())
-				nextRetriever = 0;
-				
-			MirroringRetriever thisRetriever = (MirroringRetriever)retrievers.get(nextRetriever);
-			thisRetriever.tick();
+			for(int i = 0; i < retrievers.size(); ++i)
+			{	
+				((MirroringRetriever)retrievers.get(i)).retrieveNextBulletin();
+			}
 		}
-
-		int nextRetriever;
 		Vector retrievers;
 	}
 	
