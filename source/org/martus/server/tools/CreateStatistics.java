@@ -28,6 +28,9 @@ package org.martus.server.tools;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.Vector;
 import org.martus.common.ContactInfo;
 import org.martus.common.LoggerInterface;
@@ -384,21 +387,31 @@ public class CreateStatistics
 					String wasBurCreatedByThisServer = wasOriginalServer(burKey);
 					if(wasBurCreatedByThisServer.startsWith(ERROR_MSG))
 						errorOccured = true;
-					String dateBulletinWasCreated = getOriginalUploadDate(burKey);
-					if(dateBulletinWasCreated.startsWith(ERROR_MSG))
+					String dateBulletinWasSavedOnServer = getOriginalUploadDate(burKey);
+					if(dateBulletinWasSavedOnServer.startsWith(ERROR_MSG))
 						errorOccured = true;
 					
 					String allPrivate = "";
 					int publicAttachmentCount = 0;
 					int privateAttachmentCount = 0;
 					int bulletinSizeInKBytes = 0;
+					String hasUnknownTags = "";
+					String dateBulletinLastSaved = "";
 					try
 					{
 						BulletinHeaderPacket bhp = MartusServer.loadBulletinHeaderPacket(fileDatabase, key, security);
+						if(bhp.hasUnknownTags())
+							hasUnknownTags = BULLETIN_HAS_UNKNOWN_TAGS_TRUE;
+						else
+							hasUnknownTags = BULLETIN_HAS_UNKNOWN_TAGS_FALSE;
+						Calendar cal = new GregorianCalendar();
+						cal.setTimeInMillis(bhp.getLastSavedTime());		
+						dateBulletinLastSaved = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(cal.getTime());
+						
+						
 						bulletinSizeInKBytes = MartusUtilities.getBulletinSize(fileDatabase, bhp) / 1000;
 						String[] publicAttachments = bhp.getPublicAttachmentIds();
 						String[] privateAttachments = bhp.getPrivateAttachmentIds();
-
 						if(bhp.isAllPrivate())
 						{
 							allPrivate = BULLETIN_ALL_PRIVATE_TRUE;
@@ -418,6 +431,7 @@ public class CreateStatistics
 						allPrivate = ERROR_MSG + " " + e1;
 						publicAttachmentCount = -1;
 						privateAttachmentCount = -1;
+						hasUnknownTags = ERROR_MSG;
 					}
 					
 					
@@ -430,7 +444,9 @@ public class CreateStatistics
 					getNormalizedString(Integer.toString(publicAttachmentCount)) + DELIMITER + 
 					getNormalizedString(Integer.toString(privateAttachmentCount)) + DELIMITER + 
 					getNormalizedString(wasBurCreatedByThisServer) + DELIMITER + 
-					getNormalizedString(dateBulletinWasCreated) + DELIMITER + 
+					getNormalizedString(dateBulletinWasSavedOnServer) + DELIMITER +
+					getNormalizedString(dateBulletinLastSaved) + DELIMITER +
+					getNormalizedString(hasUnknownTags) + DELIMITER +
 					getNormalizedString(publicCode);
 					
 					writer.writeln(bulletinInfo);
@@ -453,7 +469,7 @@ public class CreateStatistics
 
 			private String getMartusBuildDateForBulletin(DatabaseKey key) throws IOException, TooManyAccountsException
 			{
-				String martusBuildDateBulletionWasCreatedWith;
+				String martusBuildDateBulletionWasCreatedWith = ERROR_MSG;
 				try
 				{
 					File bhpFile = fileDatabase.getFileForRecord(key);
@@ -635,6 +651,8 @@ public class CreateStatistics
 	final String BULLETIN_PRIVATE_ATTACHMENT_COUNT = "private attachments";
 	final String BULLETIN_ORIGINALLY_UPLOADED_TO_THIS_SERVER = "original server";
 	final String BULLETIN_DATE_UPLOADED = "date uploaded";
+	final String BULLETIN_DATE_LAST_SAVED = "date last saved";
+	final String BULLETIN_HAS_UNKNOWN_TAGS = "has unknown tags";
 	
 	final String BULLETIN_ORIGINALLY_UPLOADED_TO_THIS_SERVER_TRUE = "1";
 	final String BULLETIN_ORIGINALLY_UPLOADED_TO_THIS_SERVER_FALSE = "0";
@@ -642,6 +660,8 @@ public class CreateStatistics
 	final String BULLETIN_SEALED = "sealed";
 	final String BULLETIN_ALL_PRIVATE_TRUE = "1";
 	final String BULLETIN_ALL_PRIVATE_FALSE = "0";
+	final String BULLETIN_HAS_UNKNOWN_TAGS_TRUE = "1";
+	final String BULLETIN_HAS_UNKNOWN_TAGS_FALSE = "0";
 	
 	final String BULLETIN_STATISTICS_HEADER = 
 		getNormalizedString(BULLETIN_HEADER_PACKET) + DELIMITER +
@@ -653,6 +673,8 @@ public class CreateStatistics
 		getNormalizedString(BULLETIN_PRIVATE_ATTACHMENT_COUNT) + DELIMITER +
 		getNormalizedString(BULLETIN_ORIGINALLY_UPLOADED_TO_THIS_SERVER) + DELIMITER +
 		getNormalizedString(BULLETIN_DATE_UPLOADED) + DELIMITER +
+		getNormalizedString(BULLETIN_DATE_LAST_SAVED) + DELIMITER +
+		getNormalizedString(BULLETIN_HAS_UNKNOWN_TAGS) + DELIMITER +
 		getNormalizedString(ACCOUNT_PUBLIC_CODE);
 	
 }
