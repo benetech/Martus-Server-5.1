@@ -1477,7 +1477,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	public boolean canExitNow()
 	{
 		
-		if(amp.canExitNow())
+		if(!amp.canExitNow())
 			return false;
 		return serverForClients.canExitNow();
 	}
@@ -2144,7 +2144,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		{
 			if( isShutdownRequested() && canExitNow() )
 			{
-				log("Shutdown request acknowledged.");
+				log("Shutdown request acknowledged, preparing to shutdown.");
 				
 				serverForClients.prepareToShutdown();				
 				getShutdownFile().delete();
