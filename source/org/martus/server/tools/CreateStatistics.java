@@ -33,6 +33,8 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Vector;
 import org.martus.common.ContactInfo;
+import org.martus.common.HQKey;
+import org.martus.common.HQKeys;
 import org.martus.common.LoggerInterface;
 import org.martus.common.MartusUtilities;
 import org.martus.common.MartusXml;
@@ -342,7 +344,6 @@ public class CreateStatistics
 			{
 				writer = writerToUse;
 			}
-			
 			public void visit(DatabaseKey key)
 			{
 				errorOccured = false;
@@ -372,6 +373,9 @@ public class CreateStatistics
 					getNormalizedString(dateBulletinWasSavedOnServer) + DELIMITER +
 					getNormalizedString(dateBulletinLastSaved) + DELIMITER +
 					getNormalizedString(hasUnknownTags) + DELIMITER +
+					getNormalizedString(allHQsProxyUpload) + DELIMITER +
+					getNormalizedString(hQsAuthorizedToRead) + DELIMITER +
+					getNormalizedString(hQsAuthorizedToUpload) + DELIMITER +
 					getNormalizedString(publicCode);
 					
 					writer.writeln(bulletinInfo);
@@ -394,12 +398,15 @@ public class CreateStatistics
 
 			private void getBulletinHeaderInfo(DatabaseKey key)
 			{
-				allPrivate = "";
-				hasUnknownTags = "";
-				dateBulletinLastSaved = "";
-				publicAttachmentCount = 0;
-				privateAttachmentCount = 0;
-				bulletinSizeInKBytes = 0;
+				allPrivate = ERROR_MSG;
+				hasUnknownTags = ERROR_MSG;
+				dateBulletinLastSaved = ERROR_MSG;
+				allHQsProxyUpload = ERROR_MSG;
+				hQsAuthorizedToRead = ERROR_MSG;
+				hQsAuthorizedToUpload = ERROR_MSG;
+				publicAttachmentCount = -1;
+				privateAttachmentCount = -1;
+				bulletinSizeInKBytes = -1;
 
 				try
 				{
@@ -412,13 +419,22 @@ public class CreateStatistics
 					cal.setTimeInMillis(bhp.getLastSavedTime());		
 					dateBulletinLastSaved = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(cal.getTime());
 					
-					
 					bulletinSizeInKBytes = MartusUtilities.getBulletinSize(fileDatabase, bhp) / 1000;
 					String[] publicAttachments = bhp.getPublicAttachmentIds();
 					String[] privateAttachments = bhp.getPrivateAttachmentIds();
+
+					if(bhp.canAllHQsProxyUpload())
+						allHQsProxyUpload = BULLETIN_ALL_HQS_PROXY_UPLOAD_TRUE;
+					else
+						allHQsProxyUpload = BULLETIN_ALL_HQS_PROXY_UPLOAD_FALSE;
+					
+					hQsAuthorizedToRead = GetListOfHQKeys(bhp.getAuthorizedToReadKeys());
+					hQsAuthorizedToUpload = GetListOfHQKeys(bhp.getAuthorizedToUploadKeys());
+					
 					if(bhp.isAllPrivate())
 					{
 						allPrivate = BULLETIN_ALL_PRIVATE_TRUE;
+						publicAttachmentCount = 0;
 						privateAttachmentCount = publicAttachments.length;
 						privateAttachmentCount += privateAttachments.length;
 					}
@@ -433,12 +449,28 @@ public class CreateStatistics
 				{
 					errorOccured = true;
 					allPrivate = ERROR_MSG + " " + e1;
-					hasUnknownTags = ERROR_MSG;
-					dateBulletinLastSaved = ERROR_MSG;
-					publicAttachmentCount = -1;
-					privateAttachmentCount = -1;
-					bulletinSizeInKBytes = -1;
 				}
+			}
+			
+			private String GetListOfHQKeys(HQKeys keys)
+			{
+				String keyList = "";
+				try
+				{
+					for(int i = 0; i < keys.size(); i++)
+					{
+						HQKey key = keys.get(i);
+						if(keyList.length()>0)
+							keyList += ", ";
+						keyList += key.getPublicCode();
+					}
+				}
+				catch(InvalidBase64Exception e)
+				{
+					errorOccured = true;
+					keyList = ERROR_MSG;
+				}
+				return keyList;
 			}
 			private String getBulletinType(DatabaseKey key)
 			{
@@ -535,6 +567,9 @@ public class CreateStatistics
 			String allPrivate;
 			String hasUnknownTags;
 			String dateBulletinLastSaved;
+			String allHQsProxyUpload;
+			String hQsAuthorizedToRead;
+			String hQsAuthorizedToUpload;
 			int publicAttachmentCount;
 			int privateAttachmentCount;
 			int bulletinSizeInKBytes;
@@ -669,6 +704,9 @@ public class CreateStatistics
 	final String BULLETIN_DATE_UPLOADED = "date uploaded";
 	final String BULLETIN_DATE_LAST_SAVED = "date last saved";
 	final String BULLETIN_HAS_UNKNOWN_TAGS = "has unknown tags";
+	final String BULLETIN_ALL_HQS_PROXY_UPLOAD = "all HQs proxy upload";
+	final String BULLETIN_AUTHORIZED_TO_READ = "HQs authorized to read";
+	final String BULLETIN_AUTHORIZED_TO_UPLOAD = "HQs authorized to upload";
 	
 	final String BULLETIN_ORIGINALLY_UPLOADED_TO_THIS_SERVER_TRUE = "1";
 	final String BULLETIN_ORIGINALLY_UPLOADED_TO_THIS_SERVER_FALSE = "0";
@@ -678,6 +716,8 @@ public class CreateStatistics
 	final String BULLETIN_ALL_PRIVATE_FALSE = "0";
 	final String BULLETIN_HAS_UNKNOWN_TAGS_TRUE = "1";
 	final String BULLETIN_HAS_UNKNOWN_TAGS_FALSE = "0";
+	final String BULLETIN_ALL_HQS_PROXY_UPLOAD_TRUE = "1";
+	final String BULLETIN_ALL_HQS_PROXY_UPLOAD_FALSE = "0";
 	
 	final String BULLETIN_STATISTICS_HEADER = 
 		getNormalizedString(BULLETIN_HEADER_PACKET) + DELIMITER +
@@ -691,6 +731,9 @@ public class CreateStatistics
 		getNormalizedString(BULLETIN_DATE_UPLOADED) + DELIMITER +
 		getNormalizedString(BULLETIN_DATE_LAST_SAVED) + DELIMITER +
 		getNormalizedString(BULLETIN_HAS_UNKNOWN_TAGS) + DELIMITER +
+		getNormalizedString(BULLETIN_ALL_HQS_PROXY_UPLOAD) + DELIMITER +
+		getNormalizedString(BULLETIN_AUTHORIZED_TO_READ) + DELIMITER +
+		getNormalizedString(BULLETIN_AUTHORIZED_TO_UPLOAD) + DELIMITER +
 		getNormalizedString(ACCOUNT_PUBLIC_CODE);
 	
 }
