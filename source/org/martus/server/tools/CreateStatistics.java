@@ -139,6 +139,10 @@ public class CreateStatistics
 		fileDatabase.initialize();
 		clientsThatCanUpload = MartusUtilities.loadCanUploadFile(new File(packetsDir.getParentFile(), ServerForClients.UPLOADSOKFILENAME));
 		bannedClients = MartusUtilities.loadBannedClients(new File(adminStartupDir, ServerForClients.BANNEDCLIENTSFILENAME));
+
+		UnicodeReader reader = new UnicodeReader(new File(adminStartupDir, MartusServer.HIDDENPACKETSFILENAME));
+		hiddenBulletinIds = MartusServerUtilities.getHiddenPacketsList(reader);
+		
 		clientsNotToAmplify = MartusUtilities.loadClientsNotAmplified(new File(adminStartupDir, ServerForAmplifiers.CLIENTS_NOT_TO_AMPLIFY_FILENAME));
 		authorizeLog = new AuthorizeLog(security, new NullLogger(), new File(packetsDir.getParentFile(), ServerForClients.AUTHORIZELOGFILENAME));  		
 		authorizeLog.loadFile();
@@ -351,10 +355,9 @@ public class CreateStatistics
 		final File bulletinStatsError = new File(destinationDir, BULLETIN_STATS_FILE_NAME + ERR_EXT + CSV_EXT);
 		class BulletinVisitor implements Database.PacketVisitor
 		{
-			public BulletinVisitor(UnicodeWriter writerToUse, String isBulletinHiddenToUse)
+			public BulletinVisitor(UnicodeWriter writerToUse)
 			{
 				writer = writerToUse;
-				isBulletinHidden = isBulletinHiddenToUse;
 			}
 			public void visit(DatabaseKey key)
 			{
@@ -366,6 +369,7 @@ public class CreateStatistics
 
 					String martusVersionBulletionWasCreatedWith = getMartusBuildDateForBulletin(key);
 					String bulletinType = getBulletinType(key);
+					String isBulletinHidden = getIsBulletinHidden(key.getUniversalId());
 					getPublicCode(key.getAccountId());
 					getBulletinHeaderInfo(key);
 					DatabaseKey burKey = MartusServerUtilities.getBurKey(key);
@@ -505,8 +509,8 @@ public class CreateStatistics
 					else
 						allHQsProxyUpload = BULLETIN_ALL_HQS_PROXY_UPLOAD_FALSE;
 					
-					hQsAuthorizedToRead = GetListOfHQKeys(bhp.getAuthorizedToReadKeys());
-					hQsAuthorizedToUpload = GetListOfHQKeys(bhp.getAuthorizedToUploadKeys());
+					hQsAuthorizedToRead = getListOfHQKeys(bhp.getAuthorizedToReadKeys());
+					hQsAuthorizedToUpload = getListOfHQKeys(bhp.getAuthorizedToUploadKeys());
 					
 					if(bhp.isAllPrivate())
 					{
@@ -527,8 +531,17 @@ public class CreateStatistics
 					allPrivate = ERROR_MSG + " " + e1;
 				}
 			}
+			private String getIsBulletinHidden(UniversalId uId)
+			{
+				String bulletinHidden = ERROR_MSG;
+				if(hiddenBulletinIds.contains(uId))
+					bulletinHidden = BULLETIN_HIDDEN_TRUE;
+				else
+					bulletinHidden = BULLETIN_HIDDEN_FALSE;
+				return bulletinHidden;
+			}
 			
-			private String GetListOfHQKeys(HQKeys keys)
+			private String getListOfHQKeys(HQKeys keys)
 			{
 				String keyList = "";
 				try
@@ -630,7 +643,6 @@ public class CreateStatistics
 			}
 			
 			UnicodeWriter writer;
-			String isBulletinHidden;
 			String allPrivate;
 			String dateBulletinLastSaved;
 			String allHQsProxyUpload;
@@ -664,7 +676,7 @@ public class CreateStatistics
 		try
 		{
 			writer.writeln(BULLETIN_STATISTICS_HEADER);
-			fileDatabase.visitAllRecords(new BulletinVisitor(writer, BULLETIN_HIDDEN_FALSE));
+			fileDatabase.visitAllRecords(new BulletinVisitor(writer));
 		}
 		finally
 		{
@@ -719,6 +731,7 @@ public class CreateStatistics
 	Vector clientsThatCanUpload;
 	Vector bannedClients;
 	Vector clientsNotToAmplify;
+	Vector hiddenBulletinIds;
 	AuthorizeLog authorizeLog;
 	
 	final String DELIMITER = ",";

@@ -2243,7 +2243,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	private static final int EXIT_INVALID_PASSWORD = 73;
 	
 	private static final String KEYPAIRFILENAME = "keypair.dat";
-	private static final String HIDDENPACKETSFILENAME = "isHidden.txt";
+	public static final String HIDDENPACKETSFILENAME = "isHidden.txt";
 	private static final String COMPLIANCESTATEMENTFILENAME = "compliance.txt";
 	private static final String MARTUSSHUTDOWNFILENAME = "exit";
 	
