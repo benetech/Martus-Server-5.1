@@ -28,6 +28,7 @@ package org.martus.server.forclients;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.Arrays;
 import java.util.Vector;
 
 import org.martus.common.HQKey;
@@ -164,6 +165,51 @@ public class TestServerForClients extends TestCaseEnhanced
 
 		TRACE_END();
 		super.tearDown();
+	}
+	
+	public void testShiftToDevelopmentPortsIfRequested() throws Exception
+	{
+		class ServerWithSettableOS extends ServerForClients
+		{
+			public ServerWithSettableOS() throws Exception
+			{
+				super(new MockMartusServer());
+			}
+			
+			boolean wantsDevelopmentMode()
+			{
+				return pretendToHaveDevelopmentFlag;
+			}
+			
+			boolean isRunningUnderWindows()
+			{
+				return pretendToBeUnderWindows;
+			}
+
+			
+			public boolean pretendToBeUnderWindows = false;
+			public boolean pretendToHaveDevelopmentFlag = false;
+		}
+		
+		int ports[] = {1,2};
+		
+		ServerWithSettableOS server = new ServerWithSettableOS();
+		server.pretendToBeUnderWindows = true;
+		server.pretendToHaveDevelopmentFlag = true;
+		int[] windowsPorts = server.shiftToDevelopmentPortsIfRequested(ports);
+		assertTrue("shifted under windows?", Arrays.equals(ports, windowsPorts));
+		
+		server.pretendToBeUnderWindows = false;
+		server.pretendToHaveDevelopmentFlag = false;
+		int[] productionLinuxPorts = server.shiftToDevelopmentPortsIfRequested(ports);
+		assertTrue("shifted under production?", Arrays.equals(ports, productionLinuxPorts));
+		
+		server.pretendToBeUnderWindows = false;
+		server.pretendToHaveDevelopmentFlag = true;
+		int[] developmentLinuxPorts = server.shiftToDevelopmentPortsIfRequested(ports);
+		for(int i=0; i < ports.length; ++i)
+			assertEquals("didn't shift? " + i, ports[i]+9000, developmentLinuxPorts[i]);
+		
 	}
 
 	public void testBannedClients()

@@ -200,6 +200,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		serverForAmplifiers = new ServerForAmplifiers(this, getLogger());
 		amp = new MartusAmplifier(this);
 		failedUploadRequestsPerIp = new Hashtable();
+		store = new BulletinStore();
 	}
 	
 	public boolean anyUnexpectedFilesOrFoldersInStartupDirectory()
@@ -2055,7 +2056,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		Database diskDatabase = new ServerFileDatabase(packetsDirectory, getSecurity());
 		try
 		{
-			diskDatabase.initialize();
+			store.doAfterSigninInitialization(dataDirectory, diskDatabase);
 		}
 		catch(FileDatabase.MissingAccountMapException e)
 		{
@@ -2200,6 +2201,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	
 	private File dataDirectory;
 	protected Database database;
+	private BulletinStore store;
 	private String complianceStatement; 
 	
 	Hashtable failedUploadRequestsPerIp;

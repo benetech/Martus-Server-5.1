@@ -1,0 +1,8 @@
+If this file exists, the server will listen on non-privileged ports 
+(9000 + the original port number). This allows developers running 
+under Linux to run a server without being root.
+
+To be useful, you must also use ssh to establish tunnels that 
+redirect client requests coming in on the normal ports up to the 
+ports where the server is listening. These tunnels must be set up 
+as root, but they can persist until you reboot.

@@ -36,6 +36,7 @@ import java.util.Vector;
 import org.martus.common.MagicWordEntry;
 import org.martus.common.MagicWords;
 import org.martus.common.MartusUtilities;
+import org.martus.common.Version;
 import org.martus.common.MartusUtilities.FileVerificationException;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.network.MartusXmlRpcServer;
@@ -82,11 +83,55 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	public void addListeners() throws UnknownHostException
 	{
 		log("Initializing ServerForClients");
-		handleSSL(NetworkInterfaceXmlRpcConstants.defaultSSLPorts);
-		handleNonSSL(NetworkInterfaceXmlRpcConstants.defaultNonSSLPorts);
+		handleSSL(getSSLPorts());
+		handleNonSSL(getNonSSLPorts());
 		log("Client ports opened");
 	}
 	
+	private int[] getNonSSLPorts()
+	{
+		int[] defaultPorts = NetworkInterfaceXmlRpcConstants.defaultNonSSLPorts;
+		return shiftToDevelopmentPortsIfRequested(defaultPorts);
+	}
+
+	private int[] getSSLPorts()
+	{
+		int[] defaultPorts = NetworkInterfaceXmlRpcConstants.defaultSSLPorts;
+		return shiftToDevelopmentPortsIfRequested(defaultPorts);
+	}
+
+	public int[] shiftToDevelopmentPortsIfRequested(int[] defaultPorts)
+	{
+		if(isRunningUnderWindows())
+			return defaultPorts;
+		
+		if(!wantsDevelopmentMode())
+			return defaultPorts;
+		
+		int[] developmentPorts = new int[defaultPorts.length];
+		for(int p = 0; p < developmentPorts.length; ++p)
+			developmentPorts[p] = defaultPorts[p] + 9000;
+		
+		return developmentPorts;
+	}
+
+	boolean wantsDevelopmentMode()
+	{
+		if(MartusServer.class.getResource("ForceListenOnNonPrivilegedPorts.txt") == null)
+			return false;
+		
+		log("*********************************************");
+		log("WARNING: Development mode selected;");
+		log("         Using non-privileged ports!");
+		log("*********************************************");
+		return true;
+	}
+
+	boolean isRunningUnderWindows()
+	{
+		return Version.isRunningUnderWindows();
+	}
+
 	public synchronized void log(String message)
 	{
 		coreServer.log(message);
