@@ -230,8 +230,7 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 	{
 		{
 			StringBuffer logMsg = new StringBuffer();
-			logMsg.append("getBulletinChunk request by " + coreServer.getClientAliasForLogging(myAccountId));
-			logMsg.append("  " + coreServer.getClientAliasForLogging(authorAccountId) + " " + bulletinLocalId);
+			logMsg.append("getBulletinChunk  " + coreServer.getClientAliasForLogging(authorAccountId) + " " + bulletinLocalId);
 			logMsg.append("  Offset=" + chunkOffset + ", Max=" + maxChunkSize);
 			log(logMsg.toString());
 		}
