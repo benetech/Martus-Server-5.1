@@ -93,6 +93,17 @@ public class AuthorizeLog
 		MartusServerUtilities.createSignatureFileFromFileOnServer(authorizeLogFile, security);
 	}
 	
+	public AuthorizeLogEntry getAuthorizedClientEntry(String publicCode)
+	{
+		for(int i = 0 ; i< authorizedClients.size(); ++i)
+		{
+			AuthorizeLogEntry authorizeLogEntry = ((AuthorizeLogEntry)authorizedClients.get(i));
+			if(authorizeLogEntry.getPublicCode().equals(publicCode))
+					return authorizeLogEntry;
+		}
+		return null;
+	}
+	
 	public Vector getAuthorizedClientStrings()
 	{
 		Vector clientStrings = new Vector();

@@ -82,6 +82,24 @@ public class TestAuthorizeLog extends TestCaseEnhanced
 		assertContains("new client not added after load?", newClient, currentClients2);
 	}
 	
+	public void testGetAuthorizedLogEntryForClient() throws Exception
+	{
+		String date1 = "date1";
+		String clientPublicCode1 = "publiccode1";
+		String ip1 = "ip1";
+		String group1 = "group1";
+		String newClient = date1 + "	" + clientPublicCode1 + "	" + ip1 + "	" + group1;
+		authorized.appendToFile(new AuthorizeLogEntry(newClient));
+		AuthorizeLogEntry invalidEntry = authorized.getAuthorizedClientEntry("unknownPublicCode");
+		assertNull("Client should not exist?", invalidEntry);
+		AuthorizeLogEntry clientEntry = authorized.getAuthorizedClientEntry(clientPublicCode1);
+		assertNotNull("Client doesn't exist?", clientEntry);
+		assertEquals(date1, clientEntry.getDate());
+		assertEquals(clientPublicCode1, clientEntry.getPublicCode());
+		assertEquals(ip1, clientEntry.getIp());
+		assertEquals(group1, clientEntry.getGroupName());
+	}
+	
 	public void testLowLevelAuthorizeLogToFile() throws Exception
 	{
 		File tempFile1 = createTempFileFromName("$$$MartusTestFileAuthorizeLogLowLevel");
