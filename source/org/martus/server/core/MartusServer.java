@@ -1785,7 +1785,8 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		String indexEveryXMinutesTag = "--amplifier-indexing-minutes=";
 		String ampipTag = "--amplifier-ip=";
 		String mainIpTag = "--listeners-ip=";
-		String secureModeTag = "secure";
+		String secureModeTag = "--secure";
+		String noPasswordTag = "--nopassword";
 		
 		for(int arg = 0; arg < args.length; ++arg)
 		{
@@ -1794,7 +1795,6 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 				enterSecureMode();
 			if(argument.startsWith(mainIpTag))
 				mainIpAddress = argument.substring(mainIpTag.length());
-			String noPasswordTag = "nopassword";
 			if(argument.equals(noPasswordTag))
 				insecurePassword = "password".toCharArray();
 			if(argument.startsWith(ampipTag))
@@ -1803,14 +1803,14 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			if(argument.startsWith(indexEveryXHourTag))
 			{	
 				String hours = argument.substring(indexEveryXHourTag.length());
-				System.out.println("Indexing every " + hours + " hours");
+				System.out.println("Amplifier indexing every " + hours + " hours");
 				long indexEveryXHours = new Integer(hours).longValue();
 				indexEveryXMinutes = indexEveryXHours * 60;
 			}
 			if(argument.startsWith(indexEveryXMinutesTag))
 			{	
 				String minutes = argument.substring(indexEveryXMinutesTag.length());
-				System.out.println("Indexing every " + minutes + " minutes");
+				System.out.println("Amplifier indexing every " + minutes + " minutes");
 				indexEveryXMinutes = new Integer(minutes).longValue();
 			}
 		}
@@ -1818,7 +1818,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		{
 			long defaultSyncHours = MartusAmplifier.DEFAULT_HOURS_TO_SYNC;
 			indexEveryXMinutes = defaultSyncHours * 60;
-			System.out.println("Indexing every " + defaultSyncHours + " hours");
+			System.out.println("Amplifier indexing every " + defaultSyncHours + " hours");
 		}
 		
 		dataSynchIntervalMillis = indexEveryXMinutes * MINUTES_TO_MILLI;
