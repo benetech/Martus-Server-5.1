@@ -598,7 +598,11 @@ public class CreateStatistics
 			{
 				String rawDate = getMartusBuildInfoField(martusBuildInfo, 0);
 				if(rawDate.startsWith("?"))
+				{
+					if(rawDate.length() == 1)
+						return rawDate;
 					return rawDate.substring(1);
+				}
 				SimpleDateFormat dateFormat = new SimpleDateFormat(MARTUS_BULLETIN_BUILD_DATE_PATTERN);
 				try 
 				{
@@ -618,9 +622,9 @@ public class CreateStatistics
 			private String getMartusBuildInfoField(String martusBuildInfo, int position)
 			{
 				if(martusBuildInfo == null)
-					return "";
+					return "?";
 				if(martusBuildInfo.length()==0)
-					return "";
+					return "?";
 				int splitAt = martusBuildInfo.indexOf(".");
 				if(splitAt <= 0)
 				{
@@ -841,7 +845,7 @@ public class CreateStatistics
 	AuthorizeLog authorizeLog;
 	
 	final String ISO_DATE_PATTERN = "yyyy-MM-dd";
-	final String ISO_TIME_PATTERN = "kk:mm";
+	final String ISO_TIME_PATTERN = "HH:mm";
 	final String MARTUS_BULLETIN_BUILD_DATE_PATTERN = "yyyyMMdd";
 	
 	final String DELIMITER = ",";
