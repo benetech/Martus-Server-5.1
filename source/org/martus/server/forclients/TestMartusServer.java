@@ -69,7 +69,7 @@ import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
 import org.martus.common.test.TestCaseEnhanced;
 import org.martus.common.utilities.MartusServerUtilities;
-import org.martus.server.main.*;
+import org.martus.server.main.MartusServer;
 import org.martus.util.Base64;
 import org.martus.util.UnicodeReader;
 import org.martus.util.UnicodeWriter;

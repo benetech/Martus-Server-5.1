@@ -3,9 +3,6 @@
 	<name>martus-server</name>
 	<comment></comment>
 	<projects>
-		<project>martus-amplifier</project>
-		<project>martus-common</project>
-		<project>martus-utils</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
