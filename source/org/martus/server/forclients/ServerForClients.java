@@ -452,7 +452,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			
 			AuthorizeLog authorizeLog = new AuthorizeLog(security, coreServer.getLogger(), getAuthorizeLogFile());
 			String publicCode = getPublicCode(clientId);
-			authorizeLog.appendToFile(new AuthorizeLogEntry(publicCode, groupName));
+			authorizeLog.appendToFile(new AuthorizeLogEntry(publicCode, magicWord, groupName));
 
 			log("allowUploads : Exit OK");
 		}

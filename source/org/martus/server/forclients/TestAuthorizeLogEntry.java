@@ -39,24 +39,27 @@ public class TestAuthorizeLogEntry extends TestCaseEnhanced
 	{
 		String date = "2004-02-15";
 		String code = "1234.1234.1234.1234";
+		String magic = "my Magic";
 		String group = "My group";
 		String ip = "1.2.3.4";
 		
-		String newClientLineEntry = date + AuthorizeLogEntry.FIELD_DELIMITER + code + AuthorizeLogEntry.FIELD_DELIMITER + ip + AuthorizeLogEntry.FIELD_DELIMITER + group ;
+		String newClientLineEntry = date + AuthorizeLogEntry.FIELD_DELIMITER + code + AuthorizeLogEntry.FIELD_DELIMITER + ip + AuthorizeLogEntry.FIELD_DELIMITER + magic + AuthorizeLogEntry.FIELD_DELIMITER + group ;
 		AuthorizeLogEntry entry = new AuthorizeLogEntry(newClientLineEntry);
 		assertEquals("date not found?", date, entry.getDate());
 		assertEquals("code not found?", code, entry.getPublicCode());
 		assertEquals("ip not found?", ip, entry.getIp());
+		assertEquals("magic word not found?", magic, entry.getMagicWord());
 		assertEquals("group not found?", group, entry.getGroupName());
 		
 		assertEquals("to String didn't return same value?", newClientLineEntry, entry.toString());
 
-		AuthorizeLogEntry entry2 = new AuthorizeLogEntry(code, group);
+		AuthorizeLogEntry entry2 = new AuthorizeLogEntry(code, magic, group);
 		
 		date = AuthorizeLogEntry.getISODate();
 		assertEquals("date2 not found?", date, entry2.getDate());
 		assertEquals("code2 not found?", code, entry2.getPublicCode());
 		assertEquals("ip can not be found since we have no xmlrpc thread running", null, entry2.getIp());
+		assertEquals("magic2 not found?", magic, entry2.getMagicWord());
 		assertEquals("group2 not found?", group, entry2.getGroupName());
 	}
 	
@@ -65,12 +68,14 @@ public class TestAuthorizeLogEntry extends TestCaseEnhanced
 		String date = "2004-02-05";
 		String code = "1234.1234.1234.1234";
 		String ip = "1.2.3.4";
+		String magic = "Magic Word used";
 		String group = "Richards group";
-		String lineEntry = date + AuthorizeLogEntry.FIELD_DELIMITER + code + AuthorizeLogEntry.FIELD_DELIMITER + ip + AuthorizeLogEntry.FIELD_DELIMITER + group ;
+		String lineEntry = date + AuthorizeLogEntry.FIELD_DELIMITER + code + AuthorizeLogEntry.FIELD_DELIMITER + ip + AuthorizeLogEntry.FIELD_DELIMITER + magic + AuthorizeLogEntry.FIELD_DELIMITER + group;
 
 		assertEquals("Date not extracted?", date, AuthorizeLogEntry.getDateFromLineEntry(lineEntry));
 		assertEquals("code not extracted?", code, AuthorizeLogEntry.getPublicCodeFromLineEntry(lineEntry));
 		assertEquals("ip not extracted?", ip, AuthorizeLogEntry.getIpFromLineEntry(lineEntry));
+		assertEquals("magic not extracted?", magic, AuthorizeLogEntry.getMagicWordFromLineEntry(lineEntry));
 		assertEquals("group not extracted?", group, AuthorizeLogEntry.getGroupNameFromLineEntry(lineEntry));
 	}
 	

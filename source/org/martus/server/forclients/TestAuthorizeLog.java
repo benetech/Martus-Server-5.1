@@ -65,14 +65,14 @@ public class TestAuthorizeLog extends TestCaseEnhanced
 	public void testAuthorizeLogLoadSaveFile() throws Exception
 	{
 		authorized.loadFile();
-		String lineToAdd = "date	publicCode	ip	group";
+		String lineToAdd = "date	publicCode	ip	magic	group";
 		authorized.appendToFile(new AuthorizeLogEntry(lineToAdd));
 		authorized.loadFile();
 	}
 	
 	public void testGetAuthorizedClientStrings() throws Exception
 	{
-		String newClient = "date2	newClientPublicCode	ip2	group2";
+		String newClient = "date2	newClientPublicCode	ip2	magic2	group2";
 		authorized.appendToFile(new AuthorizeLogEntry(newClient));
 		
 		Vector currentClients = authorized.getAuthorizedClientStrings();
@@ -87,8 +87,9 @@ public class TestAuthorizeLog extends TestCaseEnhanced
 		String date1 = "date1";
 		String clientPublicCode1 = "publiccode1";
 		String ip1 = "ip1";
+		String magic1 = "magic1";
 		String group1 = "group1";
-		String newClient = date1 + "	" + clientPublicCode1 + "	" + ip1 + "	" + group1;
+		String newClient = date1 + "\t" + clientPublicCode1 + "\t" + ip1 + "\t" + magic1 + "\t" + group1;
 		authorized.appendToFile(new AuthorizeLogEntry(newClient));
 		AuthorizeLogEntry invalidEntry = authorized.getAuthorizedClientEntry("unknownPublicCode");
 		assertNull("Client should not exist?", invalidEntry);
@@ -97,6 +98,7 @@ public class TestAuthorizeLog extends TestCaseEnhanced
 		assertEquals(date1, clientEntry.getDate());
 		assertEquals(clientPublicCode1, clientEntry.getPublicCode());
 		assertEquals(ip1, clientEntry.getIp());
+		assertEquals(magic1, clientEntry.getMagicWord());
 		assertEquals(group1, clientEntry.getGroupName());
 	}
 	
@@ -109,12 +111,14 @@ public class TestAuthorizeLog extends TestCaseEnhanced
 		String date2 = "2004-01-02";
 		String code = "1234.1234.1234.1234";
 		String code2 = "1234.4567.1234.1234";
+		String magic = "My magic";
+		String magic2 = "My magic2";
 		String group = "My group";
 		String group2 = "My group2";
 		String ip = "1.2.3.4";
 		String ip2 = "2.2.2.2";
-		String client1 = date + AuthorizeLogEntry.FIELD_DELIMITER + code + AuthorizeLogEntry.FIELD_DELIMITER + ip + AuthorizeLogEntry.FIELD_DELIMITER + group ;
-		String client2 = date2 + AuthorizeLogEntry.FIELD_DELIMITER + code2 + AuthorizeLogEntry.FIELD_DELIMITER + ip2 + AuthorizeLogEntry.FIELD_DELIMITER + group2 ;
+		String client1 = date + AuthorizeLogEntry.FIELD_DELIMITER + code + AuthorizeLogEntry.FIELD_DELIMITER + ip + AuthorizeLogEntry.FIELD_DELIMITER + magic + AuthorizeLogEntry.FIELD_DELIMITER + group ;
+		String client2 = date2 + AuthorizeLogEntry.FIELD_DELIMITER + code2 + AuthorizeLogEntry.FIELD_DELIMITER + ip2 + AuthorizeLogEntry.FIELD_DELIMITER + magic2 + AuthorizeLogEntry.FIELD_DELIMITER + group2 ;
 		
 		writer.writeln(client1);
 		writer.close();

@@ -38,14 +38,16 @@ public class AuthorizeLogEntry
 		date = getDateFromLineEntry(line);
 		publicCode = getPublicCodeFromLineEntry(line);
 		ip = getIpFromLineEntry(line);
+		magicWord = getMagicWordFromLineEntry(line);
 		groupName = getGroupNameFromLineEntry(line);
 	}
 	
-	public AuthorizeLogEntry(String publicCodeToUse, String groupNameToUse)
+	public AuthorizeLogEntry(String publicCodeToUse, String magicWordToUse, String groupToUse)
 	{
 		date = getISODate();
 		publicCode = publicCodeToUse;
-		groupName = groupNameToUse;
+		magicWord = magicWordToUse;
+		groupName = groupToUse;
 		ip = getIpAddress();
 	}
 	
@@ -64,6 +66,11 @@ public class AuthorizeLogEntry
 		return ip;
 	}
 	
+	public String getMagicWord()
+	{
+		return magicWord;
+	}
+	
 	public String getGroupName()
 	{
 		return groupName;
@@ -71,7 +78,7 @@ public class AuthorizeLogEntry
 	
 	public String toString()
 	{
-		return date + FIELD_DELIMITER + publicCode + FIELD_DELIMITER + ip + FIELD_DELIMITER + groupName;
+		return date + FIELD_DELIMITER + publicCode + FIELD_DELIMITER + ip + FIELD_DELIMITER + magicWord + FIELD_DELIMITER + groupName;
 	}
 	
 	private String getIpAddress()
@@ -96,11 +103,16 @@ public class AuthorizeLogEntry
 		return getField(2, lineEntry);
 	}
 	
-	static public String getGroupNameFromLineEntry(String lineEntry)
+	static public String getMagicWordFromLineEntry(String lineEntry)
 	{
 		return getField(3, lineEntry);
 	}
-	
+
+	static public String getGroupNameFromLineEntry(String lineEntry)
+	{
+		return getField(4, lineEntry);
+	}
+		
 	static public String getISODate()
 	{
 		GregorianCalendar today = new GregorianCalendar();
@@ -135,6 +147,7 @@ public class AuthorizeLogEntry
 	
 	private String date;
 	private String publicCode;
+	private String magicWord;
 	private String groupName;
 	private String ip;
 }
