@@ -434,7 +434,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	private Vector activeWebServers;
 
 	public static final String BANNEDCLIENTSFILENAME = "banned.txt";
-	public static final String MAGICWORDSFILENAME = "magicwords.txt";
 	public static final String UPLOADSOKFILENAME = "uploadsok.txt";
-	private static final String AUTHORIZELOGFILENAME = "authorizelog.txt";
+	public static final String AUTHORIZELOGFILENAME = "authorizelog.txt";
+	private static final String MAGICWORDSFILENAME = "magicwords.txt";
 }
