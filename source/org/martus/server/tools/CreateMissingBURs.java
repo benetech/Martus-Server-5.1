@@ -60,7 +60,7 @@ public class CreateMissingBURs
 
 	static class BurAlreadyExistedException extends Exception {}
 	
-	static void createBulletinUploadRecord(ServerFileDatabase db, DatabaseKey key, MartusCrypto security)
+	void createBulletinUploadRecord(ServerFileDatabase db, DatabaseKey key, MartusCrypto security)
 		throws CreateDigestException, BurAlreadyExistedException, 
 		IOException, RecordHiddenException, TooManyAccountsException
 	{
@@ -68,7 +68,12 @@ public class CreateMissingBURs
 		String bur = MartusServerUtilities.createBulletinUploadRecordWithSpecificTimeStamp(key.getLocalId(), timeStamp, security);
 		DatabaseKey burKey = MartusServerUtilities.getBurKey(key);
 		if(db.doesRecordExist(burKey))
-			throw new BurAlreadyExistedException();
+		{
+			if(ignoreExisting)
+				return;
+			else
+				throw new BurAlreadyExistedException();
+		}
 		db.writeRecord(burKey, bur);
 	}
 
@@ -77,7 +82,8 @@ public class CreateMissingBURs
 		BulletinVisitor visitor = new BulletinVisitor(); 
 		db.visitAllRecords(visitor);
 		Vector keys = visitor.foundKeys;
-		ensureNoBursExist(keys);
+		if(!ignoreExisting)
+			ensureNoBursExist(keys);
 
 		try
 		{
@@ -151,6 +157,9 @@ public class CreateMissingBURs
 			
 			if(args[i].startsWith("--keypair"))
 				keyPairFileName = value;
+			
+			if(args[i].startsWith("--ignore-existing-burs"))
+				ignoreExisting = true;
 		}
 
 		if(packetDirName == null || keyPairFileName == null)
@@ -176,6 +185,7 @@ public class CreateMissingBURs
 		
 	boolean prompt = true;
 	boolean noisy;
+	boolean ignoreExisting;
 	String packetDirName;
 	String keyPairFileName;
 	MartusCrypto security;
