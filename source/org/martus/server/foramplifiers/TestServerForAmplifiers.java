@@ -237,6 +237,8 @@ public class TestServerForAmplifiers extends TestCaseEnhanced
 		ServerForAmplifiers ampServer = new ServerForAmplifiers(coreServer, logger);
 		ampServer.loadConfigurationFiles();
 		assertTrue("client not authorized?", ampServer.canAccountBeAmplified(clientSecurity.getPublicKeyString()));
+		String anotherAccountId = "any other account";
+		assertTrue("another client should also be authorized?", ampServer.canAccountBeAmplified(anotherAccountId));
 		
 		String clientId = clientSecurity.getPublicKeyString();
 		File tempNotAmplified = createTempFile();
@@ -247,6 +249,7 @@ public class TestServerForAmplifiers extends TestCaseEnhanced
 		
 		ampServer.loadClientsNotAmplified(tempNotAmplified);
 		assertFalse("client still authorized?", ampServer.canAccountBeAmplified(clientSecurity.getPublicKeyString()));
+		assertTrue("another client should be authorized?", ampServer.canAccountBeAmplified(anotherAccountId));
 		coreServer.deleteAllFiles();
 	}
 	
