@@ -32,6 +32,7 @@ import java.util.Set;
 import java.util.Vector;
 
 import org.martus.common.FieldSpec;
+import org.martus.common.LegacyCustomFields;
 import org.martus.common.LoggerForTesting;
 import org.martus.common.MartusUtilities;
 import org.martus.common.MartusUtilities.InvalidPublicKeyFileException;
@@ -89,7 +90,7 @@ public class TestServerForMirroring extends TestCaseEnhanced
 		bhp4.writeXmlToDatabase(db, key4, false, clientSecurity2);
 		
 		UniversalId fdpUid = FieldDataPacket.createUniversalId(clientSecurity1.getPublicKeyString());
-		FieldSpec[] tags = {new FieldSpec("whatever")};
+		FieldSpec[] tags = {LegacyCustomFields.createFromLegacy("whatever")};
 		FieldDataPacket fdp1 = new FieldDataPacket(fdpUid, tags);
 		fdp1.writeXmlToClientDatabase(db, false, clientSecurity1);
 		
