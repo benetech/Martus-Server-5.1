@@ -118,7 +118,7 @@ public class VerifyAllPackets
 		}
 		catch(Exception e)
 		{
-			System.err.println("FileSignerAndVerifier.main: " + e);
+			System.err.println("VerifyAllPackets.main: " + e);
 			System.exit(3);
 		}
 		
