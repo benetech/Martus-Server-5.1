@@ -389,26 +389,43 @@ public class CreateStatistics
 						errorOccured = true;
 					
 					String allPrivate = "";
+					int publicAttachmentCount = 0;
+					int privateAttachmentCount = 0;
 					try
 					{
 						BulletinHeaderPacket bhp = MartusServer.loadBulletinHeaderPacket(fileDatabase, key, security);
+						String[] publicAttachments = bhp.getPublicAttachmentIds();
+						String[] privateAttachments = bhp.getPrivateAttachmentIds();
 
 						if(bhp.isAllPrivate())
+						{
 							allPrivate = BULLETIN_ALL_PRIVATE_TRUE;
+							privateAttachmentCount = publicAttachments.length;
+							privateAttachmentCount += privateAttachments.length;
+						}
 						else
+						{
 							allPrivate = BULLETIN_ALL_PRIVATE_FALSE;
+							publicAttachmentCount = publicAttachments.length;
+							privateAttachmentCount = privateAttachments.length;
+						}
 					}
 					catch(Exception e1)
 					{
 						errorOccured = true;
 						allPrivate = ERROR_MSG + " " + e1;
+						publicAttachmentCount = -1;
+						privateAttachmentCount = -1;
 					}
+					
 					
 					
 					String bulletinInfo =  getNormalizedString(localId) + DELIMITER +
 					getNormalizedString(martusVersionBulletionWasCreatedWith) + DELIMITER + 
 					getNormalizedString(bulletinType) + DELIMITER + 
 					getNormalizedString(allPrivate) + DELIMITER + 
+					getNormalizedString(Integer.toString(publicAttachmentCount)) + DELIMITER + 
+					getNormalizedString(Integer.toString(privateAttachmentCount)) + DELIMITER + 
 					getNormalizedString(wasBurCreatedByThisServer) + DELIMITER + 
 					getNormalizedString(dateBulletinWasCreated) + DELIMITER + 
 					getNormalizedString(publicCode);
@@ -627,8 +644,8 @@ public class CreateStatistics
 		getNormalizedString(BULLETIN_MARTUS_VERSION) + DELIMITER +
 		getNormalizedString(BULLETIN_TYPE) + DELIMITER +
 		getNormalizedString(BULLETIN_ALL_PRIVATE) + DELIMITER +
-//		getNormalizedString(BULLETIN_PUBLIC_ATTACHMENT_COUNT) + DELIMITER +
-		//getNormalizedString(BULLETIN_PRIVATE_ATTACHMENT_COUNT) + DELIMITER +
+		getNormalizedString(BULLETIN_PUBLIC_ATTACHMENT_COUNT) + DELIMITER +
+		getNormalizedString(BULLETIN_PRIVATE_ATTACHMENT_COUNT) + DELIMITER +
 		getNormalizedString(BULLETIN_ORIGINALLY_UPLOADED_TO_THIS_SERVER) + DELIMITER +
 		getNormalizedString(BULLETIN_DATE_UPLOADED) + DELIMITER +
 		getNormalizedString(ACCOUNT_PUBLIC_CODE);
