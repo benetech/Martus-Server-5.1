@@ -2174,7 +2174,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			if(MartusServer.needsAmpSync)
 			{
 				amp.startSynch();
-				amp.pullNewDataFromServers(amp.backupServersList);
+				amp.pullNewDataFromServers();
 				amp.endSynch();
 				MartusServer.needsAmpSync = false;
 			}
