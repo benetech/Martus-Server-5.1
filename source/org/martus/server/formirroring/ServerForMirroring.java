@@ -63,11 +63,18 @@ public class ServerForMirroring implements ServerSupplierInterface
 		startupFiles.add(getMirrorConfigFile());
 		return startupFiles;
 	}
+
+	public Vector getDeleteOnStartupFolders()
+	{
+		Vector startupFolders = new Vector();
+		startupFolders.add(getMirrorsWeWillCallDirectory());
+		startupFolders.add(getAuthorizedCallersDirectory());
+		return startupFolders;
+	}
 	
 	public void deleteStartupFiles()
 	{
-		DirectoryUtils.deleteEntireDirectoryTree(getMirrorsWeWillCallDirectory());
-		DirectoryUtils.deleteEntireDirectoryTree(getAuthorizedCallersDirectory());
+		DirectoryUtils.deleteEntireDirectoryTree(getDeleteOnStartupFolders());
 		MartusUtilities.deleteAllFiles(getDeleteOnStartupFiles());
 	}
 	

@@ -103,7 +103,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			server.processCommandLine(args);
 			server.deleteRunningFile();
 
-			if(server.anyUnexpectedFilesInStartupDirectory())
+			if(server.anyUnexpectedFilesOrFoldersInStartupDirectory())
 				System.exit(EXIT_UNEXPECTED_FILE_STARTUP);
 			
 			if(!server.hasAccount())
@@ -193,24 +193,29 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		failedUploadRequestsPerIp = new Hashtable();
 	}
 	
-	public boolean anyUnexpectedFilesInStartupDirectory()
+	public boolean anyUnexpectedFilesOrFoldersInStartupDirectory()
 	{
 		Vector startupFilesWeExpect = getDeleteOnStartupFiles();
-		File[] allFilesInStartupDirectory = getStartupConfigDirectory().listFiles();
-		for(int i = 0; i<allFilesInStartupDirectory.length; ++i)
+		Vector startupFoldersWeExpect = getDeleteOnStartupFolders();
+		File[] allFilesAndFoldersInStartupDirectory = getStartupConfigDirectory().listFiles();
+		for(int i = 0; i<allFilesAndFoldersInStartupDirectory.length; ++i)
 		{
-			File file = allFilesInStartupDirectory[i];
-			if(!file.isFile())
-				continue;
-			if(!startupFilesWeExpect.contains(file))
+			File file = allFilesAndFoldersInStartupDirectory[i];
+			if(file.isFile()&&!startupFilesWeExpect.contains(file))
 			{	
 				log("Startup File not expected =" + file.getAbsolutePath());
+				return true;
+			}
+			if(file.isDirectory()&&!startupFoldersWeExpect.contains(file))
+			{	
+				log("Startup Folder not expected =" + file.getAbsolutePath());
 				return true;
 			}
 		}
 		return false;
 	}
-
+	
+	
 	protected void startBackgroundTimers()
 	{
 		MartusUtilities.startTimer(new ShutdownRequestMonitor(), shutdownRequestIntervalMillis);
@@ -1410,6 +1415,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		return startupFiles;
 		
 	}
+	
 	public Vector getDeleteOnStartupFiles()
 	{
 		Vector startupFiles = new Vector();
@@ -1419,6 +1425,15 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		startupFiles.addAll(serverForAmplifiers.getDeleteOnStartupFiles());
 		startupFiles.addAll(serverForMirroring.getDeleteOnStartupFiles());
 		return startupFiles;
+	}
+
+	public Vector getDeleteOnStartupFolders()
+	{
+		Vector startupFolders = new Vector();
+		startupFolders.addAll(amp.getDeleteOnStartupFolders());
+		startupFolders.addAll(serverForAmplifiers.getDeleteOnStartupFolders());
+		startupFolders.addAll(serverForMirroring.getDeleteOnStartupFolders());
+		return startupFolders;
 	}
 	
 	public boolean deleteStartupFiles()

@@ -33,16 +33,17 @@ import java.util.Vector;
 
 import org.martus.common.test.TestCaseEnhanced;
 import org.martus.server.forclients.MockMartusServer;
+import org.martus.util.DirectoryUtils;
 
 
-public class TestServerDeleteStartupFiles extends TestCaseEnhanced
+public class TestServerDeleteStartupFilesAndFolders extends TestCaseEnhanced
 {
-	public TestServerDeleteStartupFiles(String name)
+	public TestServerDeleteStartupFilesAndFolders(String name)
 	{
 		super(name);
 	}
 
-	public void testBasics() throws Exception
+	public void testStartupFiles() throws Exception
 	{
 		MockMartusServer testServer = new MockMartusServer();
 		testServer.enterSecureMode();
@@ -59,24 +60,62 @@ public class TestServerDeleteStartupFiles extends TestCaseEnhanced
 
 		Vector startupFiles = testServer.getDeleteOnStartupFiles();
 		createFiles(startupFiles);
+		
 		Vector unexpectedFile = new Vector();
 		File tmpFile = new File(startupDirectory, "$$$unexpected.txt");
 		tmpFile.deleteOnExit();
 		unexpectedFile.add(tmpFile);
 		createFiles(unexpectedFile);
 		assertTrue("unexpected file doesn't exist?", tmpFile.exists());
-		assertTrue("Should be an unexpected file", testServer.anyUnexpectedFilesInStartupDirectory());
+		assertTrue("Should be an unexpected file", testServer.anyUnexpectedFilesOrFoldersInStartupDirectory());
 		assertFalse("Directory will contain unexpected file", testServer.deleteStartupFiles());
 
 		tmpFile.delete();
 		createFiles(startupFiles);
-		assertFalse("Should not be any unexpected files", testServer.anyUnexpectedFilesInStartupDirectory());
+		assertFalse("Should not be any unexpected files", testServer.anyUnexpectedFilesOrFoldersInStartupDirectory());
 		assertTrue("Directory should be empty", testServer.deleteStartupFiles());
 		
 		startupDirectory.delete();
 		assertFalse("StartupDirectory should not still exist.", startupDirectory.exists());
 	}
 
+	public void testStartupFolders() throws Exception
+	{
+		MockMartusServer testServer = new MockMartusServer();
+		testServer.enterSecureMode();
+		File triggerDirectory = testServer.getTriggerDirectory();
+		triggerDirectory.deleteOnExit();
+		triggerDirectory.mkdir();
+		triggerDirectory.delete();
+		
+		File startupDirectory = testServer.getStartupConfigDirectory();
+		startupDirectory.deleteOnExit();
+		startupDirectory.mkdir();
+		
+		assertTrue("StartupDirectory should exist.", startupDirectory.exists());
+
+		Vector startupFolders = testServer.getDeleteOnStartupFolders();
+		createFoldersWithData(startupFolders);
+		
+		Vector unexpectedFolder = new Vector();
+		File tmpFolder = new File(startupDirectory, "$$$unexpectedFolder");
+		tmpFolder.deleteOnExit();
+		unexpectedFolder.add(tmpFolder);
+		createFoldersWithData(unexpectedFolder);
+		assertTrue("unexpected folder doesn't exist?", tmpFolder.exists());
+		assertTrue("Should be an unexpected folder", testServer.anyUnexpectedFilesOrFoldersInStartupDirectory());
+		assertFalse("Directory will contain unexpected folder", testServer.deleteStartupFiles());
+
+		DirectoryUtils.deleteEntireDirectoryTree(tmpFolder);
+		createFoldersWithData(startupFolders);
+		assertFalse("Should not be any unexpected folders", testServer.anyUnexpectedFilesOrFoldersInStartupDirectory());
+		assertTrue("Directory should be empty", testServer.deleteStartupFiles());
+		
+		startupDirectory.delete();
+		assertFalse("StartupDirectory should not still exist.", startupDirectory.exists());
+	}
+	
+	
 	private void createFiles(Vector startupFiles) throws FileNotFoundException, IOException
 	{
 		for(int i = 0; i<startupFiles.size(); ++i )
@@ -86,6 +125,19 @@ public class TestServerDeleteStartupFiles extends TestCaseEnhanced
 			FileOutputStream out = new FileOutputStream(tmp);
 			out.write(1);
 			out.close();
+		}
+	}
+	
+	
+	private void createFoldersWithData(Vector startupFolders) throws FileNotFoundException, IOException
+	{
+		for(int i = 0; i<startupFolders.size(); ++i )
+		{	
+			File folder = (File)startupFolders.get(i);
+			folder.deleteOnExit();
+			folder.mkdir();
+			File tmp = File.createTempFile("$$$Tmp", ".txt", folder);
+			tmp.deleteOnExit();
 		}
 	}
 }

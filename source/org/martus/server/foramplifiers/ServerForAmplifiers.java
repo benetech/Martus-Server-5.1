@@ -82,10 +82,17 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 		startupFiles.add(getClientsNotToAmplifiyFile());
 		return startupFiles;
 	}
+
+	public Vector getDeleteOnStartupFolders()
+	{
+		Vector startupFolders = new Vector();
+		startupFolders.add(getAuthorizedAmplifiersDirectory());
+		return startupFolders;
+	}
 	
 	public void deleteStartupFiles()
 	{
-		DirectoryUtils.deleteEntireDirectoryTree(getAuthorizedAmplifiersDirectory());
+		DirectoryUtils.deleteEntireDirectoryTree(getDeleteOnStartupFolders());
 		MartusUtilities.deleteAllFiles(getDeleteOnStartupFiles());
 	}
 	
