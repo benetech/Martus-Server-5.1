@@ -58,7 +58,7 @@ public class ServerBulletinStore extends BulletinStore
 	{
 		super.deleteBulletinRevision(keyToDelete);
 		DatabaseKey burKey = MartusServerUtilities.getBurKey(keyToDelete);
-		getWriteableDatabase().discardRecord(burKey);			
+		deleteSpecificPacket(burKey);			
 	}
 
 	public File getIncomingInterimFile(UniversalId uid) throws IOException, RecordHiddenException
