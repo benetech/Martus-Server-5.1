@@ -1383,11 +1383,10 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		if(!isSecureMode())
 			return;
 
-		// TODO: Refactor these into serverForClients.deleteStartupFiles()
-		serverForClients.deleteMagicWordsFile();
-		serverForClients.deleteBannedFile();
-
-		serverForMirroring.deleteConfigurationFiles();
+		amp.deleteAmplifierStartupFiles();
+		serverForClients.deleteStartupFiles();
+		serverForAmplifiers.deleteStartupFiles();
+		serverForMirroring.deleteStartupFiles();
 		
 		if(!getKeyPairFile().delete())
 		{

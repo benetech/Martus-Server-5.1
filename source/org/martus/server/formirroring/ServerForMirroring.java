@@ -56,6 +56,11 @@ public class ServerForMirroring implements ServerSupplierInterface
 		logger = loggerToUse;
 	}
 
+	public void deleteStartupFiles()
+	{
+		deleteConfigurationFiles();
+	}
+	
 	public void log(String message)
 	{
 		logger.log(message);
@@ -88,10 +93,18 @@ public class ServerForMirroring implements ServerSupplierInterface
 		authorizedCallers = coreServer.loadServerPublicKeys(authorizedCallersDir, "Mirror");
 		log("Authorized " + authorizedCallers.size() + " Mirrors to call us");
 	}
-
-	public void deleteConfigurationFiles()
+	
+	private void deleteConfigurationFiles()
 	{
-		getMirrorConfigFile().delete();
+		File mirrorConfigFile = getMirrorConfigFile();
+		if(mirrorConfigFile.exists())
+		{	
+			if(!mirrorConfigFile.delete())
+			{
+				System.out.println("Unable to delete " + mirrorConfigFile.getAbsolutePath() );
+				System.exit(21);
+			}
+		}
 	}
 
 	public void addListeners() throws IOException, InvalidPublicKeyFileException, PublicInformationInvalidException

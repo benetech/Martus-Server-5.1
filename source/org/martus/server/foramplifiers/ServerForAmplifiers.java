@@ -74,6 +74,20 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 		
 		amplifierHandler = new ServerSideAmplifierHandler(this);
 	}
+	
+	public void deleteStartupFiles()
+	{
+		File notAmplifiedFile = getClientsNotToAmplifiyFile();
+		if(notAmplifiedFile.exists())
+		{	
+			if(!notAmplifiedFile.delete())
+			{
+				System.out.println("Unable to delete " + notAmplifiedFile.getAbsolutePath() );
+				System.exit(15);
+			}
+		}
+	}
+	
 
 	public void log(String message)
 	{
@@ -116,7 +130,7 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 	
 	private File getClientsNotToAmplifiyFile()
 	{
-		return new File(coreServer.getStartupConfigDirectory(), "clientsNotToAmplify");
+		return new File(coreServer.getStartupConfigDirectory(), CLIENTS_NOT_TO_AMPLIFY_FILENAME);
 	}
 	
 	public File getAuthorizedAmplifiersDirectory()
@@ -477,6 +491,8 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 		return coreServer.getSecurity();
 	}
 
+	private static final String CLIENTS_NOT_TO_AMPLIFY_FILENAME = "clientsNotToAmplify.txt";
+	
 	MartusServer coreServer;
 	LoggerInterface logger;
 

@@ -55,6 +55,12 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		activeWebServers = new Vector();
 	}
 	
+	public void deleteStartupFiles()
+	{
+		deleteMagicWordsFile();
+		deleteBannedFile();
+	}
+	
 	public MartusCrypto getSecurity()
 	{
 		return coreServer.getSecurity();
@@ -312,15 +318,15 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		}
 	}
 
-	public void deleteBannedFile()
+	private void deleteBannedFile()
 	{
-		if(getBannedFile().exists())
+		File bannedFile = getBannedFile();
+		if(!bannedFile.exists())
+			return;
+		if(!bannedFile.delete())
 		{
-			if(!getBannedFile().delete())
-			{
-				System.out.println("Unable to delete " + getBannedFile().getAbsolutePath() );
-				System.exit(5);
-			}
+			System.out.println("Unable to delete " + bannedFile.getAbsolutePath() );
+			System.exit(5);
 		}
 	}
 
@@ -344,9 +350,12 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		magicWords.loadMagicWords(getMagicWordsFile());
 	}
 
-	public void deleteMagicWordsFile()
+	private void deleteMagicWordsFile()
 	{
-		if(!getMagicWordsFile().delete())
+		File magicWordsFile = getMagicWordsFile();
+		if(!magicWordsFile.exists())
+			return;
+		if(!magicWordsFile.delete())
 		{
 			System.out.println("Unable to delete magicwords");
 			System.exit(4);
