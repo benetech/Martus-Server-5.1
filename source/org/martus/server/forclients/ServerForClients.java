@@ -51,7 +51,6 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	public ServerForClients(MartusServer coreServerToUse)
 	{
 		coreServer = coreServerToUse;
-		clientsBanned = new Vector();
 		magicWords = new Vector();
 		clientsThatCanUpload = new Vector();
 		activeWebServers = new Vector();
@@ -295,26 +294,19 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	
 	public void loadBannedClients(File bannedClientsFile)
 	{
+		clientsBanned = new Vector();
+		if(!bannedClientsFile.exists())
+			return;
 		try
 		{
-			long lastModified = bannedClientsFile.lastModified();
-			if( lastModified != bannedClientsFileLastModified )
-			{
-				bannedClientsFileLastModified = lastModified;
-				UnicodeReader reader = new UnicodeReader(bannedClientsFile);
-				clientsBanned = MartusUtilities.loadListFromFile(reader);
-				reader.close();
-			}
-		}
-		catch(FileNotFoundException nothingToWorryAbout)
-		{
-			log("Banned clients file not found: " + bannedClientsFile.getName());
-			clientsBanned = new Vector();
+			UnicodeReader reader = new UnicodeReader(bannedClientsFile);
+			clientsBanned = MartusUtilities.loadListFromFile(reader);
+			reader.close();
 		}
 		catch (IOException e)
 		{
-			// TODO: Should this abort?
-			log("loadBannedClients: " + e);
+			e.printStackTrace();
+			System.exit(12);
 		}
 	}
 
@@ -451,7 +443,6 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	Vector magicWords;
 	public Vector clientsThatCanUpload;
 	public Vector clientsBanned;
-	private long bannedClientsFileLastModified;
 	private Vector activeWebServers;
 
 	private static final String BANNEDCLIENTSFILENAME = "banned.txt";

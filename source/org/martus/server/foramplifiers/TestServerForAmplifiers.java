@@ -45,6 +45,7 @@ import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.test.TestCaseEnhanced;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.server.forclients.MockMartusServer;
+import org.martus.util.UnicodeWriter;
 
 public class TestServerForAmplifiers extends TestCaseEnhanced
 {
@@ -147,6 +148,7 @@ public class TestServerForAmplifiers extends TestCaseEnhanced
 		compliance.deleteOnExit();
 		compliance.createNewFile();
 		coreServer.setAmplifierListenerEnabled(true);
+		coreServer.setClientListenerEnabled(true);
 		coreServer.loadConfigurationFiles();
 
 		Vector response = coreServer.serverForAmplifiers.getAmplifierHandler().getContactInfo(amplifier.getPublicKeyString(), parameters, signature);
@@ -229,6 +231,25 @@ public class TestServerForAmplifiers extends TestCaseEnhanced
 		
 	}
 
+	public void testCanAccountBeAmplified() throws Exception
+	{
+		MockMartusServer coreServer = new MockMartusServer();
+		ServerForAmplifiers ampServer = new ServerForAmplifiers(coreServer, logger);
+		ampServer.loadConfigurationFiles();
+		assertTrue("client not authorized?", ampServer.canAccountBeAmplified(clientSecurity.getPublicKeyString()));
+		
+		String clientId = clientSecurity.getPublicKeyString();
+		File tempNotAmplified = createTempFile();
+		
+		UnicodeWriter writer = new UnicodeWriter(tempNotAmplified);
+		writer.writeln(clientId);
+		writer.close();
+		
+		ampServer.loadClientsNotAmplified(tempNotAmplified);
+		assertFalse("client still authorized?", ampServer.canAccountBeAmplified(clientSecurity.getPublicKeyString()));
+		coreServer.deleteAllFiles();
+	}
+	
 	public void testAmplifierServer() throws Exception
 	{
 		MockMartusSecurity amplifier = MockMartusSecurity.createAmplifier();

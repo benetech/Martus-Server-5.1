@@ -62,6 +62,7 @@ import org.martus.common.packet.Packet.WrongPacketTypeException;
 import org.martus.server.main.MartusServer;
 import org.martus.util.Base64;
 import org.martus.util.InputStreamWithSeek;
+import org.martus.util.UnicodeReader;
 import org.martus.util.XmlRpcThread;
 import org.martus.util.Base64.InvalidBase64Exception;
 
@@ -110,11 +111,46 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 		File authorizedAmplifiersDir = getAuthorizedAmplifiersDirectory();
 		authorizedAmps = coreServer.loadServerPublicKeys(authorizedAmplifiersDir, "Amp");
 		log("Authorized " + authorizedAmps.size() + " amplifiers to call us");
+		loadClientsNotAmplified();
+		log("Not authorized to amplify " + clientsNotAmplified.size() + " clients.");
+	}
+	
+	private File getClientsNotToAmplifiyFile()
+	{
+		return new File(coreServer.getStartupConfigDirectory(), "clientsNotToAmplify");
 	}
 	
 	public File getAuthorizedAmplifiersDirectory()
 	{
 		return new File(coreServer.getStartupConfigDirectory(), "ampsWhoCallUs");
+	}
+	
+	public boolean canAccountBeAmplified(String accountId)
+	{
+		return(!clientsNotAmplified.contains(accountId));
+	}
+	
+	public synchronized void loadClientsNotAmplified()
+	{
+		loadClientsNotAmplified(getClientsNotToAmplifiyFile());
+	}
+	
+	public void loadClientsNotAmplified(File clientsNotToBeAmplifiedFile)
+	{
+		clientsNotAmplified = new Vector();
+		if(!clientsNotToBeAmplifiedFile.exists())
+			return;
+		try
+		{
+			UnicodeReader  reader = new UnicodeReader(clientsNotToBeAmplifiedFile);
+			clientsNotAmplified = MartusUtilities.loadListFromFile(reader);
+			reader.close();
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+			System.exit(12);
+		}
 	}
 	
 	public void addListeners() throws UnknownHostException
@@ -449,4 +485,5 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 
 	ServerSideAmplifierHandler amplifierHandler;
 	Vector authorizedAmps;
+	Vector clientsNotAmplified;
 }

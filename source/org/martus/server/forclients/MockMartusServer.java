@@ -80,6 +80,11 @@ public class MockMartusServer extends MartusServer implements ServerForClientsIn
 		serverForClients.clientConnectionStart();
 	}
 	
+	public synchronized void loadBannedClients()
+	{
+		serverForClients.loadBannedClients();
+	}
+	
 	public synchronized void clientConnectionExit()
 	{
 		serverForClients.clientConnectionExit();

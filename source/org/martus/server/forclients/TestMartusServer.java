@@ -179,6 +179,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		}
 		
 		testServer = new MockMartusServer();
+		testServer.loadBannedClients();
 		testServer.setSecurity(serverSecurity);
 		testServer.verifyAndLoadConfigurationFiles();
 		testServerInterface = new ServerSideNetworkHandler(testServer);
