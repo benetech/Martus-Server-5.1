@@ -26,8 +26,6 @@ Boston, MA 02111-1307, USA.
 
 package org.martus.server.forclients;
 
-import org.martus.amplifier.main.*;
-
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -46,6 +44,7 @@ import java.util.Iterator;
 import java.util.TimerTask;
 import java.util.Vector;
 
+import org.martus.amplifier.main.MartusAmplifier;
 import org.martus.common.LoggerInterface;
 import org.martus.common.LoggerToConsole;
 import org.martus.common.MartusUtilities;
@@ -109,7 +108,9 @@ public class MartusServer implements NetworkInterfaceConstants
 				System.exit(2);
 			}
 
-			char[] passphrase = server.getPassphraseFromConsole(server);
+			char[] passphrase = server.insecurePassword;
+			if(passphrase == null)
+				passphrase = server.getPassphraseFromConsole(server);
 			server.loadAccount(passphrase);
 			server.initalizeDatabase();
 			server.verifyAndLoadConfigurationFiles();
@@ -119,6 +120,7 @@ public class MartusServer implements NetworkInterfaceConstants
 			server.initializeServerForClients();
 			server.initializeServerForMirroring();
 			server.initializeServerForAmplifiers();
+			server.initalizeAmplifier(passphrase);
 
 			server.deleteStartupFiles();
 			server.startBackgroundTimers();
@@ -161,7 +163,7 @@ public class MartusServer implements NetworkInterfaceConstants
 		this(dir, loggerToUse, new MartusSecurity());
 	}
 
-	protected MartusServer(File dir, LoggerInterface loggerToUse, MartusCrypto securityToUse) throws 
+	public MartusServer(File dir, LoggerInterface loggerToUse, MartusCrypto securityToUse) throws 
 					MartusCrypto.CryptoInitializationException, IOException, InvalidPublicKeyFileException, PublicInformationInvalidException
 	{
 		dataDirectory = dir;
@@ -182,6 +184,7 @@ public class MartusServer implements NetworkInterfaceConstants
 	{
 		MartusUtilities.startTimer(new ShutdownRequestMonitor(), shutdownRequestIntervalMillis);
 		MartusUtilities.startTimer(new UploadRequestsMonitor(), magicWordsGuessIntervalMillis);
+		MartusUtilities.startTimer(new UpdateFromServerTask(), dataSynchIntervalMillis);
 	}
 
 	private void displayServerPublicCode() throws InvalidBase64Exception
@@ -1336,6 +1339,8 @@ public class MartusServer implements NetworkInterfaceConstants
 	
 	public boolean canExitNow()
 	{
+		if(amp.isAmplifierSyncing())
+			return false;
 		return serverForClients.canExitNow();
 	}
 	
@@ -1726,6 +1731,11 @@ public class MartusServer implements NetworkInterfaceConstants
 	{
 		serverForAmplifiers.createAmplifierXmlRpcServer();
 	}
+	
+	public void initalizeAmplifier(char[] keystorePassword) throws Exception
+	{
+		amp.initalizeAmplifier(keystorePassword);
+	}
 
 	protected void deleteRunningFile()
 	{
@@ -1748,9 +1758,14 @@ public class MartusServer implements NetworkInterfaceConstants
 	}
 
 
-	private void processCommandLine(String[] args)
+	public void processCommandLine(String[] args)
 	{
+		long indexEveryXMinutes = 0;
+		String indexEveryXHourTag = "indexinghours=";
+		String indexEveryXMinutesTag = "indexingminutes=";
+		String ampipTag = "ampip=";
 		String mainIpTag = "mainip=";
+
 		for(int arg = 0; arg < args.length; ++arg)
 		{
 			String argument = args[arg];
@@ -1758,7 +1773,33 @@ public class MartusServer implements NetworkInterfaceConstants
 				enterSecureMode();
 			if(argument.startsWith(mainIpTag))
 				mainIpAddress = argument.substring(mainIpTag.length());
+			if(argument.equals("nopassword"))
+				insecurePassword = "password".toCharArray();
+			if(argument.startsWith(ampipTag))
+				ampIpAddress = argument.substring(ampipTag.length());
+
+			if(argument.startsWith(indexEveryXHourTag))
+			{	
+				String hours = argument.substring(indexEveryXHourTag.length());
+				System.out.println("Indexing every " + hours + " hours");
+				long indexEveryXHours = new Integer(hours).longValue();
+				indexEveryXMinutes = indexEveryXHours * 60;
+			}
+			if(argument.startsWith(indexEveryXMinutesTag))
+			{	
+				String minutes = argument.substring(indexEveryXMinutesTag.length());
+				System.out.println("Indexing every " + minutes + " minutes");
+				indexEveryXMinutes = new Integer(minutes).longValue();
+			}
 		}
+		if(indexEveryXMinutes==0)
+		{
+			long defaultSyncHours = MartusAmplifier.DEFAULT_HOURS_TO_SYNC;
+			indexEveryXMinutes = defaultSyncHours * 60;
+			System.out.println("Indexing every " + defaultSyncHours + " hours");
+		}
+		
+		dataSynchIntervalMillis = indexEveryXMinutes * MINUTES_TO_MILLI;
 		
 		if(isSecureMode())
 			System.out.println("Running in SECURE mode");
@@ -1914,6 +1955,19 @@ public class MartusServer implements NetworkInterfaceConstants
 		}
 	}
 	
+	class UpdateFromServerTask extends TimerTask
+	{	
+		public void run()
+		{
+			if(! amp.isAmplifierSyncing() )
+			{
+				amp.startSynch();
+				amp.pullNewDataFromServers(amp.backupServersList);
+				amp.endSynch();
+			}
+		}
+	}
+
 	private class ShutdownRequestMonitor extends TimerTask
 	{
 		public void run()
@@ -1957,6 +2011,9 @@ public class MartusServer implements NetworkInterfaceConstants
 	private static String mainIpAddress; 
 	public String ampIpAddress;
 
+	public char[] insecurePassword;
+	public long dataSynchIntervalMillis;
+	
 	private static final String KEYPAIRFILENAME = "keypair.dat";
 	private static final String HIDDENPACKETSFILENAME = "isHidden.txt";
 	private static final String COMPLIANCESTATEMENTFILENAME = "compliance.txt";
@@ -1968,6 +2025,7 @@ public class MartusServer implements NetworkInterfaceConstants
 	private final int MAX_FAILED_UPLOAD_ATTEMPTS = 100;
 	private static final long magicWordsGuessIntervalMillis = 60 * 1000;
 	private static final long shutdownRequestIntervalMillis = 1000;
+	private static final long MINUTES_TO_MILLI = 60 * 1000;
 
 	// NOTE: The following members *MUST* be static because they are 
 	// used by servlets that do not have access to a server object! 
