@@ -202,6 +202,7 @@ public class CreateStatistics
 	{
 		String data = (String)rawdata;
 		String normalized = data.replaceAll("\"", "'");
+		normalized = normalized.replaceAll("\n", " | ");
 		return "\"" + normalized + "\"";
 	}
 	
