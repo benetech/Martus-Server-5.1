@@ -353,12 +353,49 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 
 	public Vector listFieldOfficeDraftBulletinIds(String hqAccountId, String authorAccountId, Vector retrieveTags)
 	{
-		return coreServer.listFieldOfficeDraftBulletinIds(hqAccountId, authorAccountId, retrieveTags);
+		log("listFieldOfficeDraftBulletinIds " + coreServer.getClientAliasForLogging(hqAccountId));
+		
+		if(isClientBanned(hqAccountId) )
+			return coreServer.returnSingleResponseAndLog( " returning REJECTED", NetworkInterfaceConstants.REJECTED );
+		
+		if( coreServer.isShutdownRequested() )
+			return coreServer.returnSingleResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
+			
+		SummaryCollector summaryCollector = new FieldOfficeDraftSummaryCollector(coreServer, hqAccountId, authorAccountId, retrieveTags);
+		Vector summaries = summaryCollector.getSummaries();
+		
+		String resultCode = (String)summaries.get(0);
+		summaries.remove(0);
+		Vector result = new Vector();
+		result.add(resultCode);
+		result.add(summaries);
+		
+		log("listFieldOfficeDraftBulletinIds: Exit");
+		return result;
 	}
 
 	public Vector listFieldOfficeSealedBulletinIds(String hqAccountId, String authorAccountId, Vector retrieveTags)
 	{
-		return coreServer.listFieldOfficeSealedBulletinIds(hqAccountId, authorAccountId, retrieveTags);
+		coreServer.log("listFieldOfficeSealedBulletinIds " + coreServer.getClientAliasForLogging(hqAccountId));
+			
+		if(coreServer.isClientBanned(hqAccountId) )
+			return coreServer.returnSingleResponseAndLog("  returning REJECTED", NetworkInterfaceConstants.REJECTED);
+		
+		if( coreServer.isShutdownRequested() )
+			return coreServer.returnSingleResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
+		
+		SummaryCollector summaryCollector = new FieldOfficeSealedSummaryCollector(coreServer, hqAccountId, authorAccountId, retrieveTags);
+		Vector summaries = summaryCollector.getSummaries();
+		
+		String resultCode = (String)summaries.get(0);
+		summaries.remove(0);
+		
+		Vector result = new Vector();
+		result.add(resultCode);
+		result.add(summaries);
+		
+		coreServer.log("listFieldOfficeSealedBulletinIds: Exit");
+		return result;
 	}
 
 	public Vector listMyDraftBulletinIds(String authorAccountId, Vector retrieveTags)
@@ -640,6 +677,49 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		}
 	}
 
+	class FieldOfficeSealedSummaryCollector extends SummaryCollector
+	{
+		public FieldOfficeSealedSummaryCollector(MartusServer serverToUse, String hqAccountIdToUse, String authorAccountIdToUse, Vector retrieveTagsToUse) 
+		{
+			super(serverToUse, authorAccountIdToUse, retrieveTagsToUse);
+			hqAccountId = hqAccountIdToUse;
+
+		}
+
+		public boolean isWanted(DatabaseKey key)
+		{
+			return(key.isSealed());
+		}
+
+		public boolean isAuthorized(BulletinHeaderPacket bhp)
+		{
+			return(bhp.isHQAuthorizedToRead(hqAccountId));
+		}
+
+		String hqAccountId;
+	}
+
+	class FieldOfficeDraftSummaryCollector extends SummaryCollector
+	{
+		public FieldOfficeDraftSummaryCollector(MartusServer serverToUse, String hqAccountIdToUse, String authorAccountIdToUse, Vector retrieveTagsToUse) 
+		{
+			super(serverToUse, authorAccountIdToUse, retrieveTagsToUse);
+			hqAccountId = hqAccountIdToUse;
+
+		}
+
+		public boolean isWanted(DatabaseKey key)
+		{
+			return(key.isDraft());
+		}
+
+		public boolean isAuthorized(BulletinHeaderPacket bhp)
+		{
+			return(bhp.isHQAuthorizedToRead(hqAccountId));
+		}
+
+		String hqAccountId;
+	}
 
 	MartusServer coreServer;
 	private int activeClientsCounter;

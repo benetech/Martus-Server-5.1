@@ -155,26 +155,6 @@ public class MockMartusServer extends MartusServer
 			chunkOffset, maxChunkSize);
 	}
 
-	public Vector listFieldOfficeSealedBulletinIds(String hqAccountId, String authorAccountId, Vector retrieveTags)
-	{
-		lastClientId = hqAccountId;
-		if(listFieldOfficeSummariesResponseNull)	
-			return null;
-		if(listFieldOfficeSummariesResponse != null)
-			return new Vector(listFieldOfficeSummariesResponse);
-		return (Vector)(super.listFieldOfficeSealedBulletinIds(hqAccountId, authorAccountId, retrieveTags)).clone();
-	}
-
-	public Vector listFieldOfficeDraftBulletinIds(String hqAccountId, String authorAccountId, Vector retrieveTags)
-	{
-		lastClientId = hqAccountId;
-		if(listFieldOfficeSummariesResponseNull)	
-			return null;
-		if(listFieldOfficeSummariesResponse != null)
-			return new Vector(listFieldOfficeSummariesResponse);
-		return (Vector)(super.listFieldOfficeDraftBulletinIds(hqAccountId, authorAccountId, retrieveTags)).clone();
-	}
-
 	public Vector listFieldOfficeAccounts(String hqAccountId)
 	{
 		lastClientId = hqAccountId;
@@ -212,11 +192,6 @@ public class MockMartusServer extends MartusServer
 		getStore().deleteAllData();
 		lastClientId = null;
 		lastUploadedBulletinId = null;
-	}
-	
-	public void nullListFieldOfficeSummariesResponse(boolean nullResponse)
-	{ 
-		listFieldOfficeSummariesResponseNull = nullResponse;
 	}
 	
 	public void nullListFieldOfficeAccountsResponse(boolean nullResponse)
@@ -383,13 +358,11 @@ public class MockMartusServer extends MartusServer
 	public Vector infoResponse;
 	public String uploadResponse;
 	public Vector downloadResponse;
-	public Vector listFieldOfficeSummariesResponse;
 	public Vector listFieldOfficeAccountsResponse;
 	public Vector complianceResponse;
 	
 	public String lastClientId;
 	public String lastUploadedBulletinId;
-	private boolean listFieldOfficeSummariesResponseNull;
 	private boolean listFieldOfficeAccountsResponseNull;
 	
 	private String authenticateResponse;

@@ -722,53 +722,6 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	}
 
 
-	public Vector listFieldOfficeSealedBulletinIds(String hqAccountId, String authorAccountId, Vector retrieveTags)
-	{
-		log("listFieldOfficeSealedBulletinIds " + getClientAliasForLogging(hqAccountId));
-			
-		if(isClientBanned(hqAccountId) )
-			return returnSingleResponseAndLog("  returning REJECTED", NetworkInterfaceConstants.REJECTED);
-		
-		if( isShutdownRequested() )
-			return returnSingleResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
-		
-		SummaryCollector summaryCollector = new FieldOfficeSealedSummaryCollector(this, hqAccountId, authorAccountId, retrieveTags);
-		Vector summaries = summaryCollector.getSummaries();
-
-		String resultCode = (String)summaries.get(0);
-		summaries.remove(0);
-
-		Vector result = new Vector();
-		result.add(resultCode);
-		result.add(summaries);
-
-		log("listFieldOfficeSealedBulletinIds: Exit");
-		return result;	
-	}
-
-	public Vector listFieldOfficeDraftBulletinIds(String hqAccountId, String authorAccountId, Vector retrieveTags)
-	{
-		log("listFieldOfficeDraftBulletinIds " + getClientAliasForLogging(hqAccountId));
-
-		if(isClientBanned(hqAccountId) )
-			return returnSingleResponseAndLog( " returning REJECTED", NetworkInterfaceConstants.REJECTED );
-		
-		if( isShutdownRequested() )
-			return returnSingleResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
-			
-		SummaryCollector summaryCollector = new FieldOfficeDraftSummaryCollector(this, hqAccountId, authorAccountId, retrieveTags);
-		Vector summaries = summaryCollector.getSummaries();
-
-		String resultCode = (String)summaries.get(0);
-		summaries.remove(0);
-		Vector result = new Vector();
-		result.add(resultCode);
-		result.add(summaries);
-
-		log("listFieldOfficeDraftBulletinIds: Exit");
-		return result;
-	}
-
 	public Vector listFieldOfficeAccounts(String hqAccountIdToUse)
 	{
 
@@ -1608,50 +1561,6 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	public void serverExit(int exitCode) throws UnexpectedExitException 
 	{
 		System.exit(exitCode);
-	}
-
-	class FieldOfficeSealedSummaryCollector extends SummaryCollector
-	{
-		public FieldOfficeSealedSummaryCollector(MartusServer serverToUse, String hqAccountIdToUse, String authorAccountIdToUse, Vector retrieveTagsToUse) 
-		{
-			super(serverToUse, authorAccountIdToUse, retrieveTagsToUse);
-			hqAccountId = hqAccountIdToUse;
-
-		}
-
-		public boolean isWanted(DatabaseKey key)
-		{
-			return(key.isSealed());
-		}
-
-		public boolean isAuthorized(BulletinHeaderPacket bhp)
-		{
-			return(bhp.isHQAuthorizedToRead(hqAccountId));
-		}
-
-		String hqAccountId;
-	}
-
-	class FieldOfficeDraftSummaryCollector extends SummaryCollector
-	{
-		public FieldOfficeDraftSummaryCollector(MartusServer serverToUse, String hqAccountIdToUse, String authorAccountIdToUse, Vector retrieveTagsToUse) 
-		{
-			super(serverToUse, authorAccountIdToUse, retrieveTagsToUse);
-			hqAccountId = hqAccountIdToUse;
-
-		}
-
-		public boolean isWanted(DatabaseKey key)
-		{
-			return(key.isDraft());
-		}
-
-		public boolean isAuthorized(BulletinHeaderPacket bhp)
-		{
-			return(bhp.isHQAuthorizedToRead(hqAccountId));
-		}
-
-		String hqAccountId;
 	}
 
 	private void initializeServerForMirroring() throws Exception

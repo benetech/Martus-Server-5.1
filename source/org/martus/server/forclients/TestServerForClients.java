@@ -169,6 +169,62 @@ public class TestServerForClients extends TestCaseEnhanced
 		super.tearDown();
 	}
 	
+	public void testListFieldOfficeDraftBulletinIds() throws Exception
+	{
+		TRACE_BEGIN("testListFieldOfficeDraftBulletinIds");
+
+		mockServer.security = serverSecurity;
+
+		MartusCrypto fieldSecurity1 = clientSecurity;
+		mockServer.allowUploads(fieldSecurity1.getPublicKeyString());
+
+		MartusCrypto nonFieldSecurity = MockMartusSecurity.createOtherClient();
+		mockServer.allowUploads(nonFieldSecurity.getPublicKeyString());
+
+		Vector list1 = testServer.listFieldOfficeSealedBulletinIds(hqSecurity.getPublicKeyString(), fieldSecurity1.getPublicKeyString(), new Vector());
+		assertNotNull("testListFieldOfficeBulletinSummaries returned null", list1);
+		assertEquals("wrong length list 1", 2, list1.size());
+		assertNotNull("null id1 [0] list1", list1.get(0));
+		assertEquals(NetworkInterfaceConstants.OK, list1.get(0));
+		
+		MartusCrypto otherServerSecurity = MockMartusSecurity.createOtherServer();
+
+		Bulletin bulletinSealed = new Bulletin(clientSecurity);
+		HQKeys keys = new HQKeys();
+		HQKey key1 = new HQKey(hqSecurity.getPublicKeyString());
+		HQKey key2 = new HQKey(otherServerSecurity.getPublicKeyString());
+		keys.add(key1);
+		keys.add(key2);
+		bulletinSealed.setAuthorizedToReadKeys(keys);
+		bulletinSealed.setSealed();
+		bulletinSealed.setAllPrivate(true);
+		BulletinSaver.saveToClientDatabase(bulletinSealed, clientDatabase, true, clientSecurity);
+		mockServer.uploadBulletin(clientSecurity.getPublicKeyString(), bulletinSealed.getLocalId(), BulletinForTesting.saveToZipString(clientDatabase, bulletinSealed, clientSecurity));
+
+		Bulletin bulletinDraft = new Bulletin(clientSecurity);
+		bulletinDraft.setAuthorizedToReadKeys(keys);
+		bulletinDraft.setDraft();
+		BulletinSaver.saveToClientDatabase(bulletinDraft, clientDatabase, true, clientSecurity);
+		mockServer.uploadBulletin(clientSecurity.getPublicKeyString(), bulletinDraft.getLocalId(), BulletinForTesting.saveToZipString(clientDatabase, bulletinDraft, clientSecurity));
+
+		Vector list2 = testServer.listFieldOfficeDraftBulletinIds(hqSecurity.getPublicKeyString(), fieldSecurity1.getPublicKeyString(), new Vector());
+		assertEquals("wrong length list2", 2, list2.size());
+		assertNotNull("null id1 [0] list2", list2.get(0));
+		assertEquals(NetworkInterfaceConstants.OK, list2.get(0));
+		String b1Summary = bulletinDraft.getLocalId() + "=" + bulletinDraft.getFieldDataPacket().getLocalId();
+		assertContains("missing bulletin Draft?",b1Summary , (Vector)list2.get(1));
+
+		
+		Vector list3 = testServer.listFieldOfficeDraftBulletinIds(otherServerSecurity.getPublicKeyString(), fieldSecurity1.getPublicKeyString(), new Vector());
+		assertEquals("wrong length list hq2", 2, list3.size());
+		assertNotNull("null id1 [0] list hq2", list3.get(0));
+		assertEquals(NetworkInterfaceConstants.OK, list3.get(0));
+		String b1Summaryhq2 = bulletinDraft.getLocalId() + "=" + bulletinDraft.getFieldDataPacket().getLocalId();
+		assertContains("missing bulletin Draft for HQ2?",b1Summaryhq2 , (Vector)list3.get(1));
+		
+		TRACE_END();
+	}
+
 	public void testDeleteDraftBulletinsEmptyList() throws Exception
 	{
 		TRACE_BEGIN("testDeleteDraftBulletinsEmptyList");
