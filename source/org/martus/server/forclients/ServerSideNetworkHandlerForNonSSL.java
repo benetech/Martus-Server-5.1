@@ -42,17 +42,29 @@ public class ServerSideNetworkHandlerForNonSSL implements NetworkInterfaceForNon
 	public String ping()
 	{
 		server.clientConnectionStart();
-		String strResponse = server.ping();
-		server.clientConnectionExit();
-		return strResponse;
+		try
+		{
+			String strResponse = server.ping();
+			return strResponse;
+		}
+		finally
+		{
+			server.clientConnectionExit();
+		}
 	}
 
 	public Vector getServerInformation()
 	{
 		server.clientConnectionStart();
-		Vector vecResponse = server.getServerInformation();
-		server.clientConnectionExit();
-		return vecResponse;
+		try
+		{
+			Vector vecResponse = server.getServerInformation();
+			return vecResponse;
+		}
+		finally
+		{
+			server.clientConnectionExit();
+		}
 	}
 
 	ServerForNonSSLClientsInterface server;
