@@ -139,14 +139,14 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			server.startBackgroundTimers();
 			
 			ServerSideUtilities.writeSyncFile(server.getRunningFile(), "MartusServer.main");
-			server. getLogger().log("Server is running");
+			server.getLogger().logNotice("Server is running");
 			if(!server.isAmplifierEnabled() && !server.isAmplifierListenerEnabled() &&
 			   !server.isClientListenerEnabled() && !server.isMirrorListenerEnabled())
 			{				
-				System.out.println("No listeners or web amplifier enabled... Exiting.");
+				server. getLogger().logError("No listeners or web amplifier enabled... Exiting.");
 				server.serverExit(EXIT_NO_LISTENERS);
 			}
-			System.out.println("Waiting for connection...");
+			server.getLogger().logNotice("Waiting for connection...");
 		}
 		catch(CryptoInitializationException e) 
 		{
@@ -220,12 +220,12 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			File file = allFilesAndFoldersInStartupDirectory[i];
 			if(file.isFile()&&!startupFilesWeExpect.contains(file))
 			{	
-				log("Startup File not expected =" + file.getAbsolutePath());
+				logError("Startup File not expected =" + file.getAbsolutePath());
 				return true;
 			}
 			if(file.isDirectory()&&!startupFoldersWeExpect.contains(file))
 			{	
-				log("Startup Folder not expected =" + file.getAbsolutePath());
+				logError("Startup Folder not expected =" + file.getAbsolutePath());
 				return true;
 			}
 		}
@@ -411,16 +411,16 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	
 	public String ping()
 	{
-		log("ping request");		
+		logDebug("ping request");		
 		return NetworkInterfaceConstants.VERSION;
 	}
 
 	public Vector getServerInformation()
 	{
-		log("getServerInformation");
+		logInfo("getServerInformation");
 			
 		if( isShutdownRequested() )
-			return returnSingleResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
+			return returnSingleErrorResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
 				
 		Vector result = new Vector();
 		try
@@ -433,20 +433,20 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			result.add(NetworkInterfaceConstants.OK);
 			result.add(publicKeyString);
 			result.add(Base64.encode(sigBytes));
-			log("getServerInformation: Exit OK");
+			logDebug("getServerInformation: Exit OK");
 		}
 		catch(Exception e)
 		{
 			result.add(NetworkInterfaceConstants.SERVER_ERROR);
 			result.add(e.toString());
-			log("getServerInformation SERVER ERROR" + e);			
+			logError("getServerInformation SERVER ERROR" + e);			
 		}
 		return result;
 	}
 	
 	public String uploadBulletinChunk(String authorAccountId, String bulletinLocalId, int totalSize, int chunkOffset, int chunkSize, String data, String signature)
 	{
-		log("uploadBulletinChunk");
+		logInfo("uploadBulletinChunk");
 		
 		if(isClientBanned(authorAccountId) )
 			return NetworkInterfaceConstants.REJECTED;
@@ -459,10 +459,10 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 					Integer.toString(chunkSize) + "," + data;
 		if(!isSignatureCorrect(signedString, signature, authorAccountId))
 		{
-			log("  returning SIG_ERROR");
-			log("Account: " + MartusCrypto.formatAccountIdForLog(authorAccountId));
-			log("signedString: " + signedString.toString());
-			log("signature: " + signature);
+			logError("  returning SIG_ERROR");
+			logError("Account: " + MartusCrypto.formatAccountIdForLog(authorAccountId));
+			logError("signedString: " + signedString.toString());
+			logError("signature: " + signature);
 			return NetworkInterfaceConstants.SIG_ERROR;
 		}
 		
@@ -485,30 +485,30 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			if(chunkSize != NetworkInterfaceConstants.MAX_CHUNK_SIZE)
 				logMsg.append(" Last Chunk = " + chunkSize);
 			
-			log(logMsg.toString());
+			logDebug(logMsg.toString());
 		}
 		
 		if(!canClientUpload(uploaderAccountId))
 		{
-			log("putBulletinChunk REJECTED canClientUpload failed");
+			logError("putBulletinChunk REJECTED canClientUpload failed");
 			return NetworkInterfaceConstants.REJECTED;
 		}
 		
 		if(isClientBanned(uploaderAccountId))
 		{
-			log("putBulletinChunk REJECTED isClientBanned uploaderAccountId");
+			logError("putBulletinChunk REJECTED isClientBanned uploaderAccountId");
 			return NetworkInterfaceConstants.REJECTED;
 		}
 			
 		if(isClientBanned(authorAccountId))
 		{
-			log("putBulletinChunk REJECTED isClientBanned authorAccountId");
+			logError("putBulletinChunk REJECTED isClientBanned authorAccountId");
 			return NetworkInterfaceConstants.REJECTED;
 		}
 
 		if( isShutdownRequested() )
 		{
-			log(" returning SERVER_DOWN");
+			logNotice(" returning SERVER_DOWN");
 			return NetworkInterfaceConstants.SERVER_DOWN;
 		}
 		
@@ -520,20 +520,20 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		} 
 		catch (IOException e) 
 		{
-			log("putBulletinChunk Error creating interim file." + e.getMessage());
+			logError("putBulletinChunk Error creating interim file." + e.getMessage());
 			return NetworkInterfaceConstants.SERVER_ERROR;
 		} 
 		catch (RecordHiddenException e)
 		{
 			// TODO: Should return a more specific error code
-			log("putBulletinChunk for hidden file " + uid.getLocalId());
+			logError("putBulletinChunk for hidden file " + uid.getLocalId());
 			return NetworkInterfaceConstants.INVALID_DATA;
 		}
 		
 		if(chunkSize > NetworkInterfaceConstants.MAX_CHUNK_SIZE)
 		{
 			interimZipFile.delete();
-			log("putBulletinChunk INVALID_DATA (> MAX_CHUNK_SIZE)");
+			logError("putBulletinChunk INVALID_DATA (> MAX_CHUNK_SIZE)");
 			return NetworkInterfaceConstants.INVALID_DATA;
 		}			
 		
@@ -547,14 +547,14 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		if(oldFileLength != chunkOffset)
 		{
 			interimZipFile.delete();
-			log("putBulletinChunk INVALID_DATA (!= file length)");
+			logError("putBulletinChunk INVALID_DATA (!= file length)");
 			return NetworkInterfaceConstants.INVALID_DATA;
 		}
 		
 		if(oldFileLength + chunkSize > totalSize)
 		{
 			interimZipFile.delete();
-			log("putBulletinChunk INVALID_DATA (> totalSize)");
+			logError("putBulletinChunk INVALID_DATA (> totalSize)");
 			return NetworkInterfaceConstants.INVALID_DATA;
 		}			
 		
@@ -581,7 +581,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			if(reader != null)
 				reader.close();
 			interimZipFile.delete();
-			log("putBulletinChunk INVALID_DATA " + e);
+			logError("putBulletinChunk INVALID_DATA " + e);
 			return NetworkInterfaceConstants.INVALID_DATA;
 		}
 		
@@ -590,7 +590,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		if(chunkSize != newFileLength - oldFileLength)
 		{
 			interimZipFile.delete();
-			log("putBulletinChunk INVALID_DATA (chunkSize != actual dataSize)");
+			logError("putBulletinChunk INVALID_DATA (chunkSize != actual dataSize)");
 			return NetworkInterfaceConstants.INVALID_DATA;
 		}			
 		
@@ -605,7 +605,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			{
 				if(!isAuthorizedToUpload(uploaderAccountId, authorAccountId, interimZipFile))
 				{
-					log("putBulletinChunk NOTYOURBULLETIN isAuthorizedToUpload uploaderAccountId");
+					logError("putBulletinChunk NOTYOURBULLETIN isAuthorizedToUpload uploaderAccountId");
 					result = NetworkInterfaceConstants.NOTYOURBULLETIN;
 				}
 				else
@@ -616,39 +616,39 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			catch (InvalidPacketException e1)
 			{
 				result = NetworkInterfaceConstants.INVALID_DATA;
-				log("putBulletinChunk InvalidPacketException: " + e1);
+				logError("putBulletinChunk InvalidPacketException: " + e1);
 				e1.printStackTrace();
 			}
 			catch (SignatureVerificationException e1)
 			{
 				result = NetworkInterfaceConstants.SIG_ERROR;
-				log("putBulletinChunk SignatureVerificationException: " + e1);
+				logError("putBulletinChunk SignatureVerificationException: " + e1);
 			}
 			catch (DecryptionException e1)
 			{
 				result = NetworkInterfaceConstants.INVALID_DATA;
-				log("putBulletinChunk DecryptionException: " + e1);
+				logError("putBulletinChunk DecryptionException: " + e1);
 				e1.printStackTrace();
 			}
 			catch (IOException e1)
 			{
 				result = NetworkInterfaceConstants.SERVER_ERROR;
-				log("putBulletinChunk IOException: " + e1);
+				logError("putBulletinChunk IOException: " + e1);
 				e1.printStackTrace();
 			}
 			catch (SealedPacketExistsException e1)
 			{
-				log("putBulletinChunk SealedPacketExistsException: " + e1);
+				logError("putBulletinChunk SealedPacketExistsException: " + e1);
 				result = NetworkInterfaceConstants.DUPLICATE;
 			}
 			catch (DuplicatePacketException e1)
 			{
-				log("putBulletinChunk DuplicatePacketException: " + e1);
+				logError("putBulletinChunk DuplicatePacketException: " + e1);
 				result = NetworkInterfaceConstants.DUPLICATE;
 			}
 			catch (WrongAccountException e1)
 			{
-				log("putBulletinChunk WrongAccountException: " + e1);
+				logError("putBulletinChunk WrongAccountException: " + e1);
 				result = NetworkInterfaceConstants.INVALID_DATA;
 			}
 
@@ -656,7 +656,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			interimZipFile.delete();
 		}
 		
-		log("putBulletinChunk: Exit " + result);
+		logNotice("putBulletinChunk: Exit " + result);
 		return result;
 	}
 
@@ -685,33 +685,33 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			logMsg.append("getBulletinChunk remote: " + getClientAliasForLogging(myAccountId));
 			logMsg.append(" local: " + getClientAliasForLogging(authorAccountId) + " " + bulletinLocalId);
 			logMsg.append("  Offset=" + chunkOffset + ", Max=" + maxChunkSize);
-			log(logMsg.toString());
+			logDebug(logMsg.toString());
 		}
 		
 		if(isClientBanned(myAccountId) )
-			return returnSingleResponseAndLog( " returning REJECTED", NetworkInterfaceConstants.REJECTED );
+			return returnSingleErrorResponseAndLog( " returning REJECTED", NetworkInterfaceConstants.REJECTED );
 		
 		if( isShutdownRequested() )
-			return returnSingleResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
+			return returnSingleErrorResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
 
 		DatabaseKey headerKey =	findHeaderKeyInDatabase(authorAccountId, bulletinLocalId);
 		if(headerKey == null)
-			return returnSingleResponseAndLog( " returning NOT_FOUND", NetworkInterfaceConstants.NOT_FOUND );
+			return returnSingleErrorResponseAndLog( " returning NOT_FOUND", NetworkInterfaceConstants.NOT_FOUND );
 
 		if(!myAccountId.equals(authorAccountId))
 		{
 			try 
 			{
 				if( !isHQAccountAuthorizedToRead(headerKey, myAccountId))
-					return returnSingleResponseAndLog( " returning NOTYOURBULLETIN", NetworkInterfaceConstants.NOTYOURBULLETIN );
+					return returnSingleErrorResponseAndLog( " returning NOTYOURBULLETIN", NetworkInterfaceConstants.NOTYOURBULLETIN );
 			} 
 			catch (SignatureVerificationException e) 
 			{
-					return returnSingleResponseAndLog( " returning SIG ERROR", NetworkInterfaceConstants.SIG_ERROR );
+					return returnSingleErrorResponseAndLog( " returning SIG ERROR", NetworkInterfaceConstants.SIG_ERROR );
 			} 
 			catch (Exception e) 
 			{
-				return returnSingleResponseAndLog( " returning SERVER_ERROR: " + e, NetworkInterfaceConstants.SERVER_ERROR );
+				return returnSingleErrorResponseAndLog( " returning SERVER_ERROR: " + e, NetworkInterfaceConstants.SERVER_ERROR );
 			} 
 		}
 
@@ -720,7 +720,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 					chunkOffset, maxChunkSize);
 		
 		
-		log("getBulletinChunk exit: " + result.get(0));
+		logNotice("getBulletinChunk exit: " + result.get(0));
 		return result;
 	}
 
@@ -751,12 +751,12 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 				}
 				catch(Exception e)
 				{
-					log("FieldOfficeAccountCollector:Visit " + e);
+					logError("FieldOfficeAccountCollector:Visit " + e);
 					accounts.set(0, NetworkInterfaceConstants.SERVER_ERROR);
 				}
 			}
 			
-			public Vector getAccounts()
+			public Vector getAccountsWithResultCode()
 			{
 				return accounts;
 			}
@@ -764,13 +764,13 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			Vector accounts;
 		}	
 
-		log("listFieldOfficeAccounts " + getClientAliasForLogging(hqAccountIdToUse));
+		logInfo("listFieldOfficeAccounts " + getClientAliasForLogging(hqAccountIdToUse));
 			
 		if(isClientBanned(hqAccountIdToUse) )
-			return returnSingleResponseAndLog("  returning REJECTED", NetworkInterfaceConstants.REJECTED);
+			return returnSingleErrorResponseAndLog("  returning REJECTED", NetworkInterfaceConstants.REJECTED);
 		
 		if( isShutdownRequested() )
-			return returnSingleResponseAndLog("  returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN);
+			return returnSingleErrorResponseAndLog("  returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN);
 
 		FieldOfficeAccountCollector visitor = new FieldOfficeAccountCollector(hqAccountIdToUse);
 		
@@ -779,13 +779,14 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		// that breaks a (fragile) test. Eventually it should probably be switched over
 		getStore().visitAllBulletinRevisions(visitor);
 	
-		log("listFieldOfficeAccounts: Exit");
-		return visitor.getAccounts();	
+		Vector accountsWithResultCode = visitor.getAccountsWithResultCode();
+		logNotice("listFieldOfficeAccounts: Exit accounts=" + (accountsWithResultCode.size()-1));
+		return accountsWithResultCode;	
 	}
 	
 	public String putContactInfo(String accountId, Vector contactInfo)
 	{
-		log("putContactInfo " + getClientAliasForLogging(accountId));
+		logInfo("putContactInfo " + getClientAliasForLogging(accountId));
 
 		if(isClientBanned(accountId) || !canClientUpload(accountId))
 			return NetworkInterfaceConstants.REJECTED;
@@ -823,7 +824,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		}
 		catch (IOException e)
 		{
-			log("putContactInfo Error" + e);
+			logError("putContactInfo" + e);
 			return NetworkInterfaceConstants.SERVER_ERROR;
 		}
 		return NetworkInterfaceConstants.OK;
@@ -853,7 +854,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			if(!getSecurity().verifySignatureOfVectorOfStrings(decodedContactInfo, accountId))
 			{
 				String accountInfo = MartusCrypto.formatAccountIdForLog(accountId);
-				log("getContactInfo: "+ accountInfo +": Signature failed");
+				logError("getContactInfo: "+ accountInfo +": Signature failed");
 				results.add(NetworkInterfaceConstants.SIG_ERROR);
 				return results;
 			}
@@ -865,6 +866,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		}
 		catch (Exception e1)
 		{
+			logError(e1.getMessage());
 			e1.printStackTrace();
 			results.add(NetworkInterfaceConstants.SERVER_ERROR);
 			return results;
@@ -880,7 +882,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			if(versionLabel.length() > 0 && versionBuildDate.length() > 0)
 				loggingData = loggingData +", " + versionLabel + ", " + versionBuildDate;
 
-			log(loggingData);
+			logInfo(loggingData);
 		}		
 
 		if(isClientBanned(accountId))
@@ -904,7 +906,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			}
 			catch(IOException e)
 			{
-				log("getNews:Error reading File:" + newsFile.getAbsolutePath());
+				logError("getNews:Error reading File:" + newsFile.getAbsolutePath());
 				e.printStackTrace();
 			}
 		}
@@ -923,7 +925,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	public Vector getServerCompliance()
 	{
 		
-		log("getServerCompliance");
+		logInfo("getServerCompliance");
 		Vector result = new Vector();
 		result.add(OK);
 		Vector compliance = new Vector();
@@ -934,31 +936,31 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 
 	public Vector downloadFieldDataPacket(String authorAccountId, String bulletinLocalId, String packetLocalId, String myAccountId, String signature)
 	{
-		log("downloadFieldOfficeDataPacket: " + getClientAliasForLogging(authorAccountId) + "  " + 
+		logInfo("downloadFieldOfficeDataPacket: " + getClientAliasForLogging(authorAccountId) + "  " + 
 				bulletinLocalId + "  packet " + packetLocalId + " requested by: " + 
 				getClientAliasForLogging(myAccountId));
 		
 		if(isClientBanned(myAccountId) )
-			return returnSingleResponseAndLog( " returning REJECTED", NetworkInterfaceConstants.REJECTED );
+			return returnSingleErrorResponseAndLog( " returning REJECTED", NetworkInterfaceConstants.REJECTED );
 		
 		if( isShutdownRequested() )
-			return returnSingleResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
+			return returnSingleErrorResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
 	
 		Vector result = new Vector();
 
 		String signedString = authorAccountId + "," + bulletinLocalId + "," + packetLocalId + "," + myAccountId;
 		if(!isSignatureCorrect(signedString, signature, myAccountId))
 		{
-			log("  returning SIG_ERROR");
-			log("Account: " + MartusCrypto.formatAccountIdForLog(authorAccountId));
-			log("signedString: " + signedString.toString());
-			log("signature: " + signature);
-			return returnSingleResponseAndLog("", NetworkInterfaceConstants.SIG_ERROR);
+			logError("  returning SIG_ERROR");
+			logError("Account: " + MartusCrypto.formatAccountIdForLog(authorAccountId));
+			logError("signedString: " + signedString.toString());
+			logError("signature: " + signature);
+			return returnSingleErrorResponseAndLog("", NetworkInterfaceConstants.SIG_ERROR);
 		}
 		
 		result = getPacket(myAccountId, authorAccountId, bulletinLocalId, packetLocalId);
 		
-		log("downloadFieldDataPacket: Exit");
+		logNotice("downloadFieldDataPacket: Exit");
 		return result;
 	}
 
@@ -969,16 +971,16 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		Vector result = new Vector();
 		
 		if(isClientBanned(myAccountId) )
-			return returnSingleResponseAndLog( " returning REJECTED", NetworkInterfaceConstants.REJECTED );
+			return returnSingleErrorResponseAndLog( " returning REJECTED", NetworkInterfaceConstants.REJECTED );
 		
 		if( isShutdownRequested() )
-			return returnSingleResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
+			return returnSingleErrorResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
 		
 		boolean isHeaderPacket = BulletinHeaderPacket.isValidLocalId(packetLocalId);
 		boolean isFieldDataPacket = FieldDataPacket.isValidLocalId(packetLocalId);
 		boolean isAllowed = isHeaderPacket || isFieldDataPacket;
 		if(!isAllowed)
-			return returnSingleResponseAndLog( "  attempt to download disallowed packet type: " + packetLocalId, NetworkInterfaceConstants.INVALID_DATA );
+			return returnSingleErrorResponseAndLog( "  attempt to download disallowed packet type: " + packetLocalId, NetworkInterfaceConstants.INVALID_DATA );
 		
 		ReadableDatabase db = getDatabase();
 		
@@ -990,7 +992,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		
 		if(!db.doesRecordExist(headerKey))
 		{
-			return returnSingleResponseAndLog( "  header packet not found", NetworkInterfaceConstants.NOT_FOUND );
+			return returnSingleErrorResponseAndLog( "  header packet not found", NetworkInterfaceConstants.NOT_FOUND );
 		}
 		
 		UniversalId dataPacketUid = UniversalId.createFromAccountAndLocalId(authorAccountId, packetLocalId);
@@ -1002,7 +1004,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			
 		if(!db.doesRecordExist(dataPacketKey))
 		{
-			return returnSingleResponseAndLog( "  data packet not found", NetworkInterfaceConstants.NOT_FOUND );
+			return returnSingleErrorResponseAndLog( "  data packet not found", NetworkInterfaceConstants.NOT_FOUND );
 		}
 		
 		try
@@ -1010,7 +1012,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			if(!myAccountId.equals(authorAccountId) && 
 				!isHQAccountAuthorizedToRead(headerKey, myAccountId))
 			{
-				return returnSingleResponseAndLog( "  neither author nor HQ account", NetworkInterfaceConstants.NOTYOURBULLETIN );
+				return returnSingleErrorResponseAndLog( "  neither author nor HQ account", NetworkInterfaceConstants.NOTYOURBULLETIN );
 			}
 			
 			String packetXml = db.readRecord(dataPacketKey, getSecurity());
@@ -1022,7 +1024,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		catch(Exception e)
 		{
 			//TODO: Make sure this has a test!
-			log("  error loading " + e);
+			logError("  error loading " + e);
 			result.clear();
 			result.add(NetworkInterfaceConstants.SERVER_ERROR);
 			return result;
@@ -1031,7 +1033,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 
 	public String authenticateServer(String tokenToSign)
 	{
-		log("authenticateServer");
+		logInfo("authenticateServer");
 		try 
 		{
 			InputStream in = new ByteArrayInputStream(Base64.decode(tokenToSign));
@@ -1040,12 +1042,12 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		} 
 		catch(MartusSignatureException e) 
 		{
-			log("SERVER_ERROR: " + e);
+			logError("SERVER_ERROR: " + e);
 			return NetworkInterfaceConstants.SERVER_ERROR;
 		} 
 		catch(InvalidBase64Exception e) 
 		{
-			log("INVALID_DATA: " + e);
+			logError("INVALID_DATA: " + e);
 			return NetworkInterfaceConstants.INVALID_DATA;
 		}
 	}
@@ -1085,7 +1087,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		}
 		catch (IOException e)
 		{
-			log("Missing or unable to read file: " + getComplianceFile().getAbsolutePath());
+			logError("Missing or unable to read file: " + getComplianceFile().getAbsolutePath());
 			throw e;
 		}
 	}
@@ -1139,10 +1141,10 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		return KEYPAIRFILENAME;
 	}
 	
-	public Vector returnSingleResponseAndLog( String message, String responseCode )
+	public Vector returnSingleErrorResponseAndLog( String message, String responseCode )
 	{
 		if( message.length() > 0 )
-			log( message.toString());
+			logError( message.toString());
 		
 		Vector response = new Vector();
 		response.add( responseCode );
@@ -1156,7 +1158,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	{
 		DatabaseKey headerKey =	findHeaderKeyInDatabase(authorAccountId, bulletinLocalId);
 		if(headerKey == null)
-			return returnSingleResponseAndLog("getBulletinChunkWithoutVerifyingCaller:  NOT_FOUND ", NetworkInterfaceConstants.NOT_FOUND);
+			return returnSingleErrorResponseAndLog("getBulletinChunkWithoutVerifyingCaller:  NOT_FOUND ", NetworkInterfaceConstants.NOT_FOUND);
 		
 		try
 		{
@@ -1165,11 +1167,11 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		catch(RecordHiddenException e)
 		{
 			// TODO: Should return more specific error code
-			return returnSingleResponseAndLog("getBulletinChunkWithoutVerifyingCaller:  SERVER_ERROR " + e, NetworkInterfaceConstants.SERVER_ERROR);
+			return returnSingleErrorResponseAndLog("getBulletinChunkWithoutVerifyingCaller:  SERVER_ERROR " + e, NetworkInterfaceConstants.SERVER_ERROR);
 		}
 		catch(Exception e)
 		{
-			return returnSingleResponseAndLog("getBulletinChunkWithoutVerifyingCaller:  SERVER_ERROR " + e, NetworkInterfaceConstants.SERVER_ERROR);
+			return returnSingleErrorResponseAndLog("getBulletinChunkWithoutVerifyingCaller:  SERVER_ERROR " + e, NetworkInterfaceConstants.SERVER_ERROR);
 		}
 	}
 
@@ -1199,27 +1201,27 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		}
 		catch (DuplicatePacketException e)
 		{
-			log("saveUpload DUPLICATE: " + e.getMessage());
+			logError("saveUpload DUPLICATE: " + e.getMessage());
 			result =  NetworkInterfaceConstants.DUPLICATE;
 		}
 		catch (SealedPacketExistsException e)
 		{
-			log("saveUpload SEALED_EXISTS: " + e.getMessage());
+			logError("saveUpload SEALED_EXISTS: " + e.getMessage());
 			result =  NetworkInterfaceConstants.SEALED_EXISTS;
 		}
 		catch (Packet.SignatureVerificationException e)
 		{
-			log("saveUpload SIG_ERROR: " + e);
+			logError("saveUpload SIG_ERROR: " + e);
 			result =  NetworkInterfaceConstants.SIG_ERROR;
 		}
 		catch (Packet.WrongAccountException e)
 		{
-			log("saveUpload NOTYOURBULLETIN: ");
+			logError("saveUpload NOTYOURBULLETIN: ");
 			result =  NetworkInterfaceConstants.NOTYOURBULLETIN;
 		}
 		catch (Exception e)
 		{
-			log("saveUpload INVALID_DATA: " + e);
+			logError("saveUpload INVALID_DATA: " + e);
 			result =  NetworkInterfaceConstants.INVALID_DATA;
 		}
 		if(result != NetworkInterfaceConstants.OK)
@@ -1231,7 +1233,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		}
 		catch (Exception e)
 		{
-			log("saveUpload SERVER_ERROR: " + e);
+			logError("saveUpload SERVER_ERROR: " + e);
 			result =  NetworkInterfaceConstants.SERVER_ERROR;
 		} 
 		
@@ -1294,7 +1296,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		result.add(new Integer(totalLength));
 		result.add(new Integer(chunkSize));
 		result.add(zipString);
-		log("downloadBulletinChunk: Exit " + result.get(0));
+		logNotice("downloadBulletinChunk: Exit " + result.get(0));
 		return result;
 	}
 
@@ -1319,7 +1321,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		tempFileSignature = MartusUtilities.createSignatureFileFromFile(tempFile, getSecurity());
 		if(!verifyBulletinInterimFile(tempFile, tempFileSignature, getSecurity().getPublicKeyString()))
 			throw new MartusUtilities.FileVerificationException();
-		log("    Total file size =" + tempFile.length());
+		logDebug("    Total file size =" + tempFile.length());
 		
 		return tempFile;
 	}
@@ -1333,7 +1335,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			} 
 			catch (MartusUtilities.FileVerificationException e) 
 			{
-				log("    verifyBulletinInterimFile: " + e);
+				logError("    verifyBulletinInterimFile: " + e);
 			}
 		return false;	
 	}
@@ -1347,7 +1349,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		}
 		catch(Exception e)
 		{
-			log("  isSigCorrect exception: " + e);
+			logError("  isSigCorrect exception: " + e);
 			return false;
 		}
 	}
@@ -1399,7 +1401,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		if(!isSecureMode())
 			return true;
 
-		log("Deleting Startup Files");
+		logNotice("Deleting Startup Files");
 		MartusUtilities.deleteAllFiles(getMainServersDeleteOnStartupFiles());
 		amp.deleteAmplifierStartupFiles();
 		serverForClients.deleteStartupFiles();
@@ -1410,7 +1412,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		File[] remainingStartupFiles = startupDir.listFiles();
 		if(remainingStartupFiles.length != 0)
 		{
-			log("Files still exist in the folder: " + startupDir.getAbsolutePath());
+			logError("Files still exist in the folder: " + startupDir.getAbsolutePath());
 			return false;
 		}
 		return true;
@@ -1422,7 +1424,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		if(exitFile && !loggedShutdownRequested)
 		{
 			loggedShutdownRequested = true;
-			log("Exit file found, attempting to shutdown.");
+			logNotice("Exit file found, attempting to shutdown.");
 		}
 		return(exitFile);
 	}
@@ -1527,24 +1529,24 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		getLogger().log(message);
 	}
 	
-	public void logERROR(String message)
+	public void logError(String message)
 	{
-		log("ERROR " + message);
+		log("ERROR: " + message);
 	}
 	
 	public void logInfo(String message)
 	{
-		log("Info " + message);
+		log("Info: " + message);
 		
 	}
 	public void logNotice(String message)
 	{
-		log("Notice " + message);
+		log("Notice: " + message);
 		
 	}
-	public void logVerbose(String message)
+	public void logDebug(String message)
 	{
-		log("Verbose " + message);
+		log("Debug: " + message);
 	}
 	
 	
@@ -1820,10 +1822,10 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		if(MartusServer.class.getResource("ForceListenOnNonPrivilegedPorts.txt") == null)
 			return false;
 		
-		log("*********************************************");
-		log("WARNING: Development mode selected;");
-		log("         Using non-privileged ports!");
-		log("*********************************************");
+		logNotice("*********************************************");
+		logNotice("WARNING: Development mode selected;");
+		logNotice("         Using non-privileged ports!");
+		logNotice("*********************************************");
 		return true;
 	}
 
@@ -1852,11 +1854,11 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		{
 			if( isShutdownRequested() && canExitNow() )
 			{
-				log("Shutdown request acknowledged, preparing to shutdown.");
+				logNotice("Shutdown request acknowledged, preparing to shutdown.");
 				
 				serverForClients.prepareToShutdown();				
 				getShutdownFile().delete();
-				log("Server has exited.");
+				logNotice("Server has exited.");
 				try
 				{
 					serverExit(0);

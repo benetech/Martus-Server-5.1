@@ -30,6 +30,7 @@ import java.util.Vector;
 
 import org.martus.common.AmplifierNetworkInterface;
 import org.martus.common.BulletinStore;
+import org.martus.common.LoggerInterface;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
@@ -38,7 +39,7 @@ import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.server.main.BulletinUploadRecord;
 
-public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
+public class ServerSideAmplifierHandler implements AmplifierNetworkInterface, LoggerInterface
 {
 	public ServerSideAmplifierHandler(ServerForAmplifiers serverToUse)
 	{
@@ -49,9 +50,9 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 	
 	public Vector getAccountIds(String myAccountId, Vector parameters, String signature)
 	{
-		log("getAccountIds: " + MartusCrypto.formatAccountIdForLog(myAccountId));
+		logInfo("getAccountIds: " + MartusCrypto.formatAccountIdForLog(myAccountId));
 		if(!server.isAuthorizedAmp(myAccountId))
-			return server.returnSingleResponseAndLog(" returning NOT_AUTHORIZED", NetworkInterfaceConstants.NOT_AUTHORIZED);
+			return server.returnSingleResponseErrorAndLog(" returning NOT_AUTHORIZED", NetworkInterfaceConstants.NOT_AUTHORIZED);
 
 		class AccountVisitor implements Database.AccountVisitor
 		{
@@ -89,15 +90,15 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 		
 		result.add(NetworkInterfaceConstants.OK);
 		result.add(visitor.getAccounts());
-		log("getAccountIds: returned " + visitor.getAccounts().size() + " accounts");
+		logNotice("getAccountIds: returned " + visitor.getAccounts().size() + " accounts");
 		return result;
 	}
 
 	public Vector getContactInfo(String myAccountId, Vector parameters, String signature)
 	{
-		log("getContactInfo: amp: " + MartusCrypto.formatAccountIdForLog(myAccountId));
+		logInfo("getContactInfo: amp: " + MartusCrypto.formatAccountIdForLog(myAccountId));
 		if(!server.isAuthorizedAmp(myAccountId))
-			return server.returnSingleResponseAndLog(" returning NOT_AUTHORIZED", NetworkInterfaceConstants.NOT_AUTHORIZED);
+			return server.returnSingleResponseErrorAndLog("getContactInfo returning NOT_AUTHORIZED", NetworkInterfaceConstants.NOT_AUTHORIZED);
 
 		Vector result = checkSignature(myAccountId, parameters, signature);
 		if(result != null)
@@ -107,7 +108,7 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 		if(parameters.size() != 1)
 		{
 			result.add(NetworkInterfaceConstants.INCOMPLETE);
-			log("getAccountContactInfo incomplete request");
+			logError("getAccountContactInfo incomplete request");
 			return result;
 		}
 		
@@ -119,15 +120,15 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 		else
 			resultString = "none";
 		
-		log("getContactInfo: account: " + MartusCrypto.formatAccountIdForLog(accountIdToRetrieve) + " had " + resultString);
+		logNotice("getContactInfo: account: " + MartusCrypto.formatAccountIdForLog(accountIdToRetrieve) + " had " + resultString);
 		return result;
 	}
 	
 	public Vector getPublicBulletinLocalIds(String myAccountId, Vector parameters, String signature)
 	{
-		log("getPublicBulletinLocalIds: amp: " + MartusCrypto.formatAccountIdForLog(myAccountId));
+		logInfo("getPublicBulletinLocalIds: amp: " + MartusCrypto.formatAccountIdForLog(myAccountId));
 		if(!server.isAuthorizedAmp(myAccountId))
-			return server.returnSingleResponseAndLog(" returning NOT_AUTHORIZED", NetworkInterfaceConstants.NOT_AUTHORIZED);
+			return server.returnSingleResponseErrorAndLog(" returning NOT_AUTHORIZED", NetworkInterfaceConstants.NOT_AUTHORIZED);
 
 		Vector result = checkSignature(myAccountId, parameters, signature);
 		if(result != null)
@@ -142,16 +143,16 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 		
 		result.add(NetworkInterfaceConstants.OK);
 		result.add(collector.infos);
-		log("getPublicBulletinLocalIds: account:"+ MartusCrypto.formatAccountIdForLog(accountString) + " = "+collector.infos.size());
+		logNotice("getPublicBulletinLocalIds: account:"+ MartusCrypto.formatAccountIdForLog(accountString) + " = "+collector.infos.size());
 		
 		return result;
 	}
 	
 	public Vector getAmplifierBulletinChunk(String myAccountId, Vector parameters, String signature)
 	{
-		log("getAmplifierBulletinChunk: " + MartusCrypto.formatAccountIdForLog(myAccountId));
+		logInfo("getAmplifierBulletinChunk: " + MartusCrypto.formatAccountIdForLog(myAccountId));
 		if(!server.isAuthorizedAmp(myAccountId))
-			return server.returnSingleResponseAndLog(" returning NOT_AUTHORIZED", NetworkInterfaceConstants.NOT_AUTHORIZED);
+			return server.returnSingleResponseErrorAndLog("getAmplifierBulletinChunk returning NOT_AUTHORIZED", NetworkInterfaceConstants.NOT_AUTHORIZED);
 
 		Vector result = checkSignature(myAccountId, parameters, signature);
 		if(result != null)
@@ -194,7 +195,7 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 				String burInDatabase = db.readRecord(burKey, security);
 				if(burInDatabase == null)
 				{	
-					log("Error: Missing BUR packet for bulletin:" +key.getUniversalId());
+					logError("Missing BUR packet for bulletin:" +key.getUniversalId());
 					return;
 				}
 				
@@ -209,7 +210,7 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 			}
 			catch (Exception e)
 			{
-				log("Error checking bulletin status");
+				logError("checking bulletin status");
 				String accountInfo = MartusCrypto.formatAccountIdForLog(key.getAccountId());
 				log(accountInfo);
 				log(key.getLocalId());
@@ -229,10 +230,10 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 	{
 		if(!isSignatureOk(myAccountId, parameters, signature, server.getSecurity()))
 		{
-			log("ERROR: Signature Failed");
-			log("Account: " + MartusCrypto.formatAccountIdForLog(myAccountId));
-			log("parameters: " + parameters.toString());
-			log("signature: " + signature);
+			logError("Signature Failed");
+			logError("Account: " + MartusCrypto.formatAccountIdForLog(myAccountId));
+			logError("parameters: " + parameters.toString());
+			logError("signature: " + signature);
 			Vector error = new Vector(); 
 			error.add(NetworkInterfaceConstants.SIG_ERROR);			
 			return error;
@@ -240,10 +241,31 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 		return null;
 	}
 	
-	void log(String message)
+	public void log(String message)
 	{
 		server.log("Amp handler: " + message);
 	}
+
+	public void logError(String message)
+	{
+		log("ERROR: " + message);
+	}
+	
+	public void logInfo(String message)
+	{
+		log("Info: " + message);
+		
+	}
+	public void logNotice(String message)
+	{
+		log("Notice: " + message);
+		
+	}
+	public void logDebug(String message)
+	{
+		log("Debug: " + message);
+	}
+	
 
 	ServerForAmplifiers server;
 }

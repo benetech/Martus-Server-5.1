@@ -158,10 +158,10 @@ class FakeServerSupplier implements ServerSupplierInterface
 	}
 	
 	public void log(String message){}
-	public void logERROR(String message){}
+	public void logError(String message){}
 	public void logInfo(String message){}
 	public void logNotice(String message){}
-	public void logVerbose(String message){}
+	public void logDebug(String message){}
 	
 	String authorizedCaller;
 	String returnZipData;

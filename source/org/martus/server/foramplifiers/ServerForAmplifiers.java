@@ -66,7 +66,7 @@ import org.martus.util.Base64;
 import org.martus.util.DirectoryUtils;
 import org.martus.util.Base64.InvalidBase64Exception;
 
-public class ServerForAmplifiers implements NetworkInterfaceConstants
+public class ServerForAmplifiers implements NetworkInterfaceConstants, LoggerInterface
 {
 	public ServerForAmplifiers(MartusServer coreServerToUse, LoggerInterface loggerToUse) throws MartusCrypto.CryptoInitializationException
 	{
@@ -102,6 +102,27 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 		logger.log(message);
 	}
 	
+	public void logError(String message)
+	{
+		log("ERROR: " + message);
+	}
+	
+	public void logInfo(String message)
+	{
+		log("Info: " + message);
+		
+	}
+	public void logNotice(String message)
+	{
+		log("Notice: " + message);
+		
+	}
+	public void logDebug(String message)
+	{
+		log("Debug: " + message);
+	}
+	
+	
 	public ServerBulletinStore getStore()
 	{
 		return coreServer.getStore();
@@ -136,9 +157,9 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 	{
 		File authorizedAmplifiersDir = getAuthorizedAmplifiersDirectory();
 		authorizedAmps = coreServer.loadServerPublicKeys(authorizedAmplifiersDir, "Amp");
-		log("Authorized " + authorizedAmps.size() + " amplifiers to call us");
+		logNotice("Authorized " + authorizedAmps.size() + " amplifiers to call us");
 		loadClientsNotAmplified();
-		log("Not authorized to amplify " + clientsNotAmplified.size() + " clients.");
+		logNotice("Not authorized to amplify " + clientsNotAmplified.size() + " clients.");
 	}
 	
 	private File getClientsNotToAmplifiyFile()
@@ -168,9 +189,9 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 	
 	public void addListeners() throws UnknownHostException
 	{
-		log("Initializing ServerForAmplifiers");
+		logNotice("Initializing ServerForAmplifiers");
 		createAmplifierXmlRpcServer();
-		log("Amplifier ports opened");
+		logNotice("Amplifier ports opened");
 	}
 	
 	public void createAmplifierXmlRpcServer() throws UnknownHostException
@@ -187,16 +208,16 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 			MartusSecureWebServer.security = getSecurity();
 
 		InetAddress mainIpAddress = MartusServer.getMainIpAddress();
-		log("Opening port "+ mainIpAddress + ":" + port + " for amplifiers...");
+		logNotice("Opening port "+ mainIpAddress + ":" + port + " for amplifiers...");
 		MartusXmlRpcServer.createSSLXmlRpcServer(getAmplifierHandler(),"MartusAmplifierServer", port, mainIpAddress);
 	}
 
 	public Vector getServerInformation()
 	{
-		log("getServerInformation");
+		logInfo("getServerInformation");
 			
 		if( coreServer.isShutdownRequested() )
-			return returnSingleResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
+			return returnSingleResponseErrorAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
 				
 		Vector result = new Vector();
 		try
@@ -209,13 +230,13 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 			result.add(NetworkInterfaceConstants.OK);
 			result.add(publicKeyString);
 			result.add(Base64.encode(sigBytes));
-			log("getServerInformation : Exit OK");
+			logNotice("getServerInformation : Exit OK");
 		}
 		catch(Exception e)
 		{
 			result.add(NetworkInterfaceConstants.SERVER_ERROR);
 			result.add(e.toString());
-			log("getServerInformation SERVER ERROR" + e);			
+			logError("getServerInformation SERVER_ERROR" + e);			
 		}
 		return result;
 	}
@@ -228,24 +249,24 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 			StringBuffer logMsg = new StringBuffer();
 			logMsg.append("getBulletinChunk  " + coreServer.getClientAliasForLogging(authorAccountId) + " " + bulletinLocalId);
 			logMsg.append("  Offset=" + chunkOffset + ", Max=" + maxChunkSize);
-			log(logMsg.toString());
+			logDebug(logMsg.toString());
 		}
 		
 		if( coreServer.isShutdownRequested() )
-			return returnSingleResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
+			return returnSingleResponseErrorAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
 
 		if(!isAuthorizedAmp(myAccountId))
-			return returnSingleResponseAndLog(" returning NOT_AUTHORIZED", NetworkInterfaceConstants.NOT_AUTHORIZED);
+			return returnSingleResponseErrorAndLog(" returning NOT_AUTHORIZED", NetworkInterfaceConstants.NOT_AUTHORIZED);
 
 		DatabaseKey headerKey =	findHeaderKeyInDatabase(authorAccountId, bulletinLocalId);
 		if(headerKey == null)
-			return returnSingleResponseAndLog( " returning NOT_FOUND", NetworkInterfaceConstants.NOT_FOUND );
+			return returnSingleResponseErrorAndLog( " returning NOT_FOUND", NetworkInterfaceConstants.NOT_FOUND );
 
 		Vector result = getBulletinChunkWithoutVerifyingCaller(
 					authorAccountId, bulletinLocalId,
 					chunkOffset, maxChunkSize);
 		
-		log("getBulletinChunk exit: " + result.get(0));
+		logDebug("getBulletinChunk exit: " + result.get(0));
 		return result;
 	}
 
@@ -256,7 +277,7 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 
 	public String authenticateServer(String tokenToSign)
 	{
-		log("authenticateServer");
+		logInfo("authenticateServer");
 		try 
 		{
 			InputStream in = new ByteArrayInputStream(Base64.decode(tokenToSign));
@@ -265,12 +286,12 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 		} 
 		catch(MartusSignatureException e) 
 		{
-			log("SERVER_ERROR: " + e);
+			logError("SERVER_ERROR: " + e);
 			return NetworkInterfaceConstants.SERVER_ERROR;
 		} 
 		catch(InvalidBase64Exception e) 
 		{
-			log("INVALID_DATA: " + e);
+			logError("INVALID_DATA: " + e);
 			return NetworkInterfaceConstants.INVALID_DATA;
 		}
 	}
@@ -303,10 +324,10 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 		getSecurity().readKeyPair(in, passphrase);
 	}
 	
-	Vector returnSingleResponseAndLog( String message, String responseCode )
+	Vector returnSingleResponseErrorAndLog( String message, String responseCode )
 	{
 		if( message.length() > 0 )
-			log( message.toString());
+			logError( message.toString());
 		
 		Vector response = new Vector();
 		response.add( responseCode );
@@ -325,7 +346,7 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 	{
 		DatabaseKey headerKey =	findHeaderKeyInDatabase(authorAccountId, bulletinLocalId);
 		if(headerKey == null)
-			return returnSingleResponseAndLog("getBulletinChunkWithoutVerifyingCaller:  NOT_FOUND ", NetworkInterfaceConstants.NOT_FOUND);
+			return returnSingleResponseErrorAndLog("getBulletinChunkWithoutVerifyingCaller:  NOT_FOUND ", NetworkInterfaceConstants.NOT_FOUND);
 		
 		try
 		{
@@ -333,7 +354,7 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 		}
 		catch(Exception e)
 		{
-			return returnSingleResponseAndLog("getBulletinChunkWithoutVerifyingCaller:  SERVER_ERROR " + e, NetworkInterfaceConstants.SERVER_ERROR);
+			return returnSingleResponseErrorAndLog("getBulletinChunkWithoutVerifyingCaller:  SERVER_ERROR " + e, NetworkInterfaceConstants.SERVER_ERROR);
 		}
 	}
 
@@ -396,7 +417,7 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 		result.add(new Integer(totalLength));
 		result.add(new Integer(chunkSize));
 		result.add(zipString);
-		log("downloadBulletinChunk : Exit " + result.get(0));
+		logDebug("downloadBulletinChunk : Exit " + result.get(0));
 		return result;
 	}
 
@@ -421,22 +442,22 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 		tempFileSignature = MartusUtilities.createSignatureFileFromFile(tempFile, getSecurity());
 		if(!verifyBulletinInterimFile(tempFile, tempFileSignature, getSecurity().getPublicKeyString()))
 			throw new MartusUtilities.FileVerificationException();
-		log("    Total file size =" + tempFile.length());
+		logDebug("    Total file size =" + tempFile.length());
 		
 		return tempFile;
 	}
 
 	public boolean verifyBulletinInterimFile(File bulletinZipFile, File bulletinSignatureFile, String accountId)
 	{
-			try 
-			{
-				MartusUtilities.verifyFileAndSignature(bulletinZipFile, bulletinSignatureFile, getSecurity(), accountId);
-				return true;
-			} 
-			catch (MartusUtilities.FileVerificationException e) 
-			{
-				log("    verifyBulletinInterimFile: " + e);
-			}
+		try 
+		{
+			MartusUtilities.verifyFileAndSignature(bulletinZipFile, bulletinSignatureFile, getSecurity(), accountId);
+			return true;
+		} 
+		catch (MartusUtilities.FileVerificationException e) 
+		{
+			logError("    verifyBulletinInterimFile: " + e);
+		}
 		return false;	
 	}
 	

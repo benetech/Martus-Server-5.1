@@ -102,10 +102,10 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 
 	public void addListeners() throws UnknownHostException
 	{
-		log("Initializing ServerForClients");
+		logNotice("Initializing ServerForClients");
 		handleSSL(getSSLPorts());
 		handleNonSSL(getNonSSLPorts());
-		log("Client ports opened");
+		logNotice("Client ports opened");
 	}
 	
 	private int[] getNonSSLPorts()
@@ -150,24 +150,24 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		coreServer.log(message);
 	}
 	
-	public void logERROR(String message)
+	public void logError(String message)
 	{
-		log("ERROR " + message);
+		log("ERROR: " + message);
 	}
 	
 	public void logInfo(String message)
 	{
-		log("Info " + message);
+		log("Info: " + message);
 		
 	}
 	public void logNotice(String message)
 	{
-		log("Notice " + message);
+		log("Notice: " + message);
 		
 	}
-	public void logVerbose(String message)
+	public void logDebug(String message)
 	{
-		log("Verbose " + message);
+		log("Debug: " + message);
 	}
 	
 	
@@ -231,7 +231,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	{
 		if(clientsBanned.contains(clientId))
 		{
-			log("client BANNED: " + getPublicCode(clientId));
+			logNotice("client BANNED: " + getPublicCode(clientId));
 			return true;
 		}
 		return false;
@@ -258,7 +258,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	{
 		if(!clientsThatCanUpload.contains(clientId))
 		{
-			log("client NOT AUTHORIZED: " + getPublicCode(clientId));
+			logNotice("client NOT AUTHORIZED: " + getPublicCode(clientId));
 			return false;
 		}
 		return true;
@@ -275,7 +275,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		int numberActiveClients = getNumberActiveClients();
 		if(numberActiveClients != 0 && loggedNumberOfActiveClients != numberActiveClients)
 		{	
-			log("Unable to exit, number of active clients =" + numberActiveClients);
+			logNotice("Unable to exit, number of active clients =" + numberActiveClients);
 			loggedNumberOfActiveClients = numberActiveClients;
 		}
 		return (numberActiveClients == 0);
@@ -308,7 +308,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		for(int i=0; i < ports.length; ++i)
 		{	
 			InetAddress mainIpAddress = MartusServer.getMainIpAddress();
-			log("Opening NonSSL port " + mainIpAddress +":" + ports[i] + " for clients...");
+			logNotice("Opening NonSSL port " + mainIpAddress +":" + ports[i] + " for clients...");
 			activeWebServers.add(MartusXmlRpcServer.createNonSSLXmlRpcServer(nonSSLServerHandler, "MartusServer", ports[i], mainIpAddress));
 		}
 	}
@@ -319,7 +319,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		for(int i=0; i < ports.length; ++i)
 		{	
 			InetAddress mainIpAddress = MartusServer.getMainIpAddress();
-			log("Opening SSL port " + mainIpAddress +":" + ports[i] + " for clients...");
+			logNotice("Opening SSL port " + mainIpAddress +":" + ports[i] + " for clients...");
 			activeWebServers.add(MartusXmlRpcServer.createSSLXmlRpcServer(serverHandler, "MartusServer", ports[i], mainIpAddress));
 		}
 	}
@@ -407,7 +407,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			}
 			catch (Exception e)
 			{
-				log("deleteDraftBulletins: " + e);
+				logError("deleteDraftBulletins: " + e);
 				result = NetworkInterfaceConstants.INCOMPLETE;
 			}
 		}
@@ -460,7 +460,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		
 		if(!uploadGranted)
 		{
-			coreServer.log("requestUploadRights: Rejected " + coreServer.getPublicCode(clientId) + " tryMagicWord=" +tryMagicWord);
+			coreServer.logError("requestUploadRights: Rejected " + coreServer.getPublicCode(clientId) + " tryMagicWord=" +tryMagicWord);
 			coreServer.incrementFailedUploadRequestsForCurrentClientIp();
 			return NetworkInterfaceConstants.REJECTED;
 		}
@@ -478,20 +478,20 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	private Vector collectBulletinSummaries(SummaryCollector summaryCollector, String methodName)
 	{
 		String myAccountId = summaryCollector.callerAccountId();
-		log(methodName + coreServer.getClientAliasForLogging(myAccountId));
+		logInfo(methodName + coreServer.getClientAliasForLogging(myAccountId));
 		
 		if(isClientBanned(myAccountId) )
-			return coreServer.returnSingleResponseAndLog("  returning REJECTED", NetworkInterfaceConstants.REJECTED);
+			return coreServer.returnSingleErrorResponseAndLog("  returning REJECTED", NetworkInterfaceConstants.REJECTED);
 		
 		if( coreServer.isShutdownRequested() )
-			return coreServer.returnSingleResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
+			return coreServer.returnSingleErrorResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
 		
 		Vector summaries = summaryCollector.collectSummaries();
 		Vector result = new Vector();
 		result.add(NetworkInterfaceConstants.OK);
 		result.add(summaries);
 		
-		log(methodName + "Exit");
+		logNotice(methodName + "Exit: Ids="+summaries.size());
 		return result;
 	}
 
@@ -566,7 +566,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		String magicWord = getHumanReadableMagicWord(magicWordUsed);
 		String groupName = getGroupNameForMagicWord(magicWordUsed);
 		
-		log("allowUploads granted to: " + coreServer.getClientAliasForLogging(clientId) + " : " + clientId + " groupName= " + groupName + " with magicword=" + magicWord);
+		logNotice("allowUploads granted to: " + coreServer.getClientAliasForLogging(clientId) + " : " + clientId + " groupName= " + groupName + " with magicword=" + magicWord);
 		clientsThatCanUpload.add(clientId);
 		
 		try
@@ -581,11 +581,11 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			String publicCode = getPublicCode(clientId);
 			authorizeLog.appendToFile(new AuthorizeLogEntry(publicCode, groupName));
 
-			log("allowUploads : Exit OK");
+			logNotice("allowUploads : Exit OK");
 		}
 		catch(Exception e)
 		{
-			log("allowUploads " + e);
+			logError("allowUploads " + e);
 			//System.out.println("MartusServer.allowUploads: " + e);
 			
 			//TODO: Should report error back to user. Shouldn't update in-memory list
@@ -605,13 +605,13 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 
 	void loadCanUploadFile()
 	{
-		log("loadCanUploadList");
+		logInfo("loadCanUploadList");
 		clientsThatCanUpload = MartusUtilities.loadClientList(getAllowUploadFile());
 	}
 	
 	public synchronized void loadCanUploadList(BufferedReader canUploadInput)
 	{
-		log("loadCanUploadList");
+		logInfo("loadCanUploadList");
 
 		try
 		{
@@ -619,11 +619,11 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		}
 		catch (IOException e)
 		{
-			log("loadCanUploadList -- Error loading can-upload list: " + e);
+			logError("loadCanUploadList -- Error loading can-upload list: " + e);
 			clientsThatCanUpload = new Vector();
 		}
 		
-		log("loadCanUploadList : Exit OK");
+		logNotice("loadCanUploadList : Exit OK");
 	}
 	
 	abstract class MySummaryCollector extends SummaryCollector

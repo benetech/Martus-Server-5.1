@@ -46,7 +46,7 @@ import org.martus.common.packet.UniversalId;
 import org.martus.server.main.ServerBulletinStore;
 import org.martus.util.Base64.InvalidBase64Exception;
 
-public class MirroringRetriever
+public class MirroringRetriever implements LoggerInterface
 {
 	public MirroringRetriever(ServerBulletinStore storeToUse, CallerSideMirroringGatewayInterface gatewayToUse, 
 						String ipToUse, LoggerInterface loggerToUse)
@@ -73,7 +73,7 @@ public class MirroringRetriever
 		try
 		{
 			String publicCode = MartusCrypto.getFormattedPublicCode(uid.getAccountId());
-			log("Getting bulletin: " + publicCode + "->" + uid.getLocalId());
+			logNotice("Getting bulletin: " + publicCode + "->" + uid.getLocalId());
 			String bur = retrieveBurFromMirror(uid);
 			File zip = File.createTempFile("$$$MirroringRetriever", null);
 			try
@@ -90,7 +90,7 @@ public class MirroringRetriever
 		}
 		catch(ServerErrorException e)
 		{
-			log("Supplier server error: " + e);
+			logError("Supplier server: " + e);
 		}
 		catch(ServerNotAvailableException e)
 		{
@@ -143,15 +143,14 @@ public class MirroringRetriever
 				Vector infos = response.getResultVector();
 				uidsToRetrieve = listOnlyPacketsThatWeWant(nextAccountId, infos);
 				if(infos.size()>0 || uidsToRetrieve.size()>0)
-					log("listBulletins: " + publicCode + 
+					logInfo("listBulletins: " + publicCode + 
 						" -> " + infos.size() + " -> " + uidsToRetrieve.size());
 			}
 		}
 		catch (Exception e)
 		{
-			// TODO: Better error handling
+			logError("MirroringRetriever.getNextUidToRetrieve: " + e);
 			e.printStackTrace();
-			System.out.println("MirroringRetriever.getNextUidToRetrieve: " + e);
 		}
 
 		return null;
@@ -192,24 +191,23 @@ public class MirroringRetriever
 
 		try
 		{
-			log("Getting list of accounts");
+			logInfo("Getting list of accounts");
 			NetworkResponse response = gateway.listAccountsForMirroring(getSecurity());
 			String resultCode = response.getResultCode();
 			if(resultCode.equals(NetworkInterfaceConstants.OK))
 			{
 				accountsToRetrieve.addAll(response.getResultVector());
-				log("Account count:" + accountsToRetrieve.size());
+				logNotice("Account count:" + accountsToRetrieve.size());
 			}
 			else if(!resultCode.equals(NetworkInterfaceConstants.NO_SERVER))
 			{
-				log("ERROR returned by " + ip + ": " + resultCode);
+				logError("error returned by " + ip + ": " + resultCode);
 			}
 		}
 		catch (Exception e)
 		{
-			// TODO: Better error handling
+			logError("getNextAccountToRetrieve: " + e);
 			e.printStackTrace();
-			log("getNextAccountToRetrieve: " + e);
 		}
 		return null;
 	}
@@ -231,7 +229,7 @@ public class MirroringRetriever
 
 		if(destFile.length() != totalLength)
 		{
-			System.out.println("file=" + destFile.length() + ", returned=" + totalLength);
+			logError("file=" + destFile.length() + ", returned=" + totalLength);
 			throw new ServerErrorException("totalSize didn't match data length");
 		}
 	}
@@ -241,9 +239,29 @@ public class MirroringRetriever
 		return store.getSignatureGenerator();
 	}
 
-	void log(String message)
+	public void log(String message)
 	{
 		logger.log("Mirror calling " + ip + ": " + message);
+	}
+
+	public void logError(String message)
+	{
+		log("ERROR: " + message);
+	}
+	
+	public void logInfo(String message)
+	{
+		log("Info: " + message);
+		
+	}
+	public void logNotice(String message)
+	{
+		log("Notice: " + message);
+		
+	}
+	public void logDebug(String message)
+	{
+		log("Debug: " + message);
 	}
 	
 	ServerBulletinStore store;	
@@ -258,4 +276,5 @@ public class MirroringRetriever
 	public long sleepUntil;
 	
 	static final int MIRRORING_MAX_CHUNK_SIZE = 1024 * 1024;
+
 }

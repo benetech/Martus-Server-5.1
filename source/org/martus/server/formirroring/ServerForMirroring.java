@@ -94,24 +94,24 @@ public class ServerForMirroring implements ServerSupplierInterface
 		logger.log(message);
 	}
 	
-	public void logERROR(String message)
+	public void logError(String message)
 	{
-		log("ERROR " + message);
+		log("ERROR: " + message);
 	}
 	
 	public void logInfo(String message)
 	{
-		log("Info " + message);
+		log("Info: " + message);
 		
 	}
 	public void logNotice(String message)
 	{
-		log("Notice " + message);
+		log("Notice: " + message);
 		
 	}
-	public void logVerbose(String message)
+	public void logDebug(String message)
 	{
-		log("Verbose " + message);
+		log("Debug: " + message);
 	}
 	
 	
@@ -135,28 +135,28 @@ public class ServerForMirroring implements ServerSupplierInterface
 			mirroringIntervalMillis = oneSecondOfMillis;
 			inactiveSleepMillis = oneMinuteOfMillis;
 		}
-		log("MirroringInterval (seconds): " + mirroringIntervalMillis/1000);
-		log("InactiveSleep (minutes): " + inactiveSleepMillis/1000/60);
+		logNotice("MirroringInterval (seconds): " + mirroringIntervalMillis/1000);
+		logNotice("InactiveSleep (minutes): " + inactiveSleepMillis/1000/60);
 
 		File authorizedCallersDir = getAuthorizedCallersDirectory();
 		authorizedCallers = coreServer.loadServerPublicKeys(authorizedCallersDir, "Mirror");
-		log("Authorized " + authorizedCallers.size() + " Mirrors to call us");
+		logNotice("Authorized " + authorizedCallers.size() + " Mirrors to call us");
 	}
 	
 	public void addListeners() throws IOException, InvalidPublicKeyFileException, PublicInformationInvalidException
 	{
-		log("Initializing ServerForMirroring");
+		logInfo("Initializing ServerForMirroring");
 		
 		InetAddress mainIpAddress = MartusServer.getMainIpAddress();
 		int port = MirroringInterface.MARTUS_PORT_FOR_MIRRORING;
 		if(coreServer.wantsDevelopmentMode())
 			port += 
 				ServerCallbackInterface.DEVELOPMENT_MODE_PORT_DELTA;
-		log("Opening port " + mainIpAddress +":" + port + " for mirroring...");
+		logNotice("Opening port " + mainIpAddress +":" + port + " for mirroring...");
 		SupplierSideMirroringHandler supplierHandler = new SupplierSideMirroringHandler(this, getSecurity());
 		MartusXmlRpcServer.createSSLXmlRpcServer(supplierHandler, MirroringInterface.DEST_OBJECT_NAME, port, mainIpAddress);
 
-		log("Mirroring port opened");
+		logNotice("Mirroring port opened");
 	}
 
 	// Begin ServerSupplierInterface
@@ -221,7 +221,7 @@ public class ServerForMirroring implements ServerSupplierInterface
 				}
 				catch (Exception e)
 				{
-					log("Error: listBulletins " + e);
+					logError("listBulletins " + e);
 				}
 			}
 			
@@ -300,9 +300,9 @@ public class ServerForMirroring implements ServerSupplierInterface
 				if(toCallFile.exists())
 					throw new IOException("delete failed: " + toCallFile);
 			}
-			log("We will call: " + toCallFile.getName());
+			logNotice("We will call: " + toCallFile.getName());
 		}
-		log("Configured to call " + retrieversWeWillCall.size() + " Mirrors");
+		logNotice("Configured to call " + retrieversWeWillCall.size() + " Mirrors");
 	}
 	
 	MirroringRetriever createRetrieverToCall(File publicKeyFile) throws

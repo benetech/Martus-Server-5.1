@@ -29,13 +29,14 @@ package org.martus.server.forclients;
 import java.io.UnsupportedEncodingException;
 import java.util.Vector;
 
+import org.martus.common.LoggerInterface;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.network.NetworkInterface;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.util.Base64;
 
 
-public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterfaceConstants
+public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterfaceConstants, LoggerInterface
 {
 
 	public ServerSideNetworkHandler(ServerForClientsInterface serverToUse)
@@ -43,9 +44,29 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 		server = serverToUse;
 	}
 	
-	void log(String message)
+	public void log(String message)
 	{
 		server.log("Client SSL handler: " + message);
+	}
+
+	public void logError(String message)
+	{
+		log("ERROR: " + message);
+	}
+	
+	public void logInfo(String message)
+	{
+		log("Info: " + message);
+		
+	}
+	public void logNotice(String message)
+	{
+		log("Notice: " + message);
+		
+	}
+	public void logDebug(String message)
+	{
+		log("Debug: " + message);
 	}
 
 	// begin ServerInterface	
@@ -54,11 +75,11 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 		server.clientConnectionStart();
 		try
 		{
-			log("getServerInfo");
+			logInfo("getServerInfo");
 			
 			if(server.shouldSimulateBadConnection())
 			{
-				log("WARNING: Simulating bad connection!");
+				logError("WARNING: Simulating bad connection!");
 				int ONE_MINUTE_OF_MILLIS = 60*1000;
 				try
 				{
@@ -77,6 +98,7 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 			Vector result = new Vector();
 			result.add(OK);
 			result.add(data);
+			logDebug("getServerInfo: Exit");
 			return result;
 		}
 		finally
@@ -90,7 +112,7 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 		server.clientConnectionStart();
 		try
 		{
-			log("getUploadRights");
+			logInfo("getUploadRights");
 
 			Vector result = checkSignature(myAccountId, parameters, signature);
 			if(result != null)
@@ -99,10 +121,11 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 			
 			int index = 0;
 			String tryMagicWord = (String)parameters.get(index++);
-			server.log("requested " + server.getPublicCode(myAccountId));
+			logNotice("requested " + server.getPublicCode(myAccountId));
 			
 			String legacyResult = server.requestUploadRights(myAccountId, tryMagicWord);
 			result.add(legacyResult);
+			logDebug("getUploadRights: Exit");
 			return result;
 		}
 		finally
@@ -116,7 +139,7 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 		server.clientConnectionStart();
 		try
 		{
-			log("getSealedBulletinIds");
+			logInfo("getSealedBulletinIds");
 
 			Vector result = checkSignature(myAccountId, parameters, signature);
 			if(result != null)
@@ -133,6 +156,7 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 				result = server.listMySealedBulletinIds(authorAccountId, retrieveTags);
 			else
 				result = server.listFieldOfficeSealedBulletinIds(myAccountId, authorAccountId, retrieveTags);
+			logDebug("getSealedBulletinIds: Exit");
 			return result;
 		}
 		finally
@@ -146,7 +170,7 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 		server.clientConnectionStart();
 		try
 		{
-			log("getDraftBulletinIds");
+			logInfo("getDraftBulletinIds");
 
 			Vector result = checkSignature(myAccountId, parameters, signature);
 			if(result != null)
@@ -163,7 +187,7 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 				result = server.listMyDraftBulletinIds(authorAccountId, retrieveTags);
 			else
 				result = server.listFieldOfficeDraftBulletinIds(myAccountId, authorAccountId, retrieveTags);
-
+			logDebug("getDraftBulletinIds: Exit");
 			return result;
 		}
 		finally
@@ -177,7 +201,7 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 		server.clientConnectionStart();
 		try
 		{
-			log("getFieldOfficeAccountIds");
+			logInfo("getFieldOfficeAccountIds");
 			
 			Vector result = checkSignature(myAccountId, parameters, signature);
 			if(result != null)
@@ -186,7 +210,7 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 			
 			int index = 0;
 			String hqAccountId = (String)parameters.get(index++);
-			server.log("requested for " + server.getPublicCode(hqAccountId));
+			logNotice("getFieldOfficeAccountIds requested for " + server.getPublicCode(hqAccountId));
 
 			Vector legacyResult = server.listFieldOfficeAccounts(hqAccountId);
 			String resultCode = (String)legacyResult.get(0);
@@ -194,6 +218,7 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 			
 			result.add(resultCode);
 			result.add(legacyResult);
+			logDebug("getFieldOfficeAccountIds: Exit");
 			return result;
 		}
 		finally
@@ -207,7 +232,7 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 		server.clientConnectionStart();
 		try
 		{
-			log("putBulletinChunk");
+			logInfo("putBulletinChunk");
 
 			Vector result = checkSignature(myAccountId, parameters, signature);
 			if(result != null)
@@ -225,6 +250,7 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 			String legacyResult = server.putBulletinChunk(myAccountId, authorAccountId, bulletinLocalId, 
 						totalSize, chunkOffset, chunkSize, data);
 			result.add(legacyResult);
+			logDebug("putBulletinChunk: Exit");
 			return result;
 		}
 		finally
@@ -238,7 +264,7 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 		server.clientConnectionStart();
 		try
 		{
-			log("getBulletinChunk");
+			logInfo("getBulletinChunk");
 				
 			Vector result = checkSignature(myAccountId, parameters, signature);
 			if(result != null)
@@ -258,6 +284,7 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 					
 			result.add(resultCode);
 			result.add(legacyResult);
+			logDebug("getBulletinChunk: Exit");
 			return result;
 		}
 		finally
@@ -271,7 +298,7 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 		server.clientConnectionStart();
 		try
 		{
-			log("getPacket");
+			logInfo("getPacket");
 
 			Vector result = checkSignature(myAccountId, parameters, signature);
 			if(result != null)
@@ -286,7 +313,7 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 			if(parameters.size() > 3 && parameters.get(index++).equals(NetworkInterfaceConstants.BASE_64_ENCODED))
 				base64EncodeData = true;
 			
-			log("getPacketId " + packetLocalId + " for bulletinId " + bulletinLocalId);
+			logNotice("getPacketId " + packetLocalId + " for bulletinId " + bulletinLocalId);
 
 			Vector legacyResult = server.getPacket(myAccountId, authorAccountId, bulletinLocalId, packetLocalId);
 			String resultCode = (String)legacyResult.remove(0);
@@ -303,11 +330,12 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 			
 			result.add(resultCode);
 			result.add(legacyResult);
+			logDebug("getPacket: Exit");
 			return result;
 		}
 		catch (UnsupportedEncodingException e)
 		{
-			log("Error UnsupportedEncodingException:" +e.getMessage());
+			logError("UnsupportedEncodingException:" +e.getMessage());
 			Vector errorResult = new Vector();
 			errorResult.add(INVALID_DATA);
 			return errorResult;
@@ -323,7 +351,7 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 		server.clientConnectionStart();
 		try
 		{
-			log("deleteDraftBulletins");
+			logInfo("deleteDraftBulletins");
 
 			Vector result = checkSignature(myAccountId, parameters, signature);
 			if(result != null)
@@ -338,7 +366,7 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 			}
 
 			result.add(server.deleteDraftBulletins(myAccountId, idList));
-			
+			logDebug("deleteDraftBulletins: Exit");
 			return result;
 		}
 		finally
@@ -357,12 +385,13 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 		server.clientConnectionStart();
 		try
 		{
-			log("putContactInfo");
+			logInfo("putContactInfo");
 			Vector result = checkSignature(myAccountId, parameters, signature);
 			if(result != null)
 				return result;
 			result = new Vector();
 			result.add(server.putContactInfo(myAccountId, parameters));
+			logDebug("putContactInfo: Exit");
 			return result;
 		}
 		finally
@@ -376,7 +405,7 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 		server.clientConnectionStart();
 		try
 		{
-			log("getNews");
+			logInfo("getNews");
 			Vector result = checkSignature(myAccountId, parameters, signature);
 			if(result != null)
 				return result;
@@ -393,6 +422,7 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 			}
 
 			result = server.getNews(myAccountId, versionLabel, versionBuildDate);
+			logDebug("getNews: Exit");
 			return result;
 		}
 		finally
@@ -406,12 +436,13 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 		server.clientConnectionStart();
 		try
 		{
-			log("getServerCompliance");
+			logInfo("getServerCompliance");
 			Vector result = checkSignature(myAccountId, parameters, signature);
 			if(result != null)
 				return result;
 			result = new Vector();
 			result = server.getServerCompliance();
+			logDebug("getServerCompliance: Exit");
 			return result;
 		}
 		finally
@@ -424,10 +455,10 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 	{
 		if(!isSignatureOk(myAccountId, parameters, signature, server.getSecurity()))
 		{
-			log("ERROR: Signature Failed");
-			log("Account: " + MartusCrypto.formatAccountIdForLog(myAccountId));
-			log("parameters: " + parameters.toString());
-			log("signature: " + signature);
+			logError("Signature Failed");
+			logError("Account: " + MartusCrypto.formatAccountIdForLog(myAccountId));
+			logError("parameters: " + parameters.toString());
+			logError("signature: " + signature);
 			Vector error = new Vector(); 
 			error.add(SIG_ERROR);			
 			return error;
