@@ -733,7 +733,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		if( isShutdownRequested() )
 			return returnSingleResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
 		
-		SummaryCollector summaryCollector = new MyDraftSummaryCollector(getDatabase(), authorAccountId, retrieveTags);
+		SummaryCollector summaryCollector = new MyDraftSummaryCollector(this, authorAccountId, retrieveTags);
 		Vector summaries = summaryCollector.getSummaries();
 
 		String resultCode = (String)summaries.get(0);
@@ -756,7 +756,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		if( isShutdownRequested() )
 			return returnSingleResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
 		
-		SummaryCollector summaryCollector = new FieldOfficeSealedSummaryCollector(getDatabase(), hqAccountId, authorAccountId, retrieveTags);
+		SummaryCollector summaryCollector = new FieldOfficeSealedSummaryCollector(this, hqAccountId, authorAccountId, retrieveTags);
 		Vector summaries = summaryCollector.getSummaries();
 
 		String resultCode = (String)summaries.get(0);
@@ -780,7 +780,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		if( isShutdownRequested() )
 			return returnSingleResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
 			
-		SummaryCollector summaryCollector = new FieldOfficeDraftSummaryCollector(getDatabase(), hqAccountId, authorAccountId, retrieveTags);
+		SummaryCollector summaryCollector = new FieldOfficeDraftSummaryCollector(this, hqAccountId, authorAccountId, retrieveTags);
 		Vector summaries = summaryCollector.getSummaries();
 
 		String resultCode = (String)summaries.get(0);
@@ -1636,53 +1636,65 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 
 	public abstract static class SummaryCollector implements Database.PacketVisitor
 	{
-		protected SummaryCollector(Database dbToUse, String accountIdToUse, Vector retrieveTagsToUse)
+		protected SummaryCollector(MartusServer serverToUse, String authorAccountToUse, Vector retrieveTagsToUse)
 		{
-			db = dbToUse;
-			authorAccountId = accountIdToUse;
+			server = serverToUse;
+			authorAccountId = authorAccountToUse;
 			retrieveTags = retrieveTagsToUse;
+		}
+		
+		public Database getDatabase()
+		{
+			return server.getDatabase();
 		}
 		
 		public void visit(DatabaseKey key)
 		{
-			// TODO: this should only be for maxmaxmaxlogging
-//				if(serverMaxLogging)
-//				{
-//					logging("visit " + 
-//						getFolderFromClientId(key.getAccountId()) +  " " +
-//						key.getLocalId());
-//				}
 			if(!BulletinHeaderPacket.isValidLocalId(key.getLocalId()))
-			{
-				//this would fire for every non-header packet
-				//logging("visit  Error:isValidLocalId Key=" + key.getLocalId() );					
 				return;
-			}
-				
-			addSummaryIfAppropriate(key);
-			return;
-		}
+			
+			if(!keyBelongsToClient(key, authorAccountId))
+				return;
 
-		abstract public void addSummaryIfAppropriate(DatabaseKey key);
+			if(!isWanted(key))
+				return;
+			
+			try
+			{
+				BulletinHeaderPacket bhp = server.loadBulletinHeaderPacket(getDatabase(), key);
+				if(!isAuthorized(bhp))
+					return;
+				
+				addSummary(bhp);
+			}
+			catch (Exception e)
+			{
+				server.log("Error in summary collector: " + getClass().getName());
+				e.printStackTrace();
+			}
+		}
 		
+		abstract public boolean isWanted(DatabaseKey key);
+		abstract public boolean isAuthorized(BulletinHeaderPacket bhp);
+
 		public Vector getSummaries()
 		{
 			if(summaries == null)
 			{
 				summaries = new Vector();
 				summaries.add(NetworkInterfaceConstants.OK);
-				db.visitAllRecords(this);
+				getDatabase().visitAllRecords(this);
 			}
 			return summaries;	
 		}
 		
-		protected void addToSummary(BulletinHeaderPacket bhp) 
+		private void addSummary(BulletinHeaderPacket bhp) 
 		{
 			String summary = bhp.getLocalId() + MartusConstants.regexEqualsDelimeter;
 			summary  += bhp.getFieldDataPacketId();
 			if(retrieveTags.contains(NetworkInterfaceConstants.TAG_BULLETIN_SIZE))
 			{
-				int size = MartusUtilities.getBulletinSize(db, bhp);
+				int size = MartusUtilities.getBulletinSize(getDatabase(), bhp);
 				summary += MartusConstants.regexEqualsDelimeter + size;
 			}
 			if(retrieveTags.contains(NetworkInterfaceConstants.TAG_BULLETIN_DATE_SAVED))
@@ -1693,102 +1705,72 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			summaries.add(summary);
 		}
 
-		protected Database db;
-		protected String authorAccountId;
-		Vector summaries;
-		Vector retrieveTags;
+		private MartusServer server;
+		private String authorAccountId;
+		private Vector summaries;
+		private Vector retrieveTags;
 	}
 	
 	class MyDraftSummaryCollector extends SummaryCollector
 	{
-		public MyDraftSummaryCollector(Database dbToUse, String accountIdToUse, Vector retrieveTagsToUse) 
+		public MyDraftSummaryCollector(MartusServer serverToUse, String accountIdToUse, Vector retrieveTagsToUse) 
 		{
-			super(dbToUse, accountIdToUse, retrieveTagsToUse);
+			super(serverToUse, accountIdToUse, retrieveTagsToUse);
 		}
 
-		public void addSummaryIfAppropriate(DatabaseKey key) 
+		public boolean isWanted(DatabaseKey key)
 		{
-			if(!keyBelongsToClient(key, authorAccountId))
-				return;
+			return(key.isDraft());
+		}
 
-			if(!key.isDraft())
-				return;
-
-			try
-			{
-				addToSummary(loadBulletinHeaderPacket(db, key));
-			}
-			catch(Exception e)
-			{
-				log("visit " + e);
-				e.printStackTrace();
-				//System.out.println("MyDraftSummaryCollector: " + e);
-			}
+		public boolean isAuthorized(BulletinHeaderPacket bhp)
+		{
+			return true;
 		}
 	}
 
 
 	class FieldOfficeSealedSummaryCollector extends SummaryCollector
 	{
-		public FieldOfficeSealedSummaryCollector(Database dbToUse, String hqAccountIdToUse, String authorAccountIdToUse, Vector retrieveTagsToUse) 
+		public FieldOfficeSealedSummaryCollector(MartusServer serverToUse, String hqAccountIdToUse, String authorAccountIdToUse, Vector retrieveTagsToUse) 
 		{
-			super(dbToUse, authorAccountIdToUse, retrieveTagsToUse);
+			super(serverToUse, authorAccountIdToUse, retrieveTagsToUse);
 			hqAccountId = hqAccountIdToUse;
 
 		}
 
-		public void addSummaryIfAppropriate(DatabaseKey key) 
+		public boolean isWanted(DatabaseKey key)
 		{
-			if(!keyBelongsToClient(key, authorAccountId))
-				return;
-			if(!key.isSealed())
-				return;
-			
-			try
-			{
-				BulletinHeaderPacket bhp = loadBulletinHeaderPacket(db, key);
-				if(bhp.isHQAuthorizedToRead(hqAccountId))
-					addToSummary(bhp);
-			}
-			catch(Exception e)
-			{
-				log("visit " + e);
-				e.printStackTrace();
-				//System.out.println("MartusServer.FieldOfficeSealedSummaryCollectors: " + e);
-			}
+			return(key.isSealed());
 		}
+
+		public boolean isAuthorized(BulletinHeaderPacket bhp)
+		{
+			return(bhp.isHQAuthorizedToRead(hqAccountId));
+		}
+
 		String hqAccountId;
 	}
 
 	class FieldOfficeDraftSummaryCollector extends SummaryCollector
 	{
-		public FieldOfficeDraftSummaryCollector(Database dbToUse, String hqAccountIdToUse, String authorAccountIdToUse, Vector retrieveTagsToUse) 
+		public FieldOfficeDraftSummaryCollector(MartusServer serverToUse, String hqAccountIdToUse, String authorAccountIdToUse, Vector retrieveTagsToUse) 
 		{
-			super(dbToUse, authorAccountIdToUse, retrieveTagsToUse);
+			super(serverToUse, authorAccountIdToUse, retrieveTagsToUse);
 			hqAccountId = hqAccountIdToUse;
 
 		}
 
-		public void addSummaryIfAppropriate(DatabaseKey key) 
+		public boolean isWanted(DatabaseKey key)
 		{
-			if(!keyBelongsToClient(key, authorAccountId))
-				return;
-			if(!key.isDraft())
-				return;
-			
-			try
-			{
-				BulletinHeaderPacket bhp = loadBulletinHeaderPacket(db, key);
-				if(bhp.isHQAuthorizedToRead(hqAccountId))
-					addToSummary(bhp);
-			}
-			catch(Exception e)
-			{
-				log("visit " + e);
-				e.printStackTrace();
-				//System.out.println("MartusServer.FieldOfficeDraftSummaryCollectors: " + e);
-			}
+			return(key.isDraft());
 		}
+
+		public boolean isAuthorized(BulletinHeaderPacket bhp)
+		{
+			return(bhp.isHQAuthorizedToRead(hqAccountId));
+		}
+
 		String hqAccountId;
 	}
 

@@ -40,7 +40,6 @@ import org.martus.common.MartusUtilities;
 import org.martus.common.Version;
 import org.martus.common.MartusUtilities.FileVerificationException;
 import org.martus.common.crypto.MartusCrypto;
-import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.network.MartusXmlRpcServer;
 import org.martus.common.network.NetworkInterfaceConstants;
@@ -362,7 +361,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		if( coreServer.isShutdownRequested() )
 			return coreServer.returnSingleResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
 		
-		MySealedSummaryCollector summaryCollector = new MySealedSummaryCollector(coreServer.getDatabase(), authorAccountId, retrieveTags);
+		MySealedSummaryCollector summaryCollector = new MySealedSummaryCollector(coreServer, authorAccountId, retrieveTags);
 		Vector summaries = summaryCollector.getSummaries();
 		String resultCode = (String)summaries.get(0);
 		summaries.remove(0);
@@ -588,29 +587,19 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 
 	class MySealedSummaryCollector extends MartusServer.SummaryCollector
 	{
-		public MySealedSummaryCollector(Database dbToUse, String accountIdToUse, Vector retrieveTags) 
+		public MySealedSummaryCollector(MartusServer serverToUse, String accountIdToUse, Vector retrieveTags) 
 		{
-			super(dbToUse, accountIdToUse, retrieveTags);
+			super(serverToUse, accountIdToUse, retrieveTags);
 		}
 
-		public void addSummaryIfAppropriate(DatabaseKey key) 
+		public boolean isWanted(DatabaseKey key)
 		{
-			if(!MartusServer.keyBelongsToClient(key, authorAccountId))
-				return;
+			return(key.isSealed());
+		}
 
-			if(!key.isSealed())
-				return;
-				
-			try
-			{
-				addToSummary(coreServer.loadBulletinHeaderPacket(db, key));
-			}
-			catch(Exception e)
-			{
-				log("visit " + e);
-				e.printStackTrace();
-				//System.out.println("MySealedSummaryCollector: " + e);
-			}
+		public boolean isAuthorized(BulletinHeaderPacket bhp)
+		{
+			return true;
 		}
 	}
 
