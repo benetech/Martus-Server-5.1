@@ -230,8 +230,8 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 	{
 		{
 			StringBuffer logMsg = new StringBuffer();
-			logMsg.append("getBulletinChunk request by " + getClientAliasForLogging(myAccountId));
-			logMsg.append("  " + getClientAliasForLogging(authorAccountId) + " " + bulletinLocalId);
+			logMsg.append("getBulletinChunk request by " + coreServer.getClientAliasForLogging(myAccountId));
+			logMsg.append("  " + coreServer.getClientAliasForLogging(authorAccountId) + " " + bulletinLocalId);
 			logMsg.append("  Offset=" + chunkOffset + ", Max=" + maxChunkSize);
 			log(logMsg.toString());
 		}
@@ -445,11 +445,6 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 				log("    verifyBulletinInterimFile: " + e);
 			}
 		return false;	
-	}
-	
-	private String getClientAliasForLogging(String clientId)
-	{
-		return getDatabase().getFolderForAccount(clientId);
 	}
 	
 	public synchronized void clientConnectionStart()

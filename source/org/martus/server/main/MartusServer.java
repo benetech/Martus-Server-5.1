@@ -1403,7 +1403,14 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 
 	public String getClientAliasForLogging(String clientId)
 	{
-		return getDatabase().getFolderForAccount(clientId);
+		try
+		{
+			return getDatabase().getFolderForAccount(clientId);
+		}
+		catch (IOException e)
+		{
+			return clientId;
+		}
 	}
 	
 	private Vector getMainServersDeleteOnStartupFiles()
