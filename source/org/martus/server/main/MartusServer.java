@@ -437,41 +437,6 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		return result;
 	}
 	
-	public String requestUploadRights(String clientId, String tryMagicWord)
-	{
-		boolean uploadGranted = false;
-
-		if(serverForClients.isValidMagicWord(tryMagicWord))
-			uploadGranted = true;
-			
-		if(!areUploadRequestsAllowedForCurrentIp())
-		{
-			if(!uploadGranted)
-				incrementFailedUploadRequestsForCurrentClientIp();
-			return NetworkInterfaceConstants.SERVER_ERROR;
-		}
-
-		if( isClientBanned(clientId) )
-			return NetworkInterfaceConstants.REJECTED;
-			
-		if( isShutdownRequested() )
-			return NetworkInterfaceConstants.SERVER_DOWN;
-			
-		if(tryMagicWord.length() == 0 && canClientUpload(clientId))
-			return NetworkInterfaceConstants.OK;
-		
-		if(!uploadGranted)
-		{
-			log("requestUploadRights: Rejected " + getPublicCode(clientId) + " tryMagicWord=" +tryMagicWord);
-			incrementFailedUploadRequestsForCurrentClientIp();
-			return NetworkInterfaceConstants.REJECTED;
-		}
-		
-		serverForClients.allowUploads(clientId, tryMagicWord);
-		return NetworkInterfaceConstants.OK;
-	}
-	
-	
 	public String uploadBulletinChunk(String authorAccountId, String bulletinLocalId, int totalSize, int chunkOffset, int chunkSize, String data, String signature)
 	{
 		log("uploadBulletinChunk");
@@ -1621,7 +1586,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		return 0;
 	}
 	
-	synchronized boolean areUploadRequestsAllowedForCurrentIp()
+	public synchronized boolean areUploadRequestsAllowedForCurrentIp()
 	{
 		String ip = getCurrentClientIp();
 		if(failedUploadRequestsPerIp.containsKey(ip))

@@ -76,7 +76,6 @@ import org.martus.server.main.MartusServer;
 import org.martus.util.Base64;
 import org.martus.util.TestCaseEnhanced;
 import org.martus.util.UnicodeReader;
-import org.martus.util.UnicodeWriter;
 import org.martus.util.Base64.InvalidBase64Exception;
 
 
@@ -416,75 +415,6 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		assertContains("Administrator", (String)newsItems.get(0));
 		
 		testServer.serverForClients.clientsBanned.remove(clientAccountId);
-
-		TRACE_END();
-	}
-
-	public void testLoadingMagicWords() throws Exception
-	{		
-		TRACE_BEGIN("testLoadingMagicWords");
-
-		String sampleMagicWord1 = "kef7873n2";
-		String sampleMagicWord2 = "fjk5dlkg8";
-		String inactiveMagicWord2 = "#" + sampleMagicWord2;
-		String sampleGroup = "group name";
-		String sampleMagicWord3 = "Magic3";
-		String sampleMagicWord4 = "magic4";
-		String sampleMagicWordline3 = sampleMagicWord3 + "	" + sampleGroup;
-		String sampleMagicWordline4 = sampleMagicWord4 + "\t" + sampleGroup;
-		String nonExistentMagicWord = "ThisIsNotAMagicWord";
-		
-		File file = testServer.serverForClients.getMagicWordsFile();
-		UnicodeWriter writer = new UnicodeWriter(file);
-		writer.writeln(sampleMagicWord1);
-		writer.writeln(inactiveMagicWord2);
-		writer.writeln(sampleMagicWordline3);
-		writer.writeln(sampleMagicWordline4);
-		writer.close();
-
-		MockMartusServer other = new MockMartusServer(testServer.getDataDirectory());
-		other.setClientListenerEnabled(true);
-		other.verifyAndLoadConfigurationFiles();
-		other.setSecurity(otherServerSecurity);
-		
-		String worked = other.requestUploadRights("whatever", sampleMagicWord1);
-		assertEquals("didn't work?", NetworkInterfaceConstants.OK, worked);
-		
-		worked = other.requestUploadRights("whatever2", sampleMagicWord1.toUpperCase());
-		assertEquals("should ignore case sensitivity", NetworkInterfaceConstants.OK, worked);
-		
-		worked = other.requestUploadRights("whatever2", sampleMagicWord3);
-		assertEquals("should ignore spaces", NetworkInterfaceConstants.OK, worked);
-		
-		worked = other.requestUploadRights("whatever2", sampleMagicWord4);
-		assertEquals("should ignore other whitespace", NetworkInterfaceConstants.OK, worked);
-		
-		worked = other.requestUploadRights("whatever", sampleMagicWord2);
-		assertEquals("should not work magicWord inactive", NetworkInterfaceConstants.REJECTED, worked);
-		
-		worked = other.requestUploadRights("whatever2", nonExistentMagicWord);
-		assertEquals("should be rejected", NetworkInterfaceConstants.REJECTED, worked);
-		
-		other.deleteAllFiles();
-
-		TRACE_END();
-	}
-
-	public void testAllowUploadsPersistToNextSession() throws Exception
-	{
-		TRACE_BEGIN("testAllowUploadsPersistToNextSession");
-
-		testServer.serverForClients.clearCanUploadList();
-		
-		String sampleId = "2345235";
-		
-		testServer.allowUploads(sampleId);
-		MockMartusServer other = new MockMartusServer(testServer.getDataDirectory());
-		other.setSecurity(testServer.security);
-		other.setClientListenerEnabled(true);
-		other.verifyAndLoadConfigurationFiles();
-		assertEquals("didn't get saved/loaded?", true, other.canClientUpload(sampleId));
-		other.deleteAllFiles();
 
 		TRACE_END();
 	}

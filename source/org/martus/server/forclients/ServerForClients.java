@@ -40,6 +40,7 @@ import org.martus.common.Version;
 import org.martus.common.MartusUtilities.FileVerificationException;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.network.MartusXmlRpcServer;
+import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.network.NetworkInterfaceXmlRpcConstants;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.server.main.MartusServer;
@@ -360,7 +361,36 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	
 	public String requestUploadRights(String clientId, String tryMagicWord)
 	{
-		return coreServer.requestUploadRights(clientId, tryMagicWord);
+		boolean uploadGranted = false;
+		
+		if(isValidMagicWord(tryMagicWord))
+			uploadGranted = true;
+			
+		if(!coreServer.areUploadRequestsAllowedForCurrentIp())
+		{
+			if(!uploadGranted)
+				coreServer.incrementFailedUploadRequestsForCurrentClientIp();
+			return NetworkInterfaceConstants.SERVER_ERROR;
+		}
+		
+		if( coreServer.isClientBanned(clientId) )
+			return NetworkInterfaceConstants.REJECTED;
+			
+		if( coreServer.isShutdownRequested() )
+			return NetworkInterfaceConstants.SERVER_DOWN;
+			
+		if(tryMagicWord.length() == 0 && coreServer.canClientUpload(clientId))
+			return NetworkInterfaceConstants.OK;
+		
+		if(!uploadGranted)
+		{
+			coreServer.log("requestUploadRights: Rejected " + coreServer.getPublicCode(clientId) + " tryMagicWord=" +tryMagicWord);
+			coreServer.incrementFailedUploadRequestsForCurrentClientIp();
+			return NetworkInterfaceConstants.REJECTED;
+		}
+		
+		allowUploads(clientId, tryMagicWord);
+		return NetworkInterfaceConstants.OK;
 	}
 	
 	public Vector listFieldOfficeAccounts(String hqAccountId)

@@ -114,6 +114,11 @@ public class MockMartusServer extends MartusServer implements ServerForClientsIn
 		return "" + super.authenticateServer(tokenToSign);
 	}
 	
+	public String requestUploadRights(String authorAccountId, String tryMagicWord)
+	{
+		return new String(super.serverForClients.requestUploadRights(authorAccountId, tryMagicWord));
+	}
+
 	public String uploadBulletin(String authorAccountId, String bulletinLocalId, String data)
 	{
 		lastClientId = authorAccountId;
@@ -429,4 +434,5 @@ public class MockMartusServer extends MartusServer implements ServerForClientsIn
 	private String authenticateResponse;
 	
 	public static final String CLIENT_IP_ADDRESS = "192.168.1.123";
+
 }
