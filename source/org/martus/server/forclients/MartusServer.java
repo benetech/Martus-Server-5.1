@@ -107,9 +107,9 @@ public class MartusServer implements NetworkInterfaceConstants
 				System.exit(2);
 			}
 
-			char[] passphrase = getPassphraseFromConsole(server);
+			char[] passphrase = server.getPassphraseFromConsole(server);
 			server.loadAccount(passphrase);
-			server.setDataDirectory(getDefaultDataDirectory());
+			server.initalizeDatabase();
 			server.verifyAndLoadConfigurationFiles();
 			server.displayStatistics();
 
@@ -153,22 +153,29 @@ public class MartusServer implements NetworkInterfaceConstants
 		this(dir, new LoggerToConsole());
 	}
 
-	MartusServer(File dir, LoggerInterface loggerToUse) throws 
+	protected MartusServer(File dir, LoggerInterface loggerToUse) throws 
+					MartusCrypto.CryptoInitializationException, IOException, InvalidPublicKeyFileException, PublicInformationInvalidException
+	{
+		this(dir, loggerToUse, new MartusSecurity());
+	}
+
+	protected MartusServer(File dir, LoggerInterface loggerToUse, MartusCrypto securityToUse) throws 
 					MartusCrypto.CryptoInitializationException, IOException, InvalidPublicKeyFileException, PublicInformationInvalidException
 	{
 		dataDirectory = dir;
 		logger = loggerToUse;
+		security = securityToUse;
+
 		getTriggerDirectory().mkdirs();
 		getStartupConfigDirectory().mkdirs();
-		
-		security = new MartusSecurity();
+		setStaticSecurity(security);
 		serverForClients = new ServerForClients(this);
 		serverForMirroring = new ServerForMirroring(this, logger);
 		serverForAmplifiers = new ServerForAmplifiers(this, logger);
 		failedUploadRequestsPerIp = new Hashtable();
 	}
 
-	void startBackgroundTimers()
+	protected void startBackgroundTimers()
 	{
 		MartusUtilities.startTimer(new ShutdownRequestMonitor(), shutdownRequestIntervalMillis);
 		MartusUtilities.startTimer(new UploadRequestsMonitor(), magicWordsGuessIntervalMillis);
@@ -206,7 +213,7 @@ public class MartusServer implements NetworkInterfaceConstants
 		loadConfigurationFiles();
 	}
 
-	private void displayStatistics() throws InvalidBase64Exception
+	protected void displayStatistics() throws InvalidBase64Exception
 	{
 		displayComplianceStatement();
 		displayServerAccountId();
@@ -256,12 +263,12 @@ public class MartusServer implements NetworkInterfaceConstants
 	}
 	
 	
-	boolean hasAccount()
+	protected boolean hasAccount()
 	{
 		return getKeyPairFile().exists();
 	}
 	
-	void loadAccount(char[] passphrase) throws AuthorizationFailedException, InvalidKeyPairFileVersionException, IOException
+	protected void loadAccount(char[] passphrase) throws AuthorizationFailedException, InvalidKeyPairFileVersionException, IOException
 	{
 		FileInputStream in = new FileInputStream(getKeyPairFile());
 		readKeyPair(in, passphrase);
@@ -1030,7 +1037,7 @@ public class MartusServer implements NetworkInterfaceConstants
 	public static String getDefaultDataDirectoryPath()
 	{
 		String dataDirectory = null;
-		if(System.getProperty("os.name").indexOf("Windows") >= 0)
+		if(isRunningUnderWindows())
 		{
 			dataDirectory = "C:/MartusServer/";
 		}
@@ -1041,6 +1048,11 @@ public class MartusServer implements NetworkInterfaceConstants
 		return dataDirectory;
 	}
 	
+	public static boolean isRunningUnderWindows()
+	{
+		return System.getProperty("os.name").indexOf("Windows") >= 0;
+	}
+
 	public static File getDefaultDataDirectory()
 	{
 		File file = new File(MartusServer.getDefaultDataDirectoryPath());
@@ -1668,7 +1680,7 @@ public class MartusServer implements NetworkInterfaceConstants
 	}
 	
 
-	private static char[] getPassphraseFromConsole(MartusServer server)
+	protected char[] getPassphraseFromConsole(MartusServer server)
 	{
 		System.out.print("Enter passphrase: ");
 		System.out.flush();
@@ -1712,19 +1724,19 @@ public class MartusServer implements NetworkInterfaceConstants
 		serverForAmplifiers.createAmplifierXmlRpcServer();
 	}
 
-	private void deleteRunningFile()
+	protected void deleteRunningFile()
 	{
 		getRunningFile().delete();
 	}
 
-	private File getRunningFile()
+	protected File getRunningFile()
 	{
 		File runningFile = new File(getTriggerDirectory(), "running");
 		return runningFile;
 	}
 
 
-	private static void displayVersion()
+	protected static void displayVersion()
 	{
 		System.out.println("MartusServer");
 		System.out.println("Version " + MarketingVersionNumber.marketingVersionNumber);
@@ -1756,8 +1768,9 @@ public class MartusServer implements NetworkInterfaceConstants
 		return InetAddress.getByName(mainIpAddress);
 	}
 
-	private void setDataDirectory(File dataDirectory)
+	private void initalizeDatabase()
 	{
+		File dataDirectory = getDataDirectory();
 		File packetsDirectory = new File(dataDirectory, "packets");
 		Database diskDatabase = new ServerFileDatabase(packetsDirectory, getSecurity());
 		try
@@ -1803,12 +1816,12 @@ public class MartusServer implements NetworkInterfaceConstants
 
 	public File getTriggerDirectory()
 	{
-		return new File(dataDirectory, ADMINTRIGGERDIRECTORY);
+		return new File(getDataDirectory(), ADMINTRIGGERDIRECTORY);
 	}
 
 	public File getStartupConfigDirectory()
 	{
-		return new File(dataDirectory,ADMINSTARTUPCONFIGDIRECTORY);
+		return new File(getDataDirectory(),ADMINSTARTUPCONFIGDIRECTORY);
 	}
 
 	private File getHiddenPacketsFile()
@@ -1870,6 +1883,21 @@ public class MartusServer implements NetworkInterfaceConstants
 		}
 	}
 	
+	public File getDataDirectory()
+	{
+		return dataDirectory;
+	}
+
+	public static void setStaticSecurity(MartusCrypto staticSecurity)
+	{
+		MartusServer.staticSecurity = staticSecurity;
+	}
+
+	public static MartusCrypto getStaticSecurity()
+	{
+		return staticSecurity;
+	}
+
 	private class UploadRequestsMonitor extends TimerTask
 	{
 		public void run()
@@ -1906,20 +1934,19 @@ public class MartusServer implements NetworkInterfaceConstants
 		}
 	}
 
-
 	public MartusCrypto security;
 
 	ServerForMirroring serverForMirroring;
 	public ServerForClients serverForClients;
 	public ServerForAmplifiers serverForAmplifiers;
 	
-	public File dataDirectory;
+	private File dataDirectory;
 	Database database;
 	private String complianceStatement; 
 	
 	Hashtable failedUploadRequestsPerIp;
 	
-	LoggerInterface logger;
+	public LoggerInterface logger;
 	String serverName;
 	private boolean secureMode;
 	private static String mainIpAddress; 
@@ -1935,4 +1962,10 @@ public class MartusServer implements NetworkInterfaceConstants
 	private final int MAX_FAILED_UPLOAD_ATTEMPTS = 100;
 	private static final long magicWordsGuessIntervalMillis = 60 * 1000;
 	private static final long shutdownRequestIntervalMillis = 1000;
+
+	// NOTE: The following members *MUST* be static because they are 
+	// used by servlets that do not have access to a server object! 
+	// USE THEM CAREFULLY!
+	private static MartusCrypto staticSecurity;
+	
 }

@@ -311,9 +311,9 @@ public class MockMartusServer extends MartusServer implements ServerForClientsIn
 		if(startupDirectory.exists())
 			startupDirectory.delete();
 
-		dataDirectory.delete();
-		if(dataDirectory.exists())
-			throw new IOException("dataDirectory: " + dataDirectory.getPath());
+		getDataDirectory().delete();
+		if(getDataDirectory().exists())
+			throw new IOException("dataDirectory: " + getDataDirectory().getPath());
 	}
 
 	public Vector getNews(String accountId, String versionLabel, String versionBuildDate)

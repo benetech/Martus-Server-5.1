@@ -394,7 +394,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 
 	public File getAllowUploadFile()
 	{
-		return new File(coreServer.dataDirectory, UPLOADSOKFILENAME);
+		return new File(coreServer.getDataDirectory(), UPLOADSOKFILENAME);
 	}
 
 	void loadCanUploadFile()
