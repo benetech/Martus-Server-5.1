@@ -82,6 +82,7 @@ public class CreateStatistics
 			File destinationDir = null;
 			File keyPairFile = null;
 			File adminStartupDir = null;
+			String serverName = "";
 
 			for (int i = 0; i < args.length; i++)
 			{
@@ -103,11 +104,14 @@ public class CreateStatistics
 
 				if(args[i].startsWith("--admin-startup-directory"))
 					adminStartupDir = new File(value);
+				
+				if(args[i].startsWith("--server-name"))
+					serverName = value;
 			}
 			
 			if(destinationDir == null || dataDir == null || keyPairFile == null || adminStartupDir == null)
 			{
-				System.err.println("Incorrect arguments: CreateStatistics [--no-prompt] [--delete-previous] --packet-directory=<packetdir> --keypair-file=<keypair> --destination-directory=<destinationDir> --admin-startup-directory=<adminStartupConfigDir>\n");
+				System.err.println("Incorrect arguments: CreateStatistics [--no-prompt] [--delete-previous] [--server-name=\"name of this server\"] --packet-directory=<packetdir> --keypair-file=<keypair> --destination-directory=<destinationDir> --admin-startup-directory=<adminStartupConfigDir>\n");
 				System.exit(2);
 			}
 			
@@ -123,7 +127,7 @@ public class CreateStatistics
 			String passphrase = reader.readLine();
 			MartusCrypto security = MartusServerUtilities.loadCurrentMartusSecurity(keyPairFile, passphrase.toCharArray());
 
-			new CreateStatistics(security, dataDir, destinationDir, adminStartupDir, deletePrevious);
+			new CreateStatistics(security, dataDir, destinationDir, adminStartupDir, deletePrevious, serverName);
 		}
 		catch(Exception e)
 		{
@@ -134,13 +138,14 @@ public class CreateStatistics
 		System.out.println("Done!");
 		System.exit(0);
 	}
-	public CreateStatistics(MartusCrypto securityToUse, File dataDirToUse, File destinationDirToUse, File adminStartupDirToUse, boolean deletePreviousToUse) throws Exception
+	public CreateStatistics(MartusCrypto securityToUse, File dataDirToUse, File destinationDirToUse, File adminStartupDirToUse, boolean deletePreviousToUse, String serverNameToUse) throws Exception
 	{
 		security = securityToUse;
 		deletePrevious = deletePreviousToUse;
 		packetsDir = dataDirToUse;
 		destinationDir = destinationDirToUse;
 		adminStartupDir = adminStartupDirToUse;
+		serverName = serverNameToUse;
 		fileDatabase = new ServerFileDatabase(dataDirToUse, security);
 		fileDatabase.initialize();
 		clientsThatCanUpload = MartusUtilities.loadClientListAndExitOnError(new File(packetsDir.getParentFile(), ServerForClients.UPLOADSOKFILENAME));
@@ -184,6 +189,7 @@ public class CreateStatistics
 					String notToAmplify = canAmplify(accountId);
 					
 					String accountInfo = 
+						getNormalizedStringAndCheckForErrors(serverName) + DELIMITER +
 						getNormalizedStringAndCheckForErrors(publicCode) + DELIMITER +
 						getNormalizedStringAndCheckForErrors(testAccount) + DELIMITER +						
 						getNormalizedStringAndCheckForErrors(uploadOk) + DELIMITER +
@@ -408,7 +414,9 @@ public class CreateStatistics
 					}
 					getPacketInfo(key);
 					
-					String bulletinInfo =  getNormalizedStringAndCheckForErrors(key.getLocalId()) + DELIMITER +
+					String bulletinInfo =  
+					getNormalizedStringAndCheckForErrors(serverName) + DELIMITER +
+					getNormalizedStringAndCheckForErrors(key.getLocalId()) + DELIMITER +
 					getNormalizedStringAndCheckForErrors(martusBuildDate) + DELIMITER + 
 					getNormalizedStringAndCheckForErrors(martusBuildNumber) + DELIMITER + 
 					getNormalizedStringAndCheckForErrors(testBulletin) + DELIMITER +
@@ -840,6 +848,7 @@ public class CreateStatistics
 	private boolean deletePrevious;
 	private File packetsDir;
 	private File adminStartupDir;
+	String serverName;
 	MartusCrypto security;
 	File destinationDir;
 	String publicCode;
@@ -860,6 +869,7 @@ public class CreateStatistics
 	final String ERROR_MSG = "Error:";
 	final String ERR_EXT = ".err";
 	final String CSV_EXT = ".csv";
+	final String ACCOUNT_SERVER_NAME = "server";
 	final String ACCOUNT_STATS_FILE_NAME = "accounts";
 	final String ACCOUNT_PUBLIC_CODE = "public code";
 	final String ACCOUNT_UPLOAD_OK = "can upload";
@@ -886,6 +896,7 @@ public class CreateStatistics
 	final String ACCOUNT_TESTER_FALSE = "0";
 
 	final String ACCOUNT_STATISTICS_HEADER = 
+		getNormalizedStringAndCheckForErrors(ACCOUNT_SERVER_NAME) + DELIMITER + 
 		getNormalizedStringAndCheckForErrors(ACCOUNT_PUBLIC_CODE) + DELIMITER + 
 		getNormalizedStringAndCheckForErrors(ACCOUNT_TESTER) + DELIMITER + 
 		getNormalizedStringAndCheckForErrors(ACCOUNT_UPLOAD_OK) + DELIMITER + 
@@ -904,6 +915,7 @@ public class CreateStatistics
 
 	final String BULLETIN_STATS_FILE_NAME = "bulletin";
 	
+	final String BULLETIN_SERVER_NAME = "server";
 	final String BULLETIN_HEADER_PACKET = "bulletin id";
 	final String BULLETIN_MARTUS_BUILD_DATE = "Build Date";
 	final String BULLETIN_MARTUS_BUILD_NUMBER = "Build Number";
@@ -950,6 +962,7 @@ public class CreateStatistics
 	final String BULLETIN_TEST_FALSE = "0"; 
 	
 	final String BULLETIN_STATISTICS_HEADER = 
+		getNormalizedStringAndCheckForErrors(BULLETIN_SERVER_NAME) + DELIMITER +
 		getNormalizedStringAndCheckForErrors(BULLETIN_HEADER_PACKET) + DELIMITER +
 		getNormalizedStringAndCheckForErrors(BULLETIN_MARTUS_BUILD_DATE) + DELIMITER +
 		getNormalizedStringAndCheckForErrors(BULLETIN_MARTUS_BUILD_NUMBER) + DELIMITER +
