@@ -117,6 +117,6 @@ public class ServerBulletinStore extends BulletinStore
 	
 	public boolean isHidden(DatabaseKey key)
 	{
-		return getWriteableDatabase().isHidden(key);
+		return getDatabase().isHidden(key);
 	}
 }

@@ -391,7 +391,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		UnicodeReader reader = new UnicodeReader(new ByteArrayInputStream(bytes));
 		Vector hiddenPackets = MartusServerUtilities.getHiddenPacketsList(reader);		
 		server.getStore().hidePackets(hiddenPackets, new LoggerForTesting());
-		Database db = server.getWriteableDatabase();
+		ReadableDatabase db = server.getDatabase();
 		assertTrue(db.isHidden(UniversalId.createFromAccountAndLocalId(accountIds[0], localIds[0])));
 		assertTrue(db.isHidden(UniversalId.createFromAccountAndLocalId(accountIds[0], localIds[1])));
 		assertTrue(db.isHidden(UniversalId.createFromAccountAndLocalId(accountIds[2], localIds[0])));
