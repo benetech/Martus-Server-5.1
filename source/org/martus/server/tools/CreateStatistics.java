@@ -172,21 +172,21 @@ public class CreateStatistics
 					String notToAmplify = canAmplify(accountId);
 					
 					String accountInfo = 
-						getNormalizedString(publicCode) + DELIMITER +
-						getNormalizedString(uploadOk) + DELIMITER +
-						getNormalizedString(banned) + DELIMITER +
-						getNormalizedString(notToAmplify) + DELIMITER +
-						getNormalizedString(clientAuthorizedDate) + DELIMITER +
-						getNormalizedString(clientIPAddress) + DELIMITER +
-						getNormalizedString(clientMagicWordGroup) + DELIMITER +
-						getNormalizedString(author) + DELIMITER +
-						getNormalizedString(organization) + DELIMITER +
-						getNormalizedString(email) + DELIMITER +
-						getNormalizedString(webpage) + DELIMITER +
-						getNormalizedString(phone) + DELIMITER +
-						getNormalizedString(address) + DELIMITER +
-						getNormalizedString(bucket.getName() + "/" + accountDir.getName()) + DELIMITER + 
-						getNormalizedString(accountId);
+						getNormalizedStringAndCheckForErrors(publicCode) + DELIMITER +
+						getNormalizedStringAndCheckForErrors(uploadOk) + DELIMITER +
+						getNormalizedStringAndCheckForErrors(banned) + DELIMITER +
+						getNormalizedStringAndCheckForErrors(notToAmplify) + DELIMITER +
+						getNormalizedStringAndCheckForErrors(clientAuthorizedDate) + DELIMITER +
+						getNormalizedStringAndCheckForErrors(clientIPAddress) + DELIMITER +
+						getNormalizedStringAndCheckForErrors(clientMagicWordGroup) + DELIMITER +
+						getNormalizedStringAndCheckForErrors(author) + DELIMITER +
+						getNormalizedStringAndCheckForErrors(organization) + DELIMITER +
+						getNormalizedStringAndCheckForErrors(email) + DELIMITER +
+						getNormalizedStringAndCheckForErrors(webpage) + DELIMITER +
+						getNormalizedStringAndCheckForErrors(phone) + DELIMITER +
+						getNormalizedStringAndCheckForErrors(address) + DELIMITER +
+						getNormalizedStringAndCheckForErrors(bucket.getName() + "/" + accountDir.getName()) + DELIMITER + 
+						getNormalizedStringAndCheckForErrors(accountId);
 
 					writer.writeln(accountInfo);
 					if(errorOccured)
@@ -269,19 +269,22 @@ public class CreateStatistics
 				}
 				catch (NoContactInfo e)
 				{
+					author = "";
+					organization = "";
+					email = "";
+					webpage = "";
+					phone = "";
+					address = "";
 				}
 				catch (ContactInfoException e)
 				{
-					errorOccured = true;
 				}
 				catch (IOException e)
 				{
-					errorOccured = true;
 					author = ERROR_MSG + " IO exception contactInfo";
 				}
 				catch(InvalidBase64Exception e)
 				{
-					errorOccured = true;
 					author = ERROR_MSG + " InvalidBase64Exception contactInfo";
 				}
 			}
@@ -370,28 +373,28 @@ public class CreateStatistics
 					String dateBulletinWasSavedOnServer = getOriginalUploadDate(burKey);
 					getPacketInfo(key);
 					
-					String bulletinInfo =  getNormalizedString(key.getLocalId()) + DELIMITER +
-					getNormalizedString(martusVersionBulletionWasCreatedWith) + DELIMITER + 
-					getNormalizedString(bulletinType) + DELIMITER +
-					getNormalizedString(Integer.toString(bulletinSizeInKBytes)) + DELIMITER + 
-					getNormalizedString(allPrivate) + DELIMITER +
-					getNormalizedString(bulletinHasCustomFields) + DELIMITER +
-					getNormalizedString(bulletinSummary) + DELIMITER +
-					getNormalizedString(bulletinLanguage) + DELIMITER +
-					getNormalizedString(bulletinLocation) + DELIMITER +
-					getNormalizedString(bulletinKeywords) + DELIMITER +
-					getNormalizedString(bulletinDateCreated) + DELIMITER +
-					getNormalizedString(bulletinDateEvent) + DELIMITER +
-					getNormalizedString(Integer.toString(publicAttachmentCount)) + DELIMITER + 
-					getNormalizedString(Integer.toString(privateAttachmentCount)) + DELIMITER + 
-					getNormalizedString(wasBurCreatedByThisServer) + DELIMITER +
-					getNormalizedString(isBulletinHidden) + DELIMITER +
-					getNormalizedString(dateBulletinWasSavedOnServer) + DELIMITER +
-					getNormalizedString(dateBulletinLastSaved) + DELIMITER +
-					getNormalizedString(allHQsProxyUpload) + DELIMITER +
-					getNormalizedString(hQsAuthorizedToRead) + DELIMITER +
-					getNormalizedString(hQsAuthorizedToUpload) + DELIMITER +
-					getNormalizedString(publicCode);
+					String bulletinInfo =  getNormalizedStringAndCheckForErrors(key.getLocalId()) + DELIMITER +
+					getNormalizedStringAndCheckForErrors(martusVersionBulletionWasCreatedWith) + DELIMITER + 
+					getNormalizedStringAndCheckForErrors(bulletinType) + DELIMITER +
+					getNormalizedStringAndCheckForErrors(Integer.toString(bulletinSizeInKBytes)) + DELIMITER + 
+					getNormalizedStringAndCheckForErrors(allPrivate) + DELIMITER +
+					getNormalizedStringAndCheckForErrors(bulletinHasCustomFields) + DELIMITER +
+					getNormalizedStringAndCheckForErrors(bulletinSummary) + DELIMITER +
+					getNormalizedStringAndCheckForErrors(bulletinLanguage) + DELIMITER +
+					getNormalizedStringAndCheckForErrors(bulletinLocation) + DELIMITER +
+					getNormalizedStringAndCheckForErrors(bulletinKeywords) + DELIMITER +
+					getNormalizedStringAndCheckForErrors(bulletinDateCreated) + DELIMITER +
+					getNormalizedStringAndCheckForErrors(bulletinDateEvent) + DELIMITER +
+					getNormalizedStringAndCheckForErrors(Integer.toString(publicAttachmentCount)) + DELIMITER + 
+					getNormalizedStringAndCheckForErrors(Integer.toString(privateAttachmentCount)) + DELIMITER + 
+					getNormalizedStringAndCheckForErrors(wasBurCreatedByThisServer) + DELIMITER +
+					getNormalizedStringAndCheckForErrors(isBulletinHidden) + DELIMITER +
+					getNormalizedStringAndCheckForErrors(dateBulletinWasSavedOnServer) + DELIMITER +
+					getNormalizedStringAndCheckForErrors(dateBulletinLastSaved) + DELIMITER +
+					getNormalizedStringAndCheckForErrors(allHQsProxyUpload) + DELIMITER +
+					getNormalizedStringAndCheckForErrors(hQsAuthorizedToRead) + DELIMITER +
+					getNormalizedStringAndCheckForErrors(hQsAuthorizedToUpload) + DELIMITER +
+					getNormalizedStringAndCheckForErrors(publicCode);
 					
 					writer.writeln(bulletinInfo);
 					if(errorOccured)
@@ -470,7 +473,6 @@ public class CreateStatistics
 				}
 				catch(Exception e)
 				{
-					errorOccured = true;
 					bulletinSummary = ERROR_MSG + " " + e.getMessage();
 				}
 				
@@ -522,7 +524,6 @@ public class CreateStatistics
 				}
 				catch(Exception e1)
 				{
-					errorOccured = true;
 					allPrivate = ERROR_MSG + " " + e1;
 				}
 			}
@@ -542,7 +543,6 @@ public class CreateStatistics
 				}
 				catch(InvalidBase64Exception e)
 				{
-					errorOccured = true;
 					keyList = ERROR_MSG;
 				}
 				return keyList;
@@ -554,8 +554,6 @@ public class CreateStatistics
 					bulletinType = BULLETIN_SEALED;
 				else if(key.isDraft())
 					bulletinType = BULLETIN_DRAFT;
-				else
-					errorOccured = true;
 				return bulletinType;
 			}
 			private String getMartusBuildDateForBulletin(DatabaseKey key) throws IOException, TooManyAccountsException
@@ -578,8 +576,6 @@ public class CreateStatistics
 				{
 					martusBuildDateBulletionWasCreatedWith = ERROR_MSG + " " + e.getMessage();
 				}
-				if(martusBuildDateBulletionWasCreatedWith.startsWith(ERROR_MSG))
-						errorOccured = true;				
 				return martusBuildDateBulletionWasCreatedWith;
 			}
 			private String wasOriginalServer(DatabaseKey burKey)
@@ -609,8 +605,6 @@ public class CreateStatistics
 				{
 					wasBurCreatedByThisServer = ERROR_MSG + " " + e1;
 				}
-				if(wasBurCreatedByThisServer.startsWith(ERROR_MSG))
-					errorOccured = true;				
 				return wasBurCreatedByThisServer;
 			}
 			private String getOriginalUploadDate(DatabaseKey burKey)
@@ -632,9 +626,6 @@ public class CreateStatistics
 				{
 					uploadDate = ERROR_MSG + " " + e1;
 				}
-
-				if(uploadDate.startsWith(ERROR_MSG))
-					errorOccured = true;				
 				return uploadDate;
 			}
 			
@@ -691,7 +682,6 @@ public class CreateStatistics
 		catch(Exception e)
 		{
 			publicCode = ERROR_MSG + " " + e;
-			errorOccured = true;
 		}
 	}
 	public class NullLogger implements LoggerInterface
@@ -708,9 +698,11 @@ public class CreateStatistics
 		writerErr.writeln(errorMsg);
 		writerErr.close();
 	}
-	String getNormalizedString(Object rawdata)
+	String getNormalizedStringAndCheckForErrors(Object rawdata)
 	{
 		String data = (String)rawdata;
+		if(data.startsWith(ERROR_MSG))
+			errorOccured = true;
 		String normalized = data.replaceAll("\"", "'");
 		normalized = normalized.replaceAll("\n", " | ");
 		return "\"" + normalized + "\"";
@@ -757,21 +749,21 @@ public class CreateStatistics
 	final String ACCOUNT_AMPLIFY_FALSE = "0";
 
 	final String ACCOUNT_STATISTICS_HEADER = 
-		getNormalizedString(ACCOUNT_PUBLIC_CODE) + DELIMITER + 
-		getNormalizedString(ACCOUNT_UPLOAD_OK) + DELIMITER + 
-		getNormalizedString(ACCOUNT_BANNED) + DELIMITER + 
-		getNormalizedString(ACCOUNT_AMPLIFY) + DELIMITER + 
-		getNormalizedString(ACCOUNT_DATE_AUTHORIZED) + DELIMITER + 
-		getNormalizedString(ACCOUNT_IP) + DELIMITER + 
-		getNormalizedString(ACCOUNT_GROUP) + DELIMITER + 
-		getNormalizedString(ACCOUNT_AUTHOR) + DELIMITER + 
-		getNormalizedString(ACCOUNT_ORGANIZATION) + DELIMITER + 
-		getNormalizedString(ACCOUNT_EMAIL) + DELIMITER + 
-		getNormalizedString(ACCOUNT_WEBPAGE) + DELIMITER + 
-		getNormalizedString(ACCOUNT_PHONE) + DELIMITER + 
-		getNormalizedString(ACCOUNT_ADDRESS) + DELIMITER + 
-		getNormalizedString(ACCOUNT_FOLDER) + DELIMITER + 
-		getNormalizedString(ACCOUNT_PUBLIC_KEY);
+		getNormalizedStringAndCheckForErrors(ACCOUNT_PUBLIC_CODE) + DELIMITER + 
+		getNormalizedStringAndCheckForErrors(ACCOUNT_UPLOAD_OK) + DELIMITER + 
+		getNormalizedStringAndCheckForErrors(ACCOUNT_BANNED) + DELIMITER + 
+		getNormalizedStringAndCheckForErrors(ACCOUNT_AMPLIFY) + DELIMITER + 
+		getNormalizedStringAndCheckForErrors(ACCOUNT_DATE_AUTHORIZED) + DELIMITER + 
+		getNormalizedStringAndCheckForErrors(ACCOUNT_IP) + DELIMITER + 
+		getNormalizedStringAndCheckForErrors(ACCOUNT_GROUP) + DELIMITER + 
+		getNormalizedStringAndCheckForErrors(ACCOUNT_AUTHOR) + DELIMITER + 
+		getNormalizedStringAndCheckForErrors(ACCOUNT_ORGANIZATION) + DELIMITER + 
+		getNormalizedStringAndCheckForErrors(ACCOUNT_EMAIL) + DELIMITER + 
+		getNormalizedStringAndCheckForErrors(ACCOUNT_WEBPAGE) + DELIMITER + 
+		getNormalizedStringAndCheckForErrors(ACCOUNT_PHONE) + DELIMITER + 
+		getNormalizedStringAndCheckForErrors(ACCOUNT_ADDRESS) + DELIMITER + 
+		getNormalizedStringAndCheckForErrors(ACCOUNT_FOLDER) + DELIMITER + 
+		getNormalizedStringAndCheckForErrors(ACCOUNT_PUBLIC_KEY);
 
 	final String BULLETIN_STATS_FILE_NAME = "bulletin";
 	
@@ -812,27 +804,27 @@ public class CreateStatistics
 	final String BULLETIN_HIDDEN_FALSE = "0"; 
 	
 	final String BULLETIN_STATISTICS_HEADER = 
-		getNormalizedString(BULLETIN_HEADER_PACKET) + DELIMITER +
-		getNormalizedString(BULLETIN_MARTUS_VERSION) + DELIMITER +
-		getNormalizedString(BULLETIN_TYPE) + DELIMITER +
-		getNormalizedString(BULLETIN_SIZE) + DELIMITER +
-		getNormalizedString(BULLETIN_ALL_PRIVATE) + DELIMITER +
-		getNormalizedString(BULLETIN_HAS_CUSTOM_FIELDS) + DELIMITER +
-		getNormalizedString(BULLETIN_SUMMARY) + DELIMITER +
-		getNormalizedString(BULLETIN_LANGUAGE) + DELIMITER +
-		getNormalizedString(BULLETIN_LOCATION) + DELIMITER +
-		getNormalizedString(BULLETIN_KEYWORDS) + DELIMITER +
-		getNormalizedString(BULLETIN_DATE_CREATED) + DELIMITER +
-		getNormalizedString(BULLETIN_DATE_EVENT) + DELIMITER +
-		getNormalizedString(BULLETIN_PUBLIC_ATTACHMENT_COUNT) + DELIMITER +
-		getNormalizedString(BULLETIN_PRIVATE_ATTACHMENT_COUNT) + DELIMITER +
-		getNormalizedString(BULLETIN_ORIGINALLY_UPLOADED_TO_THIS_SERVER) + DELIMITER +
-		getNormalizedString(BULLETIN_HIDDEN) + DELIMITER +
-		getNormalizedString(BULLETIN_DATE_UPLOADED) + DELIMITER +
-		getNormalizedString(BULLETIN_DATE_LAST_SAVED) + DELIMITER +
-		getNormalizedString(BULLETIN_ALL_HQS_PROXY_UPLOAD) + DELIMITER +
-		getNormalizedString(BULLETIN_AUTHORIZED_TO_READ) + DELIMITER +
-		getNormalizedString(BULLETIN_AUTHORIZED_TO_UPLOAD) + DELIMITER +
-		getNormalizedString(ACCOUNT_PUBLIC_CODE);
+		getNormalizedStringAndCheckForErrors(BULLETIN_HEADER_PACKET) + DELIMITER +
+		getNormalizedStringAndCheckForErrors(BULLETIN_MARTUS_VERSION) + DELIMITER +
+		getNormalizedStringAndCheckForErrors(BULLETIN_TYPE) + DELIMITER +
+		getNormalizedStringAndCheckForErrors(BULLETIN_SIZE) + DELIMITER +
+		getNormalizedStringAndCheckForErrors(BULLETIN_ALL_PRIVATE) + DELIMITER +
+		getNormalizedStringAndCheckForErrors(BULLETIN_HAS_CUSTOM_FIELDS) + DELIMITER +
+		getNormalizedStringAndCheckForErrors(BULLETIN_SUMMARY) + DELIMITER +
+		getNormalizedStringAndCheckForErrors(BULLETIN_LANGUAGE) + DELIMITER +
+		getNormalizedStringAndCheckForErrors(BULLETIN_LOCATION) + DELIMITER +
+		getNormalizedStringAndCheckForErrors(BULLETIN_KEYWORDS) + DELIMITER +
+		getNormalizedStringAndCheckForErrors(BULLETIN_DATE_CREATED) + DELIMITER +
+		getNormalizedStringAndCheckForErrors(BULLETIN_DATE_EVENT) + DELIMITER +
+		getNormalizedStringAndCheckForErrors(BULLETIN_PUBLIC_ATTACHMENT_COUNT) + DELIMITER +
+		getNormalizedStringAndCheckForErrors(BULLETIN_PRIVATE_ATTACHMENT_COUNT) + DELIMITER +
+		getNormalizedStringAndCheckForErrors(BULLETIN_ORIGINALLY_UPLOADED_TO_THIS_SERVER) + DELIMITER +
+		getNormalizedStringAndCheckForErrors(BULLETIN_HIDDEN) + DELIMITER +
+		getNormalizedStringAndCheckForErrors(BULLETIN_DATE_UPLOADED) + DELIMITER +
+		getNormalizedStringAndCheckForErrors(BULLETIN_DATE_LAST_SAVED) + DELIMITER +
+		getNormalizedStringAndCheckForErrors(BULLETIN_ALL_HQS_PROXY_UPLOAD) + DELIMITER +
+		getNormalizedStringAndCheckForErrors(BULLETIN_AUTHORIZED_TO_READ) + DELIMITER +
+		getNormalizedStringAndCheckForErrors(BULLETIN_AUTHORIZED_TO_UPLOAD) + DELIMITER +
+		getNormalizedStringAndCheckForErrors(ACCOUNT_PUBLIC_CODE);
 
 }
