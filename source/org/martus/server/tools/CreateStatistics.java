@@ -321,7 +321,7 @@ public class CreateStatistics
 					return ACCOUNT_AMPLIFY_FALSE;
 				return ACCOUNT_AMPLIFY_TRUE;
 			}
-	
+
 			private UnicodeWriter writer;
 			private String author;
 			private String organization;
@@ -379,6 +379,9 @@ public class CreateStatistics
 						return;
 
 					String martusVersionBulletionWasCreatedWith = getMartusBuildDateForBulletin(key);
+					String martusBuildDate = getBuildDate(martusVersionBulletionWasCreatedWith);
+					String martusBuildNumber = getBuildNumber(martusVersionBulletionWasCreatedWith);
+					
 					String testBulletin = isTestBulletin(key.getAccountId());
 					String bulletinType = getBulletinType(key);
 					String isBulletinHidden = getIsBulletinHidden(key.getUniversalId());
@@ -390,7 +393,8 @@ public class CreateStatistics
 					getPacketInfo(key);
 					
 					String bulletinInfo =  getNormalizedStringAndCheckForErrors(key.getLocalId()) + DELIMITER +
-					getNormalizedStringAndCheckForErrors(martusVersionBulletionWasCreatedWith) + DELIMITER + 
+					getNormalizedStringAndCheckForErrors(martusBuildDate) + DELIMITER + 
+					getNormalizedStringAndCheckForErrors(martusBuildNumber) + DELIMITER + 
 					getNormalizedStringAndCheckForErrors(testBulletin) + DELIMITER +
 					getNormalizedStringAndCheckForErrors(bulletinType) + DELIMITER +
 					getNormalizedStringAndCheckForErrors(Integer.toString(bulletinSizeInKBytes)) + DELIMITER + 
@@ -564,6 +568,30 @@ public class CreateStatistics
 					allPrivate = ERROR_MSG + " " + e1;
 				}
 			}
+			private String getBuildDate(String martusBuildInfo)
+			{
+				String date = getMartusBuildInfoField(martusBuildInfo, 0);
+				return date;
+			}
+			private String getBuildNumber(String martusBuildInfo)
+			{
+				return getMartusBuildInfoField(martusBuildInfo, 1);
+			}
+			private String getMartusBuildInfoField(String martusBuildInfo, int position)
+			{
+				if(martusBuildInfo == null)
+					return "";
+				if(martusBuildInfo.length()==0)
+					return "";
+				int splitAt = martusBuildInfo.indexOf(".");
+				if(splitAt <= 0)
+					return "?"+martusBuildInfo+"?";
+				
+				if(position == 0)
+					return martusBuildInfo.substring(splitAt+1);
+				return martusBuildInfo.substring(0,splitAt);
+			}
+			
 			private String getIsBulletinHidden(UniversalId uId)
 			{
 				String bulletinHidden = ERROR_MSG;
@@ -827,7 +855,8 @@ public class CreateStatistics
 	final String BULLETIN_STATS_FILE_NAME = "bulletin";
 	
 	final String BULLETIN_HEADER_PACKET = "bulletin id";
-	final String BULLETIN_MARTUS_VERSION = "martus build date";
+	final String BULLETIN_MARTUS_BUILD_DATE = "Build Date";
+	final String BULLETIN_MARTUS_BUILD_NUMBER = "Build Number";
 	final String BULLETIN_TESTER = "test bulletin";
 	final String BULLETIN_TYPE = "type";
 	final String BULLETIN_SIZE = "size (Kb)";
@@ -869,7 +898,8 @@ public class CreateStatistics
 	
 	final String BULLETIN_STATISTICS_HEADER = 
 		getNormalizedStringAndCheckForErrors(BULLETIN_HEADER_PACKET) + DELIMITER +
-		getNormalizedStringAndCheckForErrors(BULLETIN_MARTUS_VERSION) + DELIMITER +
+		getNormalizedStringAndCheckForErrors(BULLETIN_MARTUS_BUILD_DATE) + DELIMITER +
+		getNormalizedStringAndCheckForErrors(BULLETIN_MARTUS_BUILD_NUMBER) + DELIMITER +
 		getNormalizedStringAndCheckForErrors(BULLETIN_TESTER) + DELIMITER +
 		getNormalizedStringAndCheckForErrors(BULLETIN_TYPE) + DELIMITER +
 		getNormalizedStringAndCheckForErrors(BULLETIN_SIZE) + DELIMITER +
