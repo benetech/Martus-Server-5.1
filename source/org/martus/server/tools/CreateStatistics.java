@@ -118,7 +118,6 @@ public class CreateStatistics
 		System.out.println("Done!");
 		System.exit(0);
 	}
-	
 	public CreateStatistics(MartusCrypto securityToUse, File dataDirToUse, File destinationDirToUse, File adminStartupDirToUse, boolean deletePreviousToUse) throws Exception
 	{
 		security = securityToUse;
@@ -136,12 +135,6 @@ public class CreateStatistics
 
 		CreateAccountStatistics();
 		CreateBulletinStatistics();
-//		CreatePacketStatistics();
-	}
-	public class NullLogger implements LoggerInterface
-	{
-		public NullLogger()	{}
-		public void log(String message)	{}
 	}
 
 	private void CreateAccountStatistics() throws Exception
@@ -153,109 +146,20 @@ public class CreateStatistics
 			{
 				writer = writerToUse;
 			}
-			class noContactInfoException extends IOException{};
-			class HarmlessException extends IOException{};
+			
 			public void visit(String accountId)
 			{
-				boolean errorOccured = false;
+				errorOccured = false;
 				File accountDir = fileDatabase.getAbsoluteAccountDirectory(accountId);
 				File bucket = accountDir.getParentFile();
-				String publicCode = "";
 				try
 				{
-					publicCode = MartusCrypto.computeFormattedPublicCode(accountId);
-				}
-				catch(Exception e)
-				{
-					publicCode = ERROR_MSG + " " + e;
-				}
-				try
-				{
-					String author = "";
-					String organization = "";
-					String email = "";
-					String webpage = "";
-					String phone = "";
-					String address = "";
-
-					try
-					{
-						File contactFile = fileDatabase.getContactInfoFile(accountId);
-						if(!contactFile.exists())
-							throw new noContactInfoException();
-						Vector contactInfoRaw = ContactInfo.loadFromFile(contactFile);
-						Vector contactInfo = ContactInfo.decodeContactInfoVectorIfNecessary(contactInfoRaw);
-						int size = contactInfo.size();
-						if(size>0)
-						{
-							String contactAccountIdInsideFile = (String)contactInfo.get(0);
-							if(!security.verifySignatureOfVectorOfStrings(contactInfo, contactAccountIdInsideFile))
-							{
-								author = ERROR_MSG + " Signature failure contactInfo";
-								throw new HarmlessException();
-							}
-							
-							if(!contactAccountIdInsideFile.equals(accountId))
-							{
-								author = ERROR_MSG + " AccountId doesn't match contactInfo's AccountId";
-								throw new HarmlessException();
-							}			
-						}
-						
-						if(size>2)
-							author = (String)(contactInfo.get(2));
-						if(size>3)
-							organization = (String)(contactInfo.get(3));
-						if(size>4)
-							email = (String)(contactInfo.get(4));
-						if(size>5)
-							webpage = (String)(contactInfo.get(5));
-						if(size>6)
-							phone = (String)(contactInfo.get(6));
-						if(size>7)
-							address = (String)(contactInfo.get(7));
-					}
-					catch (noContactInfoException e)
-					{
-					}
-					catch (HarmlessException e)
-					{
-						errorOccured = true;
-					}
-					catch (IOException e)
-					{
-						errorOccured = true;
-						author = ERROR_MSG + " IO exception contactInfo";
-					}
-					catch(InvalidBase64Exception e)
-					{
-						errorOccured = true;
-						author = ERROR_MSG + " InvalidBase64Exception contactInfo";
-					}
-					if(errorOccured)
-					{
-						organization = ERROR_MSG;
-						email = ERROR_MSG;
-						webpage = ERROR_MSG;
-						phone = ERROR_MSG;
-						address = ERROR_MSG;					
-					
-					}
-
+					getPublicCode(accountId);
+					getContactInfo(accountId);
+					getAuthorizedInfo(publicCode);
 					String uploadOk = isAllowedToUpload(accountId);
 					String banned = isBanned(accountId);
 					String notToAmplify = canAmplify(accountId);
-					
-					AuthorizeLogEntry clientEntry = authorizeLog.getAuthorizedClientEntry(publicCode);
-					String clientAuthorizedDate = "";
-					String clientIPAddress = "";
-					String clientMagicWordGroup = "";
-					if(clientEntry != null)
-					{
-						clientAuthorizedDate = clientEntry.getDate();
-						clientIPAddress = clientEntry.getIp();
-						clientMagicWordGroup = clientEntry.getGroupName();
-					}
 					
 					String accountInfo = 
 						getNormalizedString(publicCode) + DELIMITER +
@@ -291,10 +195,118 @@ public class CreateStatistics
 					}
 				}
 			}
+			
+			private void getAuthorizedInfo(String publicCode)
+			{
+				AuthorizeLogEntry clientEntry = authorizeLog.getAuthorizedClientEntry(publicCode);
+				clientAuthorizedDate = "";
+				clientIPAddress = "";
+				clientMagicWordGroup = "";
+				if(clientEntry != null)
+				{
+					clientAuthorizedDate = clientEntry.getDate();
+					clientIPAddress = clientEntry.getIp();
+					clientMagicWordGroup = clientEntry.getGroupName();
+				}
+			}
+			class NoContactInfo extends IOException{};
+			class ContactInfoException extends IOException{};
+			private void getContactInfo(String accountId)
+			{
+				author = ERROR_MSG;
+				organization = ERROR_MSG;
+				email = ERROR_MSG;
+				webpage = ERROR_MSG;
+				phone = ERROR_MSG;
+				address = ERROR_MSG;
+				
+				try
+				{
+					File contactFile = fileDatabase.getContactInfoFile(accountId);
+					if(!contactFile.exists())
+						throw new NoContactInfo();
+					Vector contactInfoRaw = ContactInfo.loadFromFile(contactFile);
+					Vector contactInfo = ContactInfo.decodeContactInfoVectorIfNecessary(contactInfoRaw);
+					int size = contactInfo.size();
+					if(size>0)
+					{
+						String contactAccountIdInsideFile = (String)contactInfo.get(0);
+						if(!security.verifySignatureOfVectorOfStrings(contactInfo, contactAccountIdInsideFile))
+						{
+							author = ERROR_MSG + " Signature failure contactInfo";
+							throw new ContactInfoException();
+						}
+						
+						if(!contactAccountIdInsideFile.equals(accountId))
+						{
+							author = ERROR_MSG + " AccountId doesn't match contactInfo's AccountId";
+							throw new ContactInfoException();
+						}			
+					}
+					
+					if(size>2)
+						author = (String)(contactInfo.get(2));
+					if(size>3)
+						organization = (String)(contactInfo.get(3));
+					if(size>4)
+						email = (String)(contactInfo.get(4));
+					if(size>5)
+						webpage = (String)(contactInfo.get(5));
+					if(size>6)
+						phone = (String)(contactInfo.get(6));
+					if(size>7)
+						address = (String)(contactInfo.get(7));
+				}
+				catch (NoContactInfo e)
+				{
+				}
+				catch (ContactInfoException e)
+				{
+					errorOccured = true;
+				}
+				catch (IOException e)
+				{
+					errorOccured = true;
+					author = ERROR_MSG + " IO exception contactInfo";
+				}
+				catch(InvalidBase64Exception e)
+				{
+					errorOccured = true;
+					author = ERROR_MSG + " InvalidBase64Exception contactInfo";
+				}
+			}
+			private String isAllowedToUpload(String accountId)
+			{
+				if(clientsThatCanUpload.contains(accountId))
+					return ACCOUNT_UPLOAD_OK_TRUE;
+				return	ACCOUNT_UPLOAD_OK_FALSE;
+			}
+			private String isBanned(String accountId)
+			{
+				if(bannedClients.contains(accountId))
+					return ACCOUNT_BANNED_TRUE;
+				return ACCOUNT_BANNED_FALSE;
+			}
+			private String canAmplify(String accountId)
+			{
+				if(clientsNotToAmplify.contains(accountId))
+					return ACCOUNT_AMPLIFY_FALSE;
+				return ACCOUNT_AMPLIFY_TRUE;
+			}
+	
 			private UnicodeWriter writer;
+			private String author;
+			private String organization;
+			private String email;
+			private String webpage;
+			private String phone;
+			private String address;
+			
+			private String clientAuthorizedDate = "";
+			private String clientIPAddress = "";
+			private String clientMagicWordGroup = "";
 		}
 
-		
 		
 		System.out.println("Creating Account Statistics");
 		File accountStats = new File(destinationDir,ACCOUNT_STATS_FILE_NAME + CSV_EXT);
@@ -310,35 +322,17 @@ public class CreateStatistics
 			throw new Exception("File Exists.  Please delete before running: "+accountStatsError.getAbsolutePath());
 		
 		UnicodeWriter writer = new UnicodeWriter(accountStats);
-		writer.writeln(ACCOUNT_STATISTICS_HEADER);
-		fileDatabase.visitAllAccounts(new AccountVisitor(writer));
-		writer.close();
-
-	
+		try
+		{
+			writer.writeln(ACCOUNT_STATISTICS_HEADER);
+			fileDatabase.visitAllAccounts(new AccountVisitor(writer));
+		}
+		finally
+		{
+			writer.close();
+		}
 	}
 
-	String isAllowedToUpload(String accountId)
-	{
-		if(clientsThatCanUpload.contains(accountId))
-			return ACCOUNT_UPLOAD_OK_TRUE;
-		return	ACCOUNT_UPLOAD_OK_FALSE;
-	}
-	
-	String isBanned(String accountId)
-	{
-		if(bannedClients.contains(accountId))
-			return ACCOUNT_BANNED_TRUE;
-		return ACCOUNT_BANNED_FALSE;
-	}
-	
-	String canAmplify(String accountId)
-	{
-		if(clientsNotToAmplify.contains(accountId))
-			return ACCOUNT_AMPLIFY_FALSE;
-		return ACCOUNT_AMPLIFY_TRUE;
-	}
-	
-	
 	private void CreateBulletinStatistics() throws Exception
 	{
 		final File bulletinStatsError = new File(destinationDir, BULLETIN_STATS_FILE_NAME + ERR_EXT + CSV_EXT);
@@ -351,90 +345,21 @@ public class CreateStatistics
 			
 			public void visit(DatabaseKey key)
 			{
+				errorOccured = false;
 				try
 				{
-					boolean errorOccured = false;
 					if(!BulletinHeaderPacket.isValidLocalId(key.getLocalId()))
 						return;
-					
 					String localId = key.getLocalId();
-					String publicCode = "";
+					getPublicCode(key.getAccountId());
 
-					try
-					{
-						String accountId = key.getAccountId();
-						publicCode = MartusCrypto.computeFormattedPublicCode(accountId);
-					}
-					catch(Exception e)
-					{
-						errorOccured = true;
-						publicCode = ERROR_MSG + " " + e;
-					}
-					
 					String martusVersionBulletionWasCreatedWith = martusVersionBulletionWasCreatedWith = getMartusBuildDateForBulletin(key);
-					if(martusVersionBulletionWasCreatedWith.startsWith(ERROR_MSG))
-						errorOccured = true;
-
-					String bulletinType = ERROR_MSG + " unknown type";
-					if(key.isSealed())
-						bulletinType = BULLETIN_SEALED;
-					else if(key.isDraft())
-						bulletinType = BULLETIN_DRAFT;
-					else
-						errorOccured = true;
+					String bulletinType = getBulletinType(key);
 					
 					DatabaseKey burKey = MartusServerUtilities.getBurKey(key);
 					String wasBurCreatedByThisServer = wasOriginalServer(burKey);
-					if(wasBurCreatedByThisServer.startsWith(ERROR_MSG))
-						errorOccured = true;
 					String dateBulletinWasSavedOnServer = getOriginalUploadDate(burKey);
-					if(dateBulletinWasSavedOnServer.startsWith(ERROR_MSG))
-						errorOccured = true;
-					
-					String allPrivate = "";
-					int publicAttachmentCount = 0;
-					int privateAttachmentCount = 0;
-					int bulletinSizeInKBytes = 0;
-					String hasUnknownTags = "";
-					String dateBulletinLastSaved = "";
-					try
-					{
-						BulletinHeaderPacket bhp = MartusServer.loadBulletinHeaderPacket(fileDatabase, key, security);
-						if(bhp.hasUnknownTags())
-							hasUnknownTags = BULLETIN_HAS_UNKNOWN_TAGS_TRUE;
-						else
-							hasUnknownTags = BULLETIN_HAS_UNKNOWN_TAGS_FALSE;
-						Calendar cal = new GregorianCalendar();
-						cal.setTimeInMillis(bhp.getLastSavedTime());		
-						dateBulletinLastSaved = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(cal.getTime());
-						
-						
-						bulletinSizeInKBytes = MartusUtilities.getBulletinSize(fileDatabase, bhp) / 1000;
-						String[] publicAttachments = bhp.getPublicAttachmentIds();
-						String[] privateAttachments = bhp.getPrivateAttachmentIds();
-						if(bhp.isAllPrivate())
-						{
-							allPrivate = BULLETIN_ALL_PRIVATE_TRUE;
-							privateAttachmentCount = publicAttachments.length;
-							privateAttachmentCount += privateAttachments.length;
-						}
-						else
-						{
-							allPrivate = BULLETIN_ALL_PRIVATE_FALSE;
-							publicAttachmentCount = publicAttachments.length;
-							privateAttachmentCount = privateAttachments.length;
-						}
-					}
-					catch(Exception e1)
-					{
-						errorOccured = true;
-						allPrivate = ERROR_MSG + " " + e1;
-						publicAttachmentCount = -1;
-						privateAttachmentCount = -1;
-						hasUnknownTags = ERROR_MSG;
-					}
-					
-					
+					getBulletinHeaderInfo(key);
 					
 					String bulletinInfo =  getNormalizedString(localId) + DELIMITER +
 					getNormalizedString(martusVersionBulletionWasCreatedWith) + DELIMITER + 
@@ -467,6 +392,65 @@ public class CreateStatistics
 				}
 			}
 
+			private void getBulletinHeaderInfo(DatabaseKey key)
+			{
+				allPrivate = "";
+				hasUnknownTags = "";
+				dateBulletinLastSaved = "";
+				publicAttachmentCount = 0;
+				privateAttachmentCount = 0;
+				bulletinSizeInKBytes = 0;
+
+				try
+				{
+					BulletinHeaderPacket bhp = MartusServer.loadBulletinHeaderPacket(fileDatabase, key, security);
+					if(bhp.hasUnknownTags())
+						hasUnknownTags = BULLETIN_HAS_UNKNOWN_TAGS_TRUE;
+					else
+						hasUnknownTags = BULLETIN_HAS_UNKNOWN_TAGS_FALSE;
+					Calendar cal = new GregorianCalendar();
+					cal.setTimeInMillis(bhp.getLastSavedTime());		
+					dateBulletinLastSaved = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(cal.getTime());
+					
+					
+					bulletinSizeInKBytes = MartusUtilities.getBulletinSize(fileDatabase, bhp) / 1000;
+					String[] publicAttachments = bhp.getPublicAttachmentIds();
+					String[] privateAttachments = bhp.getPrivateAttachmentIds();
+					if(bhp.isAllPrivate())
+					{
+						allPrivate = BULLETIN_ALL_PRIVATE_TRUE;
+						privateAttachmentCount = publicAttachments.length;
+						privateAttachmentCount += privateAttachments.length;
+					}
+					else
+					{
+						allPrivate = BULLETIN_ALL_PRIVATE_FALSE;
+						publicAttachmentCount = publicAttachments.length;
+						privateAttachmentCount = privateAttachments.length;
+					}
+				}
+				catch(Exception e1)
+				{
+					errorOccured = true;
+					allPrivate = ERROR_MSG + " " + e1;
+					hasUnknownTags = ERROR_MSG;
+					dateBulletinLastSaved = ERROR_MSG;
+					publicAttachmentCount = -1;
+					privateAttachmentCount = -1;
+					bulletinSizeInKBytes = -1;
+				}
+			}
+			private String getBulletinType(DatabaseKey key)
+			{
+				String bulletinType = ERROR_MSG + " not draft or sealed?";
+				if(key.isSealed())
+					bulletinType = BULLETIN_SEALED;
+				else if(key.isDraft())
+					bulletinType = BULLETIN_DRAFT;
+				else
+					errorOccured = true;
+				return bulletinType;
+			}
 			private String getMartusBuildDateForBulletin(DatabaseKey key) throws IOException, TooManyAccountsException
 			{
 				String martusBuildDateBulletionWasCreatedWith = ERROR_MSG;
@@ -487,10 +471,73 @@ public class CreateStatistics
 				{
 					martusBuildDateBulletionWasCreatedWith = ERROR_MSG + " " + e.getMessage();
 				}
+				if(martusBuildDateBulletionWasCreatedWith.startsWith(ERROR_MSG))
+						errorOccured = true;				
 				return martusBuildDateBulletionWasCreatedWith;
 			}
+			private String wasOriginalServer(DatabaseKey burKey)
+			{
+				String wasBurCreatedByThisServer = ERROR_MSG;
+				try
+				{
+					if(!fileDatabase.getFileForRecord(burKey).exists())
+					{
+						wasBurCreatedByThisServer =ERROR_MSG + " missing BUR";
+					}
+					else
+					{
+						String burString = fileDatabase.readRecord(burKey, security);
+						if(burString.length()==0)
+							wasBurCreatedByThisServer = ERROR_MSG + " record empty?";
+						else 
+						{
+							if(MartusServerUtilities.wasBurCreatedByThisCrypto(burString, security))
+								wasBurCreatedByThisServer = BULLETIN_ORIGINALLY_UPLOADED_TO_THIS_SERVER_TRUE;
+							else
+								wasBurCreatedByThisServer = BULLETIN_ORIGINALLY_UPLOADED_TO_THIS_SERVER_FALSE;
+						}
+					}
+				}
+				catch(Exception e1)
+				{
+					wasBurCreatedByThisServer = ERROR_MSG + " " + e1;
+				}
+				if(wasBurCreatedByThisServer.startsWith(ERROR_MSG))
+					errorOccured = true;				
+				return wasBurCreatedByThisServer;
+			}
+			private String getOriginalUploadDate(DatabaseKey burKey)
+			{
+				String uploadDate = ERROR_MSG;
+				try
+				{
+					if(fileDatabase.getFileForRecord(burKey).exists())
+					{
+						String burString = fileDatabase.readRecord(burKey, security);
+						if(burString.length()!=0)
+						{
+							String[] burData = burString.split("\n");
+							uploadDate = burData[2];
+						}
+					}
+				}
+				catch(Exception e1)
+				{
+					uploadDate = ERROR_MSG + " " + e1;
+				}
 
+				if(uploadDate.startsWith(ERROR_MSG))
+					errorOccured = true;				
+				return uploadDate;
+			}
+			
 			UnicodeWriter writer;
+			String allPrivate;
+			String hasUnknownTags;
+			String dateBulletinLastSaved;
+			int publicAttachmentCount;
+			int privateAttachmentCount;
+			int bulletinSizeInKBytes;
 		}
 		
 		System.out.println("Creating Bulletin Statistics");
@@ -506,67 +553,35 @@ public class CreateStatistics
 			throw new Exception("File Exists.  Please delete before running: "+bulletinStatsError.getAbsolutePath());
 		
 		UnicodeWriter writer = new UnicodeWriter(bulletinStats);
-		writer.writeln(BULLETIN_STATISTICS_HEADER);
-		fileDatabase.visitAllRecords(new BulletinVisitor(writer));
-		writer.close();
-	}
-
-	String wasOriginalServer(DatabaseKey burKey)
-	{
-		String wasBurCreatedByThisServer = BULLETIN_ORIGINALLY_UPLOADED_TO_THIS_SERVER_FALSE;
 		try
 		{
-			if(!fileDatabase.getFileForRecord(burKey).exists())
-			{
-				wasBurCreatedByThisServer =ERROR_MSG + " missing BUR";
-			}
-			else
-			{
-				String burString = fileDatabase.readRecord(burKey, security);
-				if(burString.length()==0)
-					wasBurCreatedByThisServer = ERROR_MSG + " record empty?";
-				else if(MartusServerUtilities.wasBurCreatedByThisCrypto(burString, security))
-					wasBurCreatedByThisServer = BULLETIN_ORIGINALLY_UPLOADED_TO_THIS_SERVER_TRUE;
-			}
+			writer.writeln(BULLETIN_STATISTICS_HEADER);
+			fileDatabase.visitAllRecords(new BulletinVisitor(writer));
 		}
-		catch(Exception e1)
+		finally
 		{
-			wasBurCreatedByThisServer = ERROR_MSG + " " + e1;
+			writer.close();
 		}
-		return wasBurCreatedByThisServer;
 	}
-	
-	String getOriginalUploadDate(DatabaseKey burKey)
+
+	void getPublicCode(String accountId)
 	{
-		String uploadDate = "unknown";
+		publicCode = "";
 		try
 		{
-			if(!fileDatabase.getFileForRecord(burKey).exists())
-				return uploadDate;
-			String burString = fileDatabase.readRecord(burKey, security);
-			if(burString.length()!=0)
-			{
-				String[] burData = burString.split("\n");
-				String rawDate = burData[2];
-				return rawDate;
-			}
+			publicCode = MartusCrypto.computeFormattedPublicCode(accountId);
 		}
-		catch(Exception e1)
+		catch(Exception e)
 		{
-			uploadDate = ERROR_MSG + " " + e1;
+			publicCode = ERROR_MSG + " " + e;
+			errorOccured = true;
 		}
-		return uploadDate;
 	}
-
-
-	
-	/*	private void CreatePacketStatistics()
+	public class NullLogger implements LoggerInterface
 	{
-		System.out.println("Creating Packet Statistics");
-
+		public NullLogger()	{}
+		public void log(String message)	{}
 	}
-*/
-
 	void writeErrorLog(File bulletinStatsError, String headerString, String errorMsg) throws IOException
 	{
 		boolean includeErrorHeader = (!bulletinStatsError.exists());
@@ -576,7 +591,6 @@ public class CreateStatistics
 		writerErr.writeln(errorMsg);
 		writerErr.close();
 	}
-	
 	String getNormalizedString(Object rawdata)
 	{
 		String data = (String)rawdata;
@@ -586,10 +600,12 @@ public class CreateStatistics
 	}
 	
 	private boolean deletePrevious;
-	MartusCrypto security;
 	private File packetsDir;
-	File destinationDir;
 	private File adminStartupDir;
+	MartusCrypto security;
+	File destinationDir;
+	String publicCode;
+	boolean errorOccured;
 	FileDatabase fileDatabase;
 	Vector clientsThatCanUpload;
 	Vector bannedClients;
