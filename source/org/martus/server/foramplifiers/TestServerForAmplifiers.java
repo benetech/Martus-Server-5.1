@@ -133,6 +133,8 @@ public class TestServerForAmplifiers extends TestCaseEnhanced
 
 	protected void tearDown() throws Exception
 	{
+		coreServer.deleteAllFiles();
+		otherServer.deleteAllFiles();
 		super.tearDown();
 	}
 	
