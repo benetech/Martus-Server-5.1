@@ -538,17 +538,23 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		configInfo.setAuthor(author);
 		String phoneNumber = "Phone number";
 		configInfo.setPhone(phoneNumber);
-		contactInfo = configInfo.getEncodedContactInfo(clientSecurity);
+		Vector contactInfoEncoded = configInfo.getEncodedContactInfo(clientSecurity);
 		
 		testServer.allowUploads("differentAccountID");
-		String incorrectAccoutResult = testServer.putContactInfo("differentAccountID", contactInfo);
+		String incorrectAccoutResult = testServer.putContactInfo("differentAccountID", contactInfoEncoded);
 		assertEquals("Incorrect Accout ", INVALID_DATA, incorrectAccoutResult);		
 
 		File contactFile = testServer.getContactInfoFileForAccount(clientId);
 		assertFalse("Contact File already exists?", contactFile.exists());		
-		String correctResult = testServer.putContactInfo(clientId, contactInfo);
-		assertEquals("Encoded Config Info Correct Signature", OK, correctResult);		
 
+		Vector decodedContactInfo = ConfigInfo.decodeContactInfoVectorIfNecessary(contactInfoEncoded);
+		String correctResultWithDecodedContactInfoSent = testServer.putContactInfo(clientId, decodedContactInfo);
+		assertEquals("Encoded Config Info Correct Signature", OK, correctResultWithDecodedContactInfoSent);		
+		
+		String correctResultWithEncodedContactInfoSend = testServer.putContactInfo(clientId, contactInfoEncoded);
+		assertEquals("Encoded Config Info Correct Signature", OK, correctResultWithEncodedContactInfoSend);		
+	
+		
 		assertTrue("File Doesn't exist?", contactFile.exists());
 		assertTrue("Size too small", contactFile.length() > 200);
 
@@ -573,7 +579,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		contactFile.getParentFile().delete();
 
 		testServer.serverForClients.clientsBanned.add(clientId);
-		String banned = testServer.putContactInfo(clientId, contactInfo);
+		String banned = testServer.putContactInfo(clientId, contactInfoEncoded);
 		assertEquals("Client is banned should not accept contact info", REJECTED, banned);
 		
 		TRACE_END();
@@ -610,32 +616,33 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 	{
 		TRACE_BEGIN("testGetContactInfo");
 
-		Vector contactInfo = new Vector();
+		ConfigInfo info = new ConfigInfo();
+		String author = "Author";
+		String phone = "Phone number";
+		info.setAuthor(author);
+		info.setPhone(phone);
+		
+		Vector encodedContactInfo = info.getEncodedContactInfo(clientSecurity);
+		Vector decodedContactInfo = ConfigInfo.decodeContactInfoVectorIfNecessary(encodedContactInfo);
 		String clientId = clientSecurity.getPublicKeyString();
-
-		contactInfo.add(clientId);
-		contactInfo.add(new Integer(2));
-		String data1 = "Data";
-		contactInfo.add(data1);
-		String data2 = "Data2";
-		contactInfo.add(data2);
-		String signature = clientSecurity.createSignatureOfVectorOfStrings(contactInfo);
-		contactInfo.add(signature);
+		String signature = (String)encodedContactInfo.get(encodedContactInfo.size()-1);
 
 		Vector nothingReturned = testServer.getContactInfo(clientId);
 		assertEquals("No contactInfo should return null", NetworkInterfaceConstants.NOT_FOUND, nothingReturned.get(0));
 		testServer.allowUploads(clientId);
-		testServer.putContactInfo(clientId, contactInfo);
+		testServer.putContactInfo(clientId, encodedContactInfo);
 		Vector infoReturned = testServer.getContactInfo(clientId);
 		assertEquals("Should be ok", NetworkInterfaceConstants.OK, infoReturned.get(0));	
-		Vector contactInfoReturned = (Vector)infoReturned.get(1);
+		Vector contactInfoReturnedEncoded = (Vector)infoReturned.get(1);
+		Vector contactInfoReturnedDecoded = ConfigInfo.decodeContactInfoVectorIfNecessary(contactInfoReturnedEncoded);
 			
-		assertEquals("Incorrect size",contactInfo.size(), contactInfoReturned.size());
-		assertEquals("Public key doesn't match", clientId, contactInfoReturned.get(0));
-		assertEquals("data size not two?", 2, ((Integer)contactInfoReturned.get(1)).intValue());
-		assertEquals("data not correct?", data1, contactInfoReturned.get(2));
-		assertEquals("data2 not correct?", data2, contactInfoReturned.get(3));
-		assertEquals("signature doesn't match?", signature, contactInfoReturned.get(4));		
+		assertEquals("Incorrect size Encoded",encodedContactInfo.size(), contactInfoReturnedEncoded.size());
+		assertEquals("Incorrect size Decoded",decodedContactInfo.size(), contactInfoReturnedDecoded.size());
+		assertEquals("Public key doesn't match", clientId, contactInfoReturnedDecoded.get(0));
+		assertEquals("data size not two?", 6, ((Integer)contactInfoReturnedDecoded.get(1)).intValue());
+		assertEquals("data not correct?", author, contactInfoReturnedDecoded.get(2));
+		assertEquals("data2 not correct?", phone, contactInfoReturnedDecoded.get(6));
+		assertEquals("signature doesn't match?", signature, contactInfoReturnedDecoded.get(8));		
 
 		TRACE_END();
 	}

@@ -921,16 +921,18 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		
 		try
 		{
-			Vector contactInfo = MartusServerUtilities.getContactInfo(contactFile);
-			if(!security.verifySignatureOfVectorOfStrings(contactInfo, accountId))
+			Vector decodedContactInfo = MartusServerUtilities.getContactInfo(contactFile);
+			if(!security.verifySignatureOfVectorOfStrings(decodedContactInfo, accountId))
 			{
 				String accountInfo = MartusSecurity.formatAccountIdForLog(accountId);
 				log("getContactInfo: "+ accountInfo +": Signature failed");
 				results.add(NetworkInterfaceConstants.SIG_ERROR);
 				return results;
 			}
+			Vector encodedContactInfo = ConfigInfo.encodeContactInfoVector(decodedContactInfo);
+			
 			results.add(NetworkInterfaceConstants.OK);
-			results.add(contactInfo);
+			results.add(encodedContactInfo);
 			return results;
 		}
 		catch (Exception e1)
