@@ -491,7 +491,6 @@ public class CreateStatistics
 							bulletinCustomFieldTypes += FieldSpec.getTypeString(fieldSpec.getType()); 
 						}
 					}
-
 				}
 				catch(Exception e)
 				{
