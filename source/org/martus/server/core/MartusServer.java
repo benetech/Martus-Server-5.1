@@ -44,7 +44,7 @@ import java.util.Iterator;
 import java.util.TimerTask;
 import java.util.Vector;
 
-import org.martus.amplifier.*;
+import org.martus.amplifier.ServerCallbackInterface;
 import org.martus.amplifier.main.MartusAmplifier;
 import org.martus.common.LoggerInterface;
 import org.martus.common.LoggerToConsole;
@@ -69,6 +69,7 @@ import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.FileDatabase;
 import org.martus.common.database.ServerFileDatabase;
 import org.martus.common.database.Database.RecordHiddenException;
+import org.martus.common.network.MartusSecureWebServer;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.network.NetworkInterfaceXmlRpcConstants;
 import org.martus.common.packet.BulletinHeaderPacket;
@@ -118,6 +119,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			server.displayStatistics();
 
 			System.out.println("Setting up sockets (this may take up to a minute or longer)...");
+		
 			server.initializeServerForClients();
 			server.initializeServerForMirroring();
 			server.initializeServerForAmplifiers();
@@ -170,7 +172,8 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		dataDirectory = dir;
 		setLogger(loggerToUse);
 		security = securityToUse;
-
+		MartusSecureWebServer.security = getSecurity();
+		
 		getTriggerDirectory().mkdirs();
 		getStartupConfigDirectory().mkdirs();
 		serverForClients = new ServerForClients(this);
@@ -184,7 +187,8 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	{
 		MartusUtilities.startTimer(new ShutdownRequestMonitor(), shutdownRequestIntervalMillis);
 		MartusUtilities.startTimer(new UploadRequestsMonitor(), magicWordsGuessIntervalMillis);
-		MartusUtilities.startTimer(new UpdateFromServerTask(), dataSynchIntervalMillis);
+		if(isAmplifierEnabled())
+			MartusUtilities.startTimer(new SyncAmplifierWithServersMonitor(), amplifierDataSynchIntervalMillis);
 	}
 
 	private void displayServerPublicCode() throws InvalidBase64Exception
@@ -263,6 +267,16 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		return ampIpAddress;
 	}
 
+	private static void setListenersIpAddress(String listenersIpAddress)
+	{
+		MartusServer.listenersIpAddress = listenersIpAddress;
+	}
+
+	private static String getListenersIpAddress()
+	{
+		return listenersIpAddress;
+	}
+
 	public void setLogger(LoggerInterface logger)
 	{
 		this.logger = logger;
@@ -289,6 +303,27 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	}
 	
 	
+	private void setAmplifierEnabled(boolean amplifierEnabled)
+	{
+		this.amplifierEnabled = amplifierEnabled;
+	}
+
+	private boolean isAmplifierEnabled()
+	{
+		return amplifierEnabled;
+	}
+	
+
+	private void setClientListenerEnabled(boolean clientListenerEnabled)
+	{
+		this.clientListenerEnabled = clientListenerEnabled;
+	}
+
+	private boolean isClientListenerEnabled()
+	{
+		return clientListenerEnabled;
+	}
+
 	protected boolean hasAccount()
 	{
 		return getKeyPairFile().exists();
@@ -1359,7 +1394,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	
 	public boolean canExitNow()
 	{
-		if(amp.isAmplifierSyncing())
+		if( amp.isAmplifierSyncing())
 			return false;
 		return serverForClients.canExitNow();
 	}
@@ -1742,8 +1777,10 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 
 	private void initializeServerForClients() throws UnknownHostException
 	{
-		serverForClients.handleNonSSL(NetworkInterfaceXmlRpcConstants.defaultNonSSLPorts);
+		if(!isClientListenerEnabled())
+			return;
 		serverForClients.handleSSL(NetworkInterfaceXmlRpcConstants.defaultSSLPorts);
+		serverForClients.handleNonSSL(NetworkInterfaceXmlRpcConstants.defaultNonSSLPorts);
 		serverForClients.displayClientStatistics();
 	}
 	
@@ -1754,6 +1791,8 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	
 	public void initalizeAmplifier(char[] keystorePassword) throws Exception
 	{
+		if(!isAmplifierEnabled())
+			return;
 		amp.initalizeAmplifier(keystorePassword);
 	}
 
@@ -1784,17 +1823,27 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		String indexEveryXHourTag = "--amplifier-indexing-hours=";
 		String indexEveryXMinutesTag = "--amplifier-indexing-minutes=";
 		String ampipTag = "--amplifier-ip=";
-		String mainIpTag = "--listeners-ip=";
+		String listenersIpTag = "--listeners-ip=";
 		String secureModeTag = "--secure";
 		String noPasswordTag = "--nopassword";
+		String enableAmplifierTag = "--amplifier";
+		String enableClientListenerTag = "--client-listener";
+		String enableMirrorListenerTag = "--mirror-listener";
+		String enableAmplifierListenerTag = "--amplifier-listener";
 		
+		setAmplifierEnabled(false);
+		String amplifierIndexingMessage = "";
 		for(int arg = 0; arg < args.length; ++arg)
 		{
 			String argument = args[arg];
+			if(argument.equals(enableAmplifierTag))
+				setAmplifierEnabled(true);
+			if(argument.equals(enableClientListenerTag))
+				setClientListenerEnabled(true);
 			if(argument.equals(secureModeTag))
 				enterSecureMode();
-			if(argument.startsWith(mainIpTag))
-				mainIpAddress = argument.substring(mainIpTag.length());
+			if(argument.startsWith(listenersIpTag))
+				setListenersIpAddress(argument.substring(listenersIpTag.length()));
 			if(argument.equals(noPasswordTag))
 				insecurePassword = "password".toCharArray();
 			if(argument.startsWith(ampipTag))
@@ -1803,14 +1852,14 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			if(argument.startsWith(indexEveryXHourTag))
 			{	
 				String hours = argument.substring(indexEveryXHourTag.length());
-				System.out.println("Amplifier indexing every " + hours + " hours");
+				amplifierIndexingMessage = "Amplifier indexing every " + hours + " hours";
 				long indexEveryXHours = new Integer(hours).longValue();
 				indexEveryXMinutes = indexEveryXHours * 60;
 			}
 			if(argument.startsWith(indexEveryXMinutesTag))
 			{	
 				String minutes = argument.substring(indexEveryXMinutesTag.length());
-				System.out.println("Amplifier indexing every " + minutes + " minutes");
+				amplifierIndexingMessage = "Amplifier indexing every " + minutes + " minutes";
 				indexEveryXMinutes = new Integer(minutes).longValue();
 			}
 		}
@@ -1818,20 +1867,30 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		{
 			long defaultSyncHours = MartusAmplifier.DEFAULT_HOURS_TO_SYNC;
 			indexEveryXMinutes = defaultSyncHours * 60;
-			System.out.println("Amplifier indexing every " + defaultSyncHours + " hours");
+			amplifierIndexingMessage = "Amplifier indexing every " + defaultSyncHours + " hours";
 		}
 		
-		dataSynchIntervalMillis = indexEveryXMinutes * MINUTES_TO_MILLI;
 		
 		if(isSecureMode())
 			System.out.println("Running in SECURE mode");
 		else
 			System.out.println("***RUNNING IN INSECURE MODE***");
+		
+		if(isAmplifierEnabled())
+		{
+			System.out.println("");
+			System.out.println("Web Amplifier is Enabled on " + getAmpIpAddress());
+			amplifierDataSynchIntervalMillis = indexEveryXMinutes * MINUTES_TO_MILLI;
+			System.out.println(amplifierIndexingMessage);
+			System.out.println("");
+		}
+		if(isClientListenerEnabled())
+			System.out.println("Client Listener enabled on " + getListenersIpAddress());
 	}
 
 	public static InetAddress getMainIpAddress() throws UnknownHostException
 	{
-		return InetAddress.getByName(mainIpAddress);
+		return InetAddress.getByName(getListenersIpAddress());
 	}
 
 	private void initalizeDatabase()
@@ -1967,7 +2026,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		}
 	}
 	
-	class UpdateFromServerTask extends TimerTask
+	class SyncAmplifierWithServersMonitor extends TimerTask
 	{	
 		public void run()
 		{
@@ -2009,6 +2068,8 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	public ServerForClients serverForClients;
 	public ServerForAmplifiers serverForAmplifiers;
 	public MartusAmplifier amp;
+	private boolean amplifierEnabled;
+	private boolean clientListenerEnabled;
 	
 	private File dataDirectory;
 	protected Database database;
@@ -2020,11 +2081,11 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	String serverName;
 	
 	private boolean secureMode;
-	private static String mainIpAddress; 
+	private static String listenersIpAddress; 
 	private String ampIpAddress;
 
 	public char[] insecurePassword;
-	public long dataSynchIntervalMillis;
+	public long amplifierDataSynchIntervalMillis;
 	
 	private static final String KEYPAIRFILENAME = "keypair.dat";
 	private static final String HIDDENPACKETSFILENAME = "isHidden.txt";

@@ -37,10 +37,9 @@ import java.util.Vector;
 import org.martus.common.MartusUtilities;
 import org.martus.common.MartusUtilities.FileVerificationException;
 import org.martus.common.crypto.MartusCrypto;
-import org.martus.common.network.MartusSecureWebServer;
 import org.martus.common.network.MartusXmlRpcServer;
 import org.martus.common.utilities.MartusServerUtilities;
-import org.martus.server.core.*;
+import org.martus.server.core.MartusServer;
 import org.martus.util.UnicodeReader;
 import org.martus.util.UnicodeWriter;
 import org.martus.util.WebServerWithClientId;
@@ -180,7 +179,6 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	public void handleSSL(int[] ports) throws UnknownHostException
 	{
 		ServerSideNetworkHandler serverHandler = new ServerSideNetworkHandler(this);
-		MartusSecureWebServer.security = getSecurity();
 		for(int i=0; i < ports.length; ++i)
 			activeWebServers.add(MartusXmlRpcServer.createSSLXmlRpcServer(serverHandler, "MartusServer", ports[i], MartusServer.getMainIpAddress()));
 	}
