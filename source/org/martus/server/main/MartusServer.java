@@ -1766,6 +1766,8 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 
 	public boolean wantsDevelopmentMode()
 	{
+		if(isRunningUnderWindows())
+			return false;
 		if(MartusServer.class.getResource("ForceListenOnNonPrivilegedPorts.txt") == null)
 			return false;
 		
@@ -1775,6 +1777,12 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		log("*********************************************");
 		return true;
 	}
+
+	boolean isRunningUnderWindows()
+	{
+		return Version.isRunningUnderWindows();
+	}
+	
 
 	private class UploadRequestsMonitor extends TimerTask
 	{
