@@ -47,6 +47,7 @@ import org.martus.amplifier.main.MartusAmplifier;
 import org.martus.common.ContactInfo;
 import org.martus.common.LoggerInterface;
 import org.martus.common.LoggerToConsole;
+import org.martus.common.MartusConstants;
 import org.martus.common.MartusUtilities;
 import org.martus.common.Version;
 import org.martus.common.VersionBuildDate;
@@ -1685,13 +1686,18 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		
 		void addToSummary(BulletinHeaderPacket bhp) 
 		{
-			String summary = bhp.getLocalId() + "=";
+			String summary = bhp.getLocalId() + MartusConstants.regexEqualsDelimeter;
 			summary  += bhp.getFieldDataPacketId();
 			if(retrieveTags.contains(NetworkInterfaceConstants.TAG_BULLETIN_SIZE))
 			{
 				int size = MartusUtilities.getBulletinSize(database, bhp);
-				summary += "=" + size;
+				summary += MartusConstants.regexEqualsDelimeter + size;
 			}
+			if(retrieveTags.contains(NetworkInterfaceConstants.TAG_BULLETIN_DATE_SAVED))
+			{
+				summary += MartusConstants.regexEqualsDelimeter + bhp.getLastSavedTime();
+			}
+			
 			summaries.add(summary);
 		}
 
