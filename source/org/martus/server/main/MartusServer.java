@@ -645,8 +645,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		{
 			try 
 			{
-				String hqAccountId = getBulletinHQAccountId(headerKey);
-				if(!myAccountId.equals(hqAccountId))
+				if( !isHQAccountAuthorizedToRead(headerKey, myAccountId))
 					return returnSingleResponseAndLog( " returning NOTYOURBULLETIN", NetworkInterfaceConstants.NOTYOURBULLETIN );
 			} 
 			catch (SignatureVerificationException e) 
@@ -780,7 +779,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 				try
 				{
 					BulletinHeaderPacket bhp = loadBulletinHeaderPacket(getDatabase(), key);
-					if(bhp.getHQPublicKey().equals(hqAccountId))
+					if(bhp.isHQAuthorizedToRead(hqAccountId))
 					{
 						String packetAccountId = bhp.getAccountId();
 						if(!accounts.contains(packetAccountId))
@@ -1063,7 +1062,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		try
 		{
 			if(!myAccountId.equals(authorAccountId) && 
-					!myAccountId.equals(getBulletinHQAccountId(headerKey)) )
+				!isHQAccountAuthorizedToRead(headerKey, myAccountId))
 			{
 				return returnSingleResponseAndLog( "  neither author nor HQ account", NetworkInterfaceConstants.NOTYOURBULLETIN );
 			}
@@ -1298,7 +1297,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		return result;
 	}
 
-	private String getBulletinHQAccountId(DatabaseKey headerKey) throws
+	private boolean isHQAccountAuthorizedToRead(DatabaseKey headerKey, String hqPublicKey) throws
 			IOException,
 			CryptoException,
 			InvalidPacketException,
@@ -1307,7 +1306,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			DecryptionException
 	{
 		BulletinHeaderPacket bhp = loadBulletinHeaderPacket(getDatabase(), headerKey);
-		return bhp.getHQPublicKey();
+		return bhp.isHQAuthorizedToRead(hqPublicKey);
 	}
 	
 	private Vector buildBulletinChunkResponse(DatabaseKey headerKey, int chunkOffset, int maxChunkSize) throws
@@ -1778,7 +1777,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			try
 			{
 				BulletinHeaderPacket bhp = loadBulletinHeaderPacket(db, key);
-				if(bhp.getHQPublicKey().equals(hqAccountId))
+				if(bhp.isHQAuthorizedToRead(hqAccountId))
 					addToSummary(bhp);
 			}
 			catch(Exception e)
@@ -1810,7 +1809,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			try
 			{
 				BulletinHeaderPacket bhp = loadBulletinHeaderPacket(db, key);
-				if(bhp.getHQPublicKey().equals(hqAccountId))
+				if(bhp.isHQAuthorizedToRead(hqAccountId))
 					addToSummary(bhp);
 			}
 			catch(Exception e)

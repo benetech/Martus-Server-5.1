@@ -203,6 +203,39 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		super.tearDown();
 	}
 	
+	public void testGetNotMyBulletin() throws Exception
+	{
+		TRACE_BEGIN("testGetNotMyBulletin");
+
+		testServer.security = serverSecurity;
+		testServer.serverForClients.clearCanUploadList();
+		testServer.allowUploads(clientSecurity.getPublicKeyString());
+		testServer.uploadBulletin(clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipString);
+		
+		MartusSecurity	newClientSecurity = new MartusSecurity();
+		newClientSecurity.createKeyPair(512);
+
+		Vector result = getBulletinChunk(newClientSecurity, testServerInterface, b1.getAccount(), b1.getLocalId(), 0, NetworkInterfaceConstants.MAX_CHUNK_SIZE);
+		assertEquals("Succeeded?  You are not the owner or the HQ", NetworkInterfaceConstants.NOTYOURBULLETIN, result.get(0));
+
+		TRACE_END();
+	}
+
+	public void testGetHQBulletin() throws Exception
+	{
+		TRACE_BEGIN("testGetHQBulletin");
+
+		testServer.security = serverSecurity;
+		testServer.serverForClients.clearCanUploadList();
+		testServer.allowUploads(clientSecurity.getPublicKeyString());
+		testServer.uploadBulletin(clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipString);
+		
+		Vector result = getBulletinChunk(hqSecurity, testServerInterface, b1.getAccount(), b1.getLocalId(), 0, NetworkInterfaceConstants.MAX_CHUNK_SIZE);
+		assertEquals("Failed? You are the HQ", NetworkInterfaceConstants.OK, result.get(0));
+
+		TRACE_END();
+	}
+
 	public void testLoadHiddenPacketsList() throws Exception
 	{
 		String newline = "\n";
@@ -1198,38 +1231,6 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		return server.getBulletinChunk(securityToUse.getPublicKeyString(), parameters, signature);
 	}
 
-	public void testGetNotMyBulletin() throws Exception
-	{
-		TRACE_BEGIN("testGetNotMyBulletin");
-
-		testServer.security = serverSecurity;
-		testServer.serverForClients.clearCanUploadList();
-		testServer.allowUploads(clientSecurity.getPublicKeyString());
-		testServer.uploadBulletin(clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipString);
-		
-		MartusSecurity	newClientSecurity = new MartusSecurity();
-		newClientSecurity.createKeyPair(512);
-
-		Vector result = getBulletinChunk(newClientSecurity, testServerInterface, b1.getAccount(), b1.getLocalId(), 0, NetworkInterfaceConstants.MAX_CHUNK_SIZE);
-		assertEquals("Succeeded?  You are not the owner or the HQ", NetworkInterfaceConstants.NOTYOURBULLETIN, result.get(0));
-
-		TRACE_END();
-	}
-
-	public void testGetHQBulletin() throws Exception
-	{
-		TRACE_BEGIN("testGetHQBulletin");
-
-		testServer.security = serverSecurity;
-		testServer.serverForClients.clearCanUploadList();
-		testServer.allowUploads(clientSecurity.getPublicKeyString());
-		testServer.uploadBulletin(clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipString);
-		
-		Vector result = getBulletinChunk(hqSecurity, testServerInterface, b1.getAccount(), b1.getLocalId(), 0, NetworkInterfaceConstants.MAX_CHUNK_SIZE);
-		assertEquals("Failed? You are the HQ", NetworkInterfaceConstants.OK, result.get(0));
-
-		TRACE_END();
-	}
 
 	public void testGetMyBulletin() throws Exception
 	{
@@ -1267,6 +1268,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		Bulletin bulletinSealed = new Bulletin(clientSecurity);
 		Vector keys = new Vector();
 		keys.add(hqSecurity.getPublicKeyString());
+		keys.add(otherServerSecurity.getPublicKeyString());
 		bulletinSealed.setAuthorizedToReadKeys(keys);
 		bulletinSealed.setSealed();
 		bulletinSealed.setAllPrivate(true);
@@ -1286,6 +1288,14 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		String b1Summary = bulletinDraft.getLocalId() + "=" + bulletinDraft.getFieldDataPacket().getLocalId();
 		assertContains("missing bulletin Draft?",b1Summary , (Vector)list2.get(1));
 
+		
+		Vector list3 = testServer.listFieldOfficeDraftBulletinIds(otherServerSecurity.getPublicKeyString(), fieldSecurity1.getPublicKeyString(), new Vector());
+		assertEquals("wrong length list hq2", 2, list3.size());
+		assertNotNull("null id1 [0] list hq2", list3.get(0));
+		assertEquals(NetworkInterfaceConstants.OK, list3.get(0));
+		String b1Summaryhq2 = bulletinDraft.getLocalId() + "=" + bulletinDraft.getFieldDataPacket().getLocalId();
+		assertContains("missing bulletin Draft for HQ2?",b1Summaryhq2 , (Vector)list3.get(1));
+		
 		TRACE_END();
 	}
 
@@ -1373,6 +1383,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		Bulletin bulletin = new Bulletin(clientSecurity);
 		Vector keys = new Vector();
 		keys.add(hqSecurity.getPublicKeyString());
+		keys.add(otherServerSecurity.getPublicKeyString());
 		bulletin.setAuthorizedToReadKeys(keys);
 		BulletinSaver.saveToClientDatabase(bulletin, clientDatabase, true, clientSecurity);
 		testServer.uploadBulletin(fieldSecurity1.getPublicKeyString(), bulletin.getLocalId(), BulletinForTesting.saveToZipString(clientDatabase, bulletin, clientSecurity));
@@ -1386,6 +1397,10 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		assertEquals(NetworkInterfaceConstants.OK, list2.get(0));
 		assertEquals("Wrong Key?", fieldSecurity1.getPublicKeyString(), list2.get(1));
 		
+		Vector list3 = testServer.listFieldOfficeAccounts(otherServerSecurity.getPublicKeyString());
+		assertEquals("wrong length hq2", 2, list3.size());
+		assertEquals(NetworkInterfaceConstants.OK, list3.get(0));
+		assertEquals("Wrong Key hq2?", fieldSecurity1.getPublicKeyString(), list3.get(1));
 
 		TRACE_END();
 	}
