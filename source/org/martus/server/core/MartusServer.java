@@ -71,7 +71,6 @@ import org.martus.common.database.ServerFileDatabase;
 import org.martus.common.database.Database.RecordHiddenException;
 import org.martus.common.network.MartusSecureWebServer;
 import org.martus.common.network.NetworkInterfaceConstants;
-import org.martus.common.network.NetworkInterfaceXmlRpcConstants;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.FieldDataPacket;
 import org.martus.common.packet.Packet;
@@ -129,6 +128,12 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			server.startBackgroundTimers();
 			
 			MartusServer.writeSyncFile(server.getRunningFile());
+			if(!server.isAmplifierEnabled() && !server.isAmplifierListenerEnabled() &&
+			   !server.isClientListenerEnabled() && !server.isMirrorListenerEnabled())
+			{				
+				System.out.println("No listeners or web amplifier enabled... Exiting.");
+				server.serverExit(20);
+			}
 			System.out.println("Waiting for connection...");
 		}
 		catch(CryptoInitializationException e) 
@@ -232,15 +237,22 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	
 	public void verifyConfigurationFiles()
 	{
-		serverForClients.verifyConfigurationFiles();
-		serverForMirroring.verifyConfigurationFiles();
+		if(isClientListenerEnabled())
+			serverForClients.verifyConfigurationFiles();
+		if(isMirrorListenerEnabled())
+			serverForMirroring.verifyConfigurationFiles();
+		if(isAmplifierListenerEnabled())
+			serverForAmplifiers.verifyConfigurationFiles();
 	}
 
 	public void loadConfigurationFiles() throws Exception
 	{
-		serverForClients.loadConfigurationFiles();
-		serverForMirroring.loadConfigurationFiles();
-		serverForAmplifiers.loadConfigurationFiles();
+		if(isClientListenerEnabled())
+			serverForClients.loadConfigurationFiles();
+		if(isMirrorListenerEnabled())
+			serverForMirroring.loadConfigurationFiles();
+		if(isAmplifierListenerEnabled())
+			serverForAmplifiers.loadConfigurationFiles();
 
 		//Tests will fail if compliance isn't last.
 		loadHiddenPacketsFile();
@@ -312,9 +324,8 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	{
 		return amplifierEnabled;
 	}
-	
 
-	private void setClientListenerEnabled(boolean clientListenerEnabled)
+	public void setClientListenerEnabled(boolean clientListenerEnabled)
 	{
 		this.clientListenerEnabled = clientListenerEnabled;
 	}
@@ -322,6 +333,26 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	private boolean isClientListenerEnabled()
 	{
 		return clientListenerEnabled;
+	}
+
+	private void setMirrorListenerEnabled(boolean mirrorListenerEnabled)
+	{
+		this.mirrorListenerEnabled = mirrorListenerEnabled;
+	}
+
+	private boolean isMirrorListenerEnabled()
+	{
+		return mirrorListenerEnabled;
+	}
+
+	private void setAmplifierListenerEnabled(boolean amplifierListenerEnabled)
+	{
+		this.amplifierListenerEnabled = amplifierListenerEnabled;
+	}
+
+	private boolean isAmplifierListenerEnabled()
+	{
+		return amplifierListenerEnabled;
 	}
 
 	protected boolean hasAccount()
@@ -1771,6 +1802,8 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 
 	private void initializeServerForMirroring() throws Exception
 	{
+		if(!isMirrorListenerEnabled())
+			return;
 		serverForMirroring.createGatewaysWeWillCall();
 		serverForMirroring.addListeners();
 	}
@@ -1779,14 +1812,15 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	{
 		if(!isClientListenerEnabled())
 			return;
-		serverForClients.handleSSL(NetworkInterfaceXmlRpcConstants.defaultSSLPorts);
-		serverForClients.handleNonSSL(NetworkInterfaceXmlRpcConstants.defaultNonSSLPorts);
+		serverForClients.addListeners();
 		serverForClients.displayClientStatistics();
 	}
 	
 	private void initializeServerForAmplifiers() throws UnknownHostException
 	{
-		serverForAmplifiers.createAmplifierXmlRpcServer();
+		if(!isAmplifierListenerEnabled())
+			return;
+		serverForAmplifiers.addListeners();
 	}
 	
 	public void initalizeAmplifier(char[] keystorePassword) throws Exception
@@ -1840,6 +1874,10 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 				setAmplifierEnabled(true);
 			if(argument.equals(enableClientListenerTag))
 				setClientListenerEnabled(true);
+			if(argument.equals(enableMirrorListenerTag))
+				setMirrorListenerEnabled(true);
+			if(argument.equals(enableAmplifierListenerTag))
+				setAmplifierListenerEnabled(true);
 			if(argument.equals(secureModeTag))
 				enterSecureMode();
 			if(argument.startsWith(listenersIpTag))
@@ -1871,21 +1909,25 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		}
 		
 		
+		System.out.println("");
 		if(isSecureMode())
 			System.out.println("Running in SECURE mode");
 		else
 			System.out.println("***RUNNING IN INSECURE MODE***");
 		
+		if(isClientListenerEnabled())
+			System.out.println("Client listener enabled on " + getListenersIpAddress());
+		if(isMirrorListenerEnabled())
+			System.out.println("Mirror listener enabled on " + getListenersIpAddress());
+		if(isAmplifierListenerEnabled())
+			System.out.println("Amplifier listener enabled on " + getListenersIpAddress());
 		if(isAmplifierEnabled())
 		{
-			System.out.println("");
 			System.out.println("Web Amplifier is Enabled on " + getAmpIpAddress());
 			amplifierDataSynchIntervalMillis = indexEveryXMinutes * MINUTES_TO_MILLI;
 			System.out.println(amplifierIndexingMessage);
-			System.out.println("");
 		}
-		if(isClientListenerEnabled())
-			System.out.println("Client Listener enabled on " + getListenersIpAddress());
+		System.out.println("");
 	}
 
 	public static InetAddress getMainIpAddress() throws UnknownHostException
@@ -2070,6 +2112,8 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	public MartusAmplifier amp;
 	private boolean amplifierEnabled;
 	private boolean clientListenerEnabled;
+	private boolean mirrorListenerEnabled;
+	private boolean amplifierListenerEnabled;
 	
 	private File dataDirectory;
 	protected Database database;

@@ -267,9 +267,9 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		String sampleId = "2345235";
 		
 		testServer.allowUploads(sampleId);
-		
 		MockMartusServer other = new MockMartusServer(testServer.getDataDirectory());
 		other.setSecurity(testServer.security);
+		other.setClientListenerEnabled(true);
 		other.verifyAndLoadConfigurationFiles();
 		assertEquals("didn't get saved/loaded?", true, other.canClientUpload(sampleId));
 		other.deleteAllFiles();
@@ -1514,6 +1514,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		writer.close();
 
 		MockMartusServer other = new MockMartusServer(testServer.getDataDirectory());
+		other.setClientListenerEnabled(true);
 		other.verifyAndLoadConfigurationFiles();
 		other.setSecurity(otherServerSecurity);
 		

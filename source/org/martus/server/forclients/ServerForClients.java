@@ -31,13 +31,16 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Vector;
 
 import org.martus.common.MartusUtilities;
 import org.martus.common.MartusUtilities.FileVerificationException;
 import org.martus.common.crypto.MartusCrypto;
+import org.martus.common.network.MartusSecureWebServer;
 import org.martus.common.network.MartusXmlRpcServer;
+import org.martus.common.network.NetworkInterfaceXmlRpcConstants;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.server.core.MartusServer;
 import org.martus.util.UnicodeReader;
@@ -53,7 +56,6 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		magicWords = new Vector();
 		clientsThatCanUpload = new Vector();
 		activeWebServers = new Vector();
-
 	}
 	
 	public MartusCrypto getSecurity()
@@ -64,6 +66,14 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	public String getPublicCode(String clientId)
 	{
 		return coreServer.getPublicCode(clientId); 
+	}
+	
+	public void addListeners() throws UnknownHostException
+	{
+		log("Initializing ServerForClients");
+		handleSSL(NetworkInterfaceXmlRpcConstants.defaultSSLPorts);
+		handleNonSSL(NetworkInterfaceXmlRpcConstants.defaultNonSSLPorts);
+		log("Client ports opened");
 	}
 	
 	public synchronized void log(String message)
@@ -173,19 +183,23 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	{
 		ServerSideNetworkHandlerForNonSSL nonSSLServerHandler = new ServerSideNetworkHandlerForNonSSL(this);
 		for(int i=0; i < ports.length; ++i)
-			activeWebServers.add(MartusXmlRpcServer.createNonSSLXmlRpcServer(nonSSLServerHandler, "MartusServer", ports[i], MartusServer.getMainIpAddress()));
+		{	
+			InetAddress mainIpAddress = MartusServer.getMainIpAddress();
+			log("Opening NonSSL port " + mainIpAddress +":" + ports[i] + " for clients...");
+			activeWebServers.add(MartusXmlRpcServer.createNonSSLXmlRpcServer(nonSSLServerHandler, "MartusServer", ports[i], mainIpAddress));
+		}
 	}
 	
 	public void handleSSL(int[] ports) throws UnknownHostException
 	{
 		ServerSideNetworkHandler serverHandler = new ServerSideNetworkHandler(this);
 		for(int i=0; i < ports.length; ++i)
-			activeWebServers.add(MartusXmlRpcServer.createSSLXmlRpcServer(serverHandler, "MartusServer", ports[i], MartusServer.getMainIpAddress()));
+		{	
+			InetAddress mainIpAddress = MartusServer.getMainIpAddress();
+			log("Opening SSL port " + mainIpAddress +":" + ports[i] + " for clients...");
+			activeWebServers.add(MartusXmlRpcServer.createSSLXmlRpcServer(serverHandler, "MartusServer", ports[i], mainIpAddress));
+		}
 	}
-	
-	
-
-
 
 
 	// BEGIN SSL interface

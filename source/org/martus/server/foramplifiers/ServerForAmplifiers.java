@@ -67,136 +67,6 @@ import org.martus.util.Base64.InvalidBase64Exception;
 
 public class ServerForAmplifiers implements NetworkInterfaceConstants
 {
-/*
-	public static void main(String[] args)
-	{
-		System.out.println("MartusAmplifierServer");
-		
-		File dataDirectory = getDefaultDataDirectory();
-		
-		ServerForAmplifiers server = null;
-
-		String servername = null;
-		for(int arg = 0; arg < args.length; ++arg)
-		{
-			if (args[arg].indexOf("logging")>=0)
-			{
-				serverLogging = true;
-				if (args[arg].indexOf("max")>=0)
-				{
-					serverMaxLogging = true;
-					serverSSLLogging = true;
-					System.out.println("Server Error Logging set to Max");
-				}
-				else
-					System.out.println("Server Error Logging Enabled");
-			}
-			
-			if(args[arg].startsWith("--server-name="))
-			{
-				servername = args[arg].substring(args[arg].indexOf("=")+1);
-			}
-		}
-		
-		System.out.println("Initializing...this will take a few seconds...");
-		try
-		{
-			server = new ServerForAmplifiers(dataDirectory);
-		} 
-		catch(CryptoInitializationException e) 
-		{
-			System.out.println("Crypto Initialization Exception" + e);
-			System.exit(1);			
-		}
-		
-		server.setServerName(servername);
-		
-		
-		System.out.println("Version " + ServerConstants.marketingVersionNumber);
-		
-		String versionInfo = MartusUtilities.getVersionDate();
-		System.out.println("Build Date " + versionInfo);
-
-		System.out.print("Enter passphrase: ");
-		System.out.flush();
-
-		InputStreamReader rawReader = new InputStreamReader(System.in);	
-		BufferedReader reader = new BufferedReader(rawReader);
-		try
-		{
-			String passphrase = reader.readLine();
-			if(server.hasAccount())
-			{
-				try
-				{
-					server.loadAccount(passphrase);
-				}
-				catch (Exception e)
-				{
-					System.out.println("Invalid password: " + e);
-					System.exit(73);
-				}
-			}
-			else
-			{
-				System.out.println("***** Key pair file not found *****");
-				System.exit(2);
-			}
-			
-			System.out.println("Passphrase correct.");			
-
-			String accountId = server.getAccountId();
-			System.out.println("Server Account: " + accountId);
-			System.out.println();
-
-			System.out.print("Server Public Code: ");
-			String publicCode = MartusCrypto.computePublicCode(accountId);
-			System.out.println(MartusCrypto.formatPublicCode(publicCode));
-			System.out.println();
-		}
-		catch(IOException e)
-		{
-			System.out.println("MartusAmplifierServer.main: " + e);
-			System.exit(3);
-		}
-		catch (InvalidBase64Exception e)
-		{
-			System.out.println("MartusAmplifierServer.main: " + e);
-			System.exit(3);
-		}
-
-		Database diskDatabase = new ServerFileDatabase(new File(dataDirectory, "packets"), server.getSecurity());
-		try
-		{
-			diskDatabase.initialize();
-		}
-		catch(FileDatabase.MissingAccountMapException e)
-		{
-			e.printStackTrace();
-			System.out.println("Missing Account Map File");
-			System.exit(7);
-		}
-		catch(FileDatabase.MissingAccountMapSignatureException e)
-		{
-			e.printStackTrace();
-			System.out.println("Missing Account Map Signature File");
-			System.exit(7);
-		}
-		catch(FileVerificationException e)
-		{
-			e.printStackTrace();
-			System.out.println("Account Map did not verify against signature file");
-			System.exit(7);
-		}
-		
-		server.setDatabase(diskDatabase);
-				
-		System.out.println("Setting up sockets (this may take up to a minute or longer)...");
-		server.createAmplifierXmlRpcServer();
-		System.out.println("Waiting for connection...");
-	}
-*/
-
 	public ServerForAmplifiers(MartusServer coreServerToUse, LoggerInterface loggerToUse) throws MartusCrypto.CryptoInitializationException
 	{
 		coreServer = coreServerToUse;
@@ -209,7 +79,6 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 	{
 		logger.log(message);
 	}
-	
 	
 	public Database getDatabase()
 	{
@@ -231,17 +100,28 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 		return getSecurity().getPublicKeyString();
 	}
 	
+	public void verifyConfigurationFiles()
+	{
+		// nothing to do yet
+	}
+	
 	public void loadConfigurationFiles() throws IOException, InvalidPublicKeyFileException, PublicInformationInvalidException
 	{
 		File authorizedAmplifiersDir = getAuthorizedAmplifiersDirectory();
 		authorizedAmps = coreServer.loadServerPublicKeys(authorizedAmplifiersDir, "Amp");
 		log("Authorized " + authorizedAmps.size() + " amplifiers to call us");
-		
 	}
 	
 	public File getAuthorizedAmplifiersDirectory()
 	{
 		return new File(coreServer.getStartupConfigDirectory(), "ampsWhoCallUs");
+	}
+	
+	public void addListeners() throws UnknownHostException
+	{
+		log("Initializing ServerForAmplifiers");
+		createAmplifierXmlRpcServer();
+		log("Amplifier ports opened");
 	}
 	
 	public void createAmplifierXmlRpcServer() throws UnknownHostException
