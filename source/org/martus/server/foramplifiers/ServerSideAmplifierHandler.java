@@ -261,6 +261,11 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface, Lo
 		server.logNotice(createLogString(message));
 	}
 	
+	public void logWarning(String message)
+	{
+		server.logWarning(createLogString(message));
+	}
+
 	public void logDebug(String message)
 	{
 		server.logDebug(createLogString(message));

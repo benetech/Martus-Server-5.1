@@ -1545,6 +1545,11 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		getLogger().logNotice(createLogString(message));
 	}
 	
+	public synchronized void logWarning(String message)
+	{
+		getLogger().logWarning(createLogString(message));
+	}
+
 	public synchronized void logDebug(String message)
 	{
 		getLogger().logDebug(createLogString(message));

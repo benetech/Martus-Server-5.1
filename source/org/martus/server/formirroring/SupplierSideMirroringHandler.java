@@ -251,6 +251,11 @@ public class SupplierSideMirroringHandler implements MirroringInterface, Network
 		supplier.logNotice(createLogString(message));
 	}
 	
+	public void logWarning(String message)
+	{
+		supplier.logWarning(createLogString(message));
+	}
+
 	public void logDebug(String message)
 	{
 		supplier.logDebug(createLogString(message));

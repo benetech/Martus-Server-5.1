@@ -259,6 +259,11 @@ public class MirroringRetriever implements LoggerInterface
 		logger.logNotice(createLogString(message));
 	}
 	
+	public void logWarning(String message)
+	{
+		logger.logWarning(createLogString(message));
+	}
+
 	public void logDebug(String message)
 	{
 		logger.logDebug(createLogString(message));

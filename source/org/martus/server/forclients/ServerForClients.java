@@ -165,6 +165,11 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		coreServer.logNotice(createLogString(message));
 	}
 	
+	public synchronized void logWarning(String message)
+	{
+		coreServer.logWarning(createLogString(message));
+	}
+
 	public synchronized void logDebug(String message)
 	{
 		coreServer.logDebug(createLogString(message));
