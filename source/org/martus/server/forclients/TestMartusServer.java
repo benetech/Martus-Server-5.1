@@ -1373,7 +1373,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 
 	public void testGetMyBulletin() throws Exception
 	{
-		TRACE_BEGIN("testGetHQBulletin");
+		TRACE_BEGIN("testGetMyBulletin");
 
 		testServer.security = serverSecurity;
 		testServer.serverForClients.clearCanUploadList();
