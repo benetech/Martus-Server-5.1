@@ -36,12 +36,13 @@ import java.io.OutputStream;
 import java.io.StringReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.TimerTask;
 import java.util.Vector;
 import java.util.zip.ZipFile;
-
 import org.martus.amplifier.ServerCallbackInterface;
 import org.martus.amplifier.main.MartusAmplifier;
 import org.martus.common.BulletinStore;
@@ -90,6 +91,7 @@ import org.martus.server.formirroring.ServerForMirroring;
 import org.martus.server.main.ServerBulletinStore.DuplicatePacketException;
 import org.martus.server.main.ServerBulletinStore.SealedPacketExistsException;
 import org.martus.util.Base64;
+import org.martus.util.DirectoryUtils;
 import org.martus.util.UnicodeReader;
 import org.martus.util.Base64.InvalidBase64Exception;
 
@@ -886,11 +888,31 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 					"Please contact the Server Policy Administrator for more information.";
 			items.add(bannedText);
 		}
+		
+		Vector newsItemSortedFileList = DirectoryUtils.getAllFilesLeastRecentFirst(getNewsDirectory());
+		for(int i = 0; i < newsItemSortedFileList.size(); i++)
+		{
+			File newsFile = (File)newsItemSortedFileList.get(i);
+			try
+			{
+				String fileContents = UnicodeReader.getFileContents(newsFile);
+				Date fileDate = new Date(newsFile.lastModified());
+				SimpleDateFormat format = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+				String dateAndData = format.format(fileDate) + System.getProperty("line.separator") + fileContents; 
+				items.add(dateAndData);
+			}
+			catch(IOException e)
+			{
+				log("getNews:Error reading File:" + newsFile.getAbsolutePath());
+				e.printStackTrace();
+			}
+		}
 
 		result.add(OK);
 		result.add(items);
 		return result;
 	}
+
 
 	public void setComplianceStatement(String statement)
 	{
@@ -1753,6 +1775,11 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	{
 		return new File(getDataDirectory(),ADMINSTARTUPCONFIGDIRECTORY);
 	}
+	
+	public File getNewsDirectory()
+	{
+		return new File(getDataDirectory(), CLIENTNEWSDIRECTORY);
+	}
 
 	private File getHiddenPacketsFile()
 	{
@@ -1895,6 +1922,8 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	public static final String HIDDENPACKETSFILENAME = "isHidden.txt";
 	private static final String COMPLIANCESTATEMENTFILENAME = "compliance.txt";
 	private static final String MARTUSSHUTDOWNFILENAME = "exit";
+	
+	private static final String CLIENTNEWSDIRECTORY = "news";
 	
 	private static final String ADMINTRIGGERDIRECTORY = "adminTriggers";
 	private static final String ADMINSTARTUPCONFIGDIRECTORY = "deleteOnStartup";

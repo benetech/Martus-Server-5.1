@@ -50,6 +50,7 @@ import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.common.xmlrpc.WebServerWithClientId;
 import org.martus.server.main.MartusServer;
 import org.martus.server.main.ServerBulletinStore;
+import org.martus.util.DirectoryUtils;
 import org.martus.util.UnicodeWriter;
 import org.martus.util.inputstreamwithseek.InputStreamWithSeek;
 
@@ -157,6 +158,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		System.out.println(magicWords.getNumberOfActiveWords() + " active magic word(s)");
 		System.out.println(magicWords.getNumberOfInactiveWords() + " inactive magic word(s)");
 		System.out.println(getNumberOfTestAccounts() + " client(s) are known test accounts");
+		System.out.println(getNumberOfNewsItems() +" News items");
 		System.out.println();
 	}
 
@@ -224,6 +226,11 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	public int getNumberOfTestAccounts()
 	{
 		return testAccounts.size();
+	}
+	
+	public int getNumberOfNewsItems()
+	{
+		return DirectoryUtils.getAllFilesLeastRecentFirst(coreServer.getNewsDirectory()).size();
 	}
 	
 	public boolean canClientUpload(String clientId)
