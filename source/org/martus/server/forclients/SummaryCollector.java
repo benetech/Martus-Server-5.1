@@ -103,15 +103,13 @@ public abstract class SummaryCollector implements Database.PacketVisitor
 		{
 			summary += MartusConstants.regexEqualsDelimeter + bhp.getLastSavedTime();
 		}
-		if(tags.contains(NetworkInterfaceConstants.TAG_BULLETIN_VERSION_NUMBER))
+		if(tags.contains(NetworkInterfaceConstants.TAG_BULLETIN_HISTORY))
 		{
-			int versionNumber = bhp.getHistory().size() + 1;
-			summary += MartusConstants.regexEqualsDelimeter + versionNumber;
-		}
-		if(tags.contains(NetworkInterfaceConstants.TAG_BULLETIN_ORIGINAL_ANCESTOR))
-		{
-			String originalAncestorLocalId = (String)bhp.getHistory().get(0);
-			summary += MartusConstants.regexEqualsDelimeter + originalAncestorLocalId;
+			StringBuffer localIds = new StringBuffer();
+			Vector history = bhp.getHistory();
+			for(int i = 0; i < history.size(); ++i)
+				localIds.append((String)history.get(i) + " ");
+			summary += MartusConstants.regexEqualsDelimeter + new String(localIds);
 		}
 		return summary;
 	}

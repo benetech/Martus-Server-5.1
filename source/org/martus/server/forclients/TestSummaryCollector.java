@@ -58,8 +58,13 @@ public class TestSummaryCollector extends TestCaseEnhanced
 		original.setSealed();
 		BulletinSaver.saveToClientDatabase(original, db, false, authorSecurity);
 		
+		firstClone = new Bulletin(authorSecurity);
+		firstClone.createDraftCopyOf(original, db);
+		firstClone.setSealed();
+		BulletinSaver.saveToClientDatabase(firstClone, db, false, authorSecurity);
+
 		clone = new Bulletin(authorSecurity); 
-		clone.createDraftCopyOf(original, db);
+		clone.createDraftCopyOf(firstClone, db);
 		BulletinSaver.saveToClientDatabase(clone, db, false, authorSecurity);
 		
 	}
@@ -122,17 +127,15 @@ public class TestSummaryCollector extends TestCaseEnhanced
 		String typicalSummary = minimalSummary + "=0=" + bhp.getLastSavedTime();
 		assertEquals(typicalSummary, sizeAndDate); 
 		
-		tags.add(NetworkInterfaceConstants.TAG_BULLETIN_VERSION_NUMBER);
-		String withVersion = SummaryCollector.extractSummary(bhp, db, tags);
-		assertEquals(typicalSummary + "=2", withVersion);
-
-		tags.add(NetworkInterfaceConstants.TAG_BULLETIN_ORIGINAL_ANCESTOR);
+		tags.add(NetworkInterfaceConstants.TAG_BULLETIN_HISTORY);
 		String withAncestor = SummaryCollector.extractSummary(bhp, db, tags);
-		assertEquals(typicalSummary + "=2=" + original.getLocalId(), withAncestor);
+		String history = original.getLocalId() + " " + firstClone.getLocalId() + " ";
+		assertEquals(typicalSummary + "=" + history, withAncestor);
 	}
 
 	MockMartusServer server;
 	MockMartusSecurity authorSecurity;
 	Bulletin original;
+	Bulletin firstClone;
 	Bulletin clone;
 }
