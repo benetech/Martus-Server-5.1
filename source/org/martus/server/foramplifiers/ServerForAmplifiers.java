@@ -62,7 +62,6 @@ import org.martus.common.packet.Packet.WrongPacketTypeException;
 import org.martus.server.main.MartusServer;
 import org.martus.util.Base64;
 import org.martus.util.InputStreamWithSeek;
-import org.martus.util.UnicodeReader;
 import org.martus.util.XmlRpcThread;
 import org.martus.util.Base64.InvalidBase64Exception;
 
@@ -142,9 +141,7 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 			return;
 		try
 		{
-			UnicodeReader  reader = new UnicodeReader(clientsNotToBeAmplifiedFile);
-			clientsNotAmplified = MartusUtilities.loadListFromFile(reader);
-			reader.close();
+			clientsNotAmplified = MartusUtilities.loadListFromFile(clientsNotToBeAmplifiedFile);
 		}
 		catch (IOException e)
 		{

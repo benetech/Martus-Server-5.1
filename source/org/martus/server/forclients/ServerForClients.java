@@ -299,9 +299,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			return;
 		try
 		{
-			UnicodeReader reader = new UnicodeReader(bannedClientsFile);
-			clientsBanned = MartusUtilities.loadListFromFile(reader);
-			reader.close();
+			clientsBanned = MartusUtilities.loadListFromFile(bannedClientsFile);
 		}
 		catch (IOException e)
 		{
