@@ -28,12 +28,12 @@ package org.martus.server.forclients;
 
 import java.util.Vector;
 
+import org.martus.common.LoggerInterface;
 import org.martus.common.crypto.MartusCrypto;
 
-public interface ServerForClientsInterface
+public interface ServerForClientsInterface extends LoggerInterface 
 {
 	public String getPublicCode(String clientId);
-	public void log(String message);
 	public void clientConnectionStart();
 	public void clientConnectionExit();
 	public MartusCrypto getSecurity();

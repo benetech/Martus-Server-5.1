@@ -27,8 +27,9 @@ Boston, MA 02111-1307, USA.
 package org.martus.server.formirroring;
 
 import java.util.Vector;
+import org.martus.common.LoggerInterface;
 
-public interface ServerSupplierInterface
+public interface ServerSupplierInterface extends LoggerInterface
 {
 	public Vector getPublicInfo();
 	public boolean isAuthorizedForMirroring(String callerAccountId);
@@ -37,5 +38,4 @@ public interface ServerSupplierInterface
 	public String getBulletinUploadRecord(String authorAccountId, String bulletinLocalId);
 	public Vector getBulletinChunkWithoutVerifyingCaller(String authorAccountId, String bulletinLocalId,
 			int chunkOffset, int maxChunkSize);
-	public void log(String message);
 }

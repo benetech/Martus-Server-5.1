@@ -27,14 +27,14 @@ Boston, MA 02111-1307, USA.
 package org.martus.server.forclients;
 
 import java.util.Vector;
+import org.martus.common.LoggerInterface;
 
-public interface ServerForNonSSLClientsInterface
+public interface ServerForNonSSLClientsInterface extends LoggerInterface
 {
 	public String ping();
 	public Vector getServerInformation();
 
 	public String getPublicCode(String clientId);
-	public void log(String message);
 	public void clientConnectionStart();
 	public void clientConnectionExit();
 
