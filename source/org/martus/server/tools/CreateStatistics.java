@@ -32,12 +32,15 @@ import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Vector;
+import org.martus.amplifier.search.BulletinField;
 import org.martus.common.ContactInfo;
+import org.martus.common.FieldSpec;
 import org.martus.common.HQKey;
 import org.martus.common.HQKeys;
 import org.martus.common.LoggerInterface;
 import org.martus.common.MartusUtilities;
 import org.martus.common.MartusXml;
+import org.martus.common.bulletin.BulletinConstants;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
@@ -45,12 +48,16 @@ import org.martus.common.database.FileDatabase;
 import org.martus.common.database.ServerFileDatabase;
 import org.martus.common.database.FileDatabase.TooManyAccountsException;
 import org.martus.common.packet.BulletinHeaderPacket;
+import org.martus.common.packet.FieldDataPacket;
+import org.martus.common.packet.UniversalId;
+import org.martus.common.utilities.MartusFlexidate;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.server.foramplifiers.ServerForAmplifiers;
 import org.martus.server.forclients.AuthorizeLog;
 import org.martus.server.forclients.AuthorizeLogEntry;
 import org.martus.server.forclients.ServerForClients;
 import org.martus.server.main.MartusServer;
+import org.martus.util.FileInputStreamWithSeek;
 import org.martus.util.UnicodeReader;
 import org.martus.util.UnicodeWriter;
 import org.martus.util.Base64.InvalidBase64Exception;
@@ -351,22 +358,26 @@ public class CreateStatistics
 				{
 					if(!BulletinHeaderPacket.isValidLocalId(key.getLocalId()))
 						return;
-					String localId = key.getLocalId();
-					getPublicCode(key.getAccountId());
 
-					String martusVersionBulletionWasCreatedWith = martusVersionBulletionWasCreatedWith = getMartusBuildDateForBulletin(key);
+					String martusVersionBulletionWasCreatedWith = getMartusBuildDateForBulletin(key);
 					String bulletinType = getBulletinType(key);
-					
+					getPublicCode(key.getAccountId());
+					getBulletinHeaderInfo(key);
 					DatabaseKey burKey = MartusServerUtilities.getBurKey(key);
 					String wasBurCreatedByThisServer = wasOriginalServer(burKey);
 					String dateBulletinWasSavedOnServer = getOriginalUploadDate(burKey);
-					getBulletinHeaderInfo(key);
-					
-					String bulletinInfo =  getNormalizedString(localId) + DELIMITER +
+					getPacketInfo(key);
+					String bulletinInfo =  getNormalizedString(key.getLocalId()) + DELIMITER +
 					getNormalizedString(martusVersionBulletionWasCreatedWith) + DELIMITER + 
 					getNormalizedString(bulletinType) + DELIMITER +
 					getNormalizedString(Integer.toString(bulletinSizeInKBytes)) + DELIMITER + 
-					getNormalizedString(allPrivate) + DELIMITER + 
+					getNormalizedString(allPrivate) + DELIMITER +
+					getNormalizedString(bulletinSummary) + DELIMITER +
+					getNormalizedString(bulletinLanguage) + DELIMITER +
+					getNormalizedString(bulletinLocation) + DELIMITER +
+					getNormalizedString(bulletinKeywords) + DELIMITER +
+					getNormalizedString(bulletinDateCreated) + DELIMITER +
+					getNormalizedString(bulletinDateEvent) + DELIMITER +
 					getNormalizedString(Integer.toString(publicAttachmentCount)) + DELIMITER + 
 					getNormalizedString(Integer.toString(privateAttachmentCount)) + DELIMITER + 
 					getNormalizedString(wasBurCreatedByThisServer) + DELIMITER + 
@@ -394,6 +405,63 @@ public class CreateStatistics
 						e2.printStackTrace();
 					}
 				}
+			}
+			
+			private void getPacketInfo(DatabaseKey key)
+			{
+				bulletinSummary = ERROR_MSG;
+				bulletinLanguage = ERROR_MSG;
+				bulletinLocation = ERROR_MSG;
+				bulletinKeywords = ERROR_MSG;
+				bulletinDateCreated = ERROR_MSG;
+				bulletinDateEvent = ERROR_MSG;
+				try
+				{
+					BulletinHeaderPacket bhp = MartusServer.loadBulletinHeaderPacket(fileDatabase, key, security);
+					if(key.isDraft() || bhp.isAllPrivate())
+					{
+						bulletinSummary = "";
+						bulletinLanguage = "";
+						bulletinLocation = "";
+						bulletinKeywords = "";
+						bulletinDateCreated = "";
+						bulletinDateEvent = "";
+						return;
+					}
+					String fieldDataPacketId = bhp.getFieldDataPacketId();
+					DatabaseKey fieldKey = DatabaseKey.createSealedKey(UniversalId.createFromAccountAndLocalId(
+						bhp.getAccountId(), fieldDataPacketId));
+						
+					FieldSpec[] fieldSpec = BulletinField.getDefaultSearchFieldSpecs();
+					FieldDataPacket fdp = new FieldDataPacket(UniversalId.createFromAccountAndLocalId(
+						bhp.getAccountId(), fieldDataPacketId), fieldSpec);
+					FileInputStreamWithSeek in = new FileInputStreamWithSeek(fileDatabase.getFileForRecord(fieldKey));
+					fdp.loadFromXml(in, bhp.getFieldDataSignature(), security);
+					in.close();
+					bulletinSummary = fdp.get(BulletinConstants.TAGSUMMARY);
+					bulletinLanguage = fdp.get(BulletinConstants.TAGLANGUAGE);
+					bulletinLocation = fdp.get(BulletinConstants.TAGLOCATION);
+					bulletinKeywords = fdp.get(BulletinConstants.TAGKEYWORDS);
+					bulletinDateCreated = fdp.get(BulletinConstants.TAGENTRYDATE);
+					String eventDate = fdp.get(BulletinConstants.TAGEVENTDATE);
+					MartusFlexidate mfd = MartusFlexidate.createFromMartusDateString(eventDate);
+					String rawBeginDate = MartusFlexidate.toStoredDateFormat(mfd.getBeginDate());
+					if(mfd.hasDateRange())
+					{
+						String rawEndDate = MartusFlexidate.toStoredDateFormat(mfd.getEndDate());
+						bulletinDateEvent = rawBeginDate + " - " + rawEndDate;
+					}
+					else
+					{
+						bulletinDateEvent = rawBeginDate;
+					}
+				}
+				catch(Exception e)
+				{
+					errorOccured = true;
+					bulletinSummary = ERROR_MSG + " " + e.getMessage();
+				}
+				
 			}
 
 			private void getBulletinHeaderInfo(DatabaseKey key)
@@ -570,6 +638,12 @@ public class CreateStatistics
 			String allHQsProxyUpload;
 			String hQsAuthorizedToRead;
 			String hQsAuthorizedToUpload;
+			String bulletinSummary;
+			String bulletinLanguage;
+			String bulletinLocation;
+			String bulletinKeywords;
+			String bulletinDateCreated;
+			String bulletinDateEvent;
 			int publicAttachmentCount;
 			int privateAttachmentCount;
 			int bulletinSizeInKBytes;
@@ -698,6 +772,13 @@ public class CreateStatistics
 	final String BULLETIN_TYPE = "type";
 	final String BULLETIN_SIZE = "size (Kb)";
 	final String BULLETIN_ALL_PRIVATE = "all private";
+	final String BULLETIN_SUMMARY = "summary";
+	final String BULLETIN_LANGUAGE = "language";
+	final String BULLETIN_LOCATION = "location";
+	final String BULLETIN_KEYWORDS = "keywords";
+	final String BULLETIN_DATE_CREATED = "date created";
+	final String BULLETIN_DATE_EVENT = "event date";
+
 	final String BULLETIN_PUBLIC_ATTACHMENT_COUNT = "public attachments";
 	final String BULLETIN_PRIVATE_ATTACHMENT_COUNT = "private attachments";
 	final String BULLETIN_ORIGINALLY_UPLOADED_TO_THIS_SERVER = "original server";
@@ -725,6 +806,12 @@ public class CreateStatistics
 		getNormalizedString(BULLETIN_TYPE) + DELIMITER +
 		getNormalizedString(BULLETIN_SIZE) + DELIMITER +
 		getNormalizedString(BULLETIN_ALL_PRIVATE) + DELIMITER +
+		getNormalizedString(BULLETIN_SUMMARY) + DELIMITER +
+		getNormalizedString(BULLETIN_LANGUAGE) + DELIMITER +
+		getNormalizedString(BULLETIN_LOCATION) + DELIMITER +
+		getNormalizedString(BULLETIN_KEYWORDS) + DELIMITER +
+		getNormalizedString(BULLETIN_DATE_CREATED) + DELIMITER +
+		getNormalizedString(BULLETIN_DATE_EVENT) + DELIMITER +
 		getNormalizedString(BULLETIN_PUBLIC_ATTACHMENT_COUNT) + DELIMITER +
 		getNormalizedString(BULLETIN_PRIVATE_ATTACHMENT_COUNT) + DELIMITER +
 		getNormalizedString(BULLETIN_ORIGINALLY_UPLOADED_TO_THIS_SERVER) + DELIMITER +
@@ -735,5 +822,5 @@ public class CreateStatistics
 		getNormalizedString(BULLETIN_AUTHORIZED_TO_READ) + DELIMITER +
 		getNormalizedString(BULLETIN_AUTHORIZED_TO_UPLOAD) + DELIMITER +
 		getNormalizedString(ACCOUNT_PUBLIC_CODE);
-	
+
 }
