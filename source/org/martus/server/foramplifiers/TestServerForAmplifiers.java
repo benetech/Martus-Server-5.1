@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Vector;
 
+import org.martus.common.BulletinStore;
 import org.martus.common.ContactInfo;
 import org.martus.common.LoggerForTesting;
 import org.martus.common.MartusUtilities;
@@ -37,7 +38,6 @@ import org.martus.common.bulletin.AttachmentProxy;
 import org.martus.common.bulletin.Bulletin;
 import org.martus.common.bulletin.BulletinForTesting;
 import org.martus.common.bulletin.BulletinLoader;
-import org.martus.common.bulletin.BulletinSaver;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MockMartusSecurity;
 import org.martus.common.database.DatabaseKey;
@@ -99,7 +99,7 @@ public class TestServerForAmplifiers extends TestCaseEnhanced
 			b1.addPublicAttachment(new AttachmentProxy(attachment));
 			b1.addPrivateAttachment(new AttachmentProxy(attachment));
 			b1.setSealed();
-			BulletinSaver.saveToClientDatabase(b1, clientDatabase, true, clientSecurity);
+			BulletinStore.saveToClientDatabase(b1, clientDatabase, true, clientSecurity);
 			b1 = BulletinLoader.loadFromDatabase(clientDatabase, DatabaseKey.createSealedKey(b1.getUniversalId()), clientSecurity);
 			b1ZipString = BulletinForTesting.saveToZipString(clientDatabase, b1, clientSecurity);
 	
@@ -109,7 +109,7 @@ public class TestServerForAmplifiers extends TestCaseEnhanced
 			b2.set(Bulletin.TAGPUBLICINFO, "Details2");
 			b2.set(Bulletin.TAGPRIVATEINFO, "PrivateDetails2");
 			b2.setSealed();
-			BulletinSaver.saveToClientDatabase(b2, clientDatabase, true, clientSecurity);
+			BulletinStore.saveToClientDatabase(b2, clientDatabase, true, clientSecurity);
 			b2ZipString = BulletinForTesting.saveToZipString(clientDatabase, b2, clientSecurity);
 
 			b3 = new Bulletin(clientSecurity);
@@ -117,7 +117,7 @@ public class TestServerForAmplifiers extends TestCaseEnhanced
 			b3.set(Bulletin.TAGTITLE, "Title1");
 			b3.set(Bulletin.TAGPUBLICINFO, "Details1");
 			b3.setSealed();
-			BulletinSaver.saveToClientDatabase(b3, clientDatabase, true, clientSecurity);
+			BulletinStore.saveToClientDatabase(b3, clientDatabase, true, clientSecurity);
 			b3 = BulletinLoader.loadFromDatabase(clientDatabase, DatabaseKey.createSealedKey(b3.getUniversalId()), clientSecurity);
 			b3ZipString = BulletinForTesting.saveToZipString(clientDatabase, b3, clientSecurity);
 
@@ -126,7 +126,7 @@ public class TestServerForAmplifiers extends TestCaseEnhanced
 			b4.set(Bulletin.TAGTITLE, "Title4");
 			b4.set(Bulletin.TAGPUBLICINFO, "Details4");
 			b4.setDraft();
-			BulletinSaver.saveToClientDatabase(b4, clientDatabase, true, clientSecurity);
+			BulletinStore.saveToClientDatabase(b4, clientDatabase, true, clientSecurity);
 			b4 = BulletinLoader.loadFromDatabase(clientDatabase, DatabaseKey.createDraftKey(b4.getUniversalId()), clientSecurity);
 			b4ZipString = BulletinForTesting.saveToZipString(clientDatabase, b4, clientSecurity);
 		}

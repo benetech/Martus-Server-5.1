@@ -30,9 +30,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.Vector;
 
+import org.martus.common.BulletinStore;
 import org.martus.common.LoggerForTesting;
 import org.martus.common.bulletin.Bulletin;
-import org.martus.common.bulletin.BulletinSaver;
 import org.martus.common.bulletin.BulletinZipUtilities;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MockMartusSecurity;
@@ -156,7 +156,7 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 			b.setSealed();
 			bulletins.add(b);
 			DatabaseKey key = DatabaseKey.createSealedKey(b.getUniversalId());
-			BulletinSaver.saveToClientDatabase(b, fakeDatabase, false, clientSecurity);
+			BulletinStore.saveToClientDatabase(b, fakeDatabase, false, clientSecurity);
 
 			String bur = BulletinUploadRecord.createBulletinUploadRecord(b.getLocalId(), otherServerSecurity);
 			burs[i] = bur;

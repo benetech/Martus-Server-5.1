@@ -28,10 +28,9 @@ package org.martus.server.forclients;
 
 import java.util.Vector;
 
+import org.martus.common.BulletinStore;
 import org.martus.common.bulletin.Bulletin;
-import org.martus.common.bulletin.BulletinSaver;
 import org.martus.common.crypto.MockMartusSecurity;
-import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.MockServerDatabase;
 import org.martus.common.database.ReadableDatabase;
@@ -53,20 +52,20 @@ public class TestSummaryCollector extends TestCaseEnhanced
 		server = new MockMartusServer();
 		server.initializeBulletinStore(new MockServerDatabase());
 		authorSecurity = MockMartusSecurity.createClient();
-		Database db = server.getWriteableDatabase();
+		BulletinStore store = server.getStore();
 
 		original = new Bulletin(authorSecurity);
 		original.setSealed();
-		BulletinSaver.saveToClientDatabase(original, db, false, authorSecurity);
+		store.saveBulletinForTesting(original);
 		
 		firstClone = new Bulletin(authorSecurity);
-		firstClone.createDraftCopyOf(original, db);
+		firstClone.createDraftCopyOf(original, store.getDatabase());
 		firstClone.setSealed();
-		BulletinSaver.saveToClientDatabase(firstClone, db, false, authorSecurity);
+		store.saveBulletinForTesting(firstClone);
 
 		clone = new Bulletin(authorSecurity); 
-		clone.createDraftCopyOf(firstClone, db);
-		BulletinSaver.saveToClientDatabase(clone, db, false, authorSecurity);
+		clone.createDraftCopyOf(firstClone, store.getDatabase());
+		store.saveBulletinForTesting(clone);
 		
 	}
 	
