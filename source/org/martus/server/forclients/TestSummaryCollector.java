@@ -36,7 +36,9 @@ import org.martus.common.database.MockServerDatabase;
 import org.martus.common.database.ReadableDatabase;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.packet.BulletinHeaderPacket;
+import org.martus.common.packet.UniversalId;
 import org.martus.server.main.MartusServer;
+import org.martus.server.main.ServerBulletinStore;
 import org.martus.util.TestCaseEnhanced;
 
 
@@ -102,7 +104,7 @@ public class TestSummaryCollector extends TestCaseEnhanced
 	public void testSummarCollectorOmitsOldVersions() throws Exception
 	{
 		
-		Vector leafUids = server.getStore().getAllBulletinUids();
+		Vector leafUids = server.getStore().getAllBulletinLeafUids();
 		assertEquals(1, leafUids.size());
 		
 		String authorId = authorSecurity.getPublicKeyString();
@@ -110,6 +112,24 @@ public class TestSummaryCollector extends TestCaseEnhanced
 		Vector localIds = collector.collectSummaries();
 		assertEquals(1, localIds.size());
 		assertEquals(clone.getLocalId() + "=" + clone.getFieldDataPacket().getLocalId(), localIds.get(0));
+	}
+	
+	public void testIsLeaf() throws Exception
+	{
+		ServerBulletinStore store = server.getStore();
+		Vector leafUids = store.getAllBulletinLeafUids();
+		assertTrue("Must have at least one leaf", leafUids.size() > 0);
+		for(int i = 0; i < leafUids.size(); ++i)
+		{
+			assertTrue("Should be leaf:"+i, store.isLeaf((UniversalId)leafUids.get(i)));
+		}
+		
+		Vector nonLeafUids = store.getNonLeafUids();
+		assertTrue("Must have at least one non leaf", nonLeafUids.size() > 0);
+		for(int i = 0; i < nonLeafUids.size(); ++i)
+		{
+			assertFalse("Should not be a leaf:"+i, store.isLeaf((UniversalId)nonLeafUids.get(i)));
+		}
 	}
 	
 	public void testTags() throws Exception

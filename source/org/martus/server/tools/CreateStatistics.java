@@ -63,6 +63,7 @@ import org.martus.server.forclients.AuthorizeLogEntry;
 import org.martus.server.forclients.ServerForClients;
 import org.martus.server.main.BulletinUploadRecord;
 import org.martus.server.main.MartusServer;
+import org.martus.server.main.ServerBulletinStore;
 import org.martus.util.UnicodeReader;
 import org.martus.util.UnicodeWriter;
 import org.martus.util.Base64.InvalidBase64Exception;
@@ -148,6 +149,8 @@ public class CreateStatistics
 		serverName = serverNameToUse;
 		fileDatabase = new ServerFileDatabase(dataDirToUse, security);
 		fileDatabase.initialize();
+		store = new ServerBulletinStore();
+		store.setDatabase(fileDatabase);
 		clientsThatCanUpload = MartusUtilities.loadClientListAndExitOnError(new File(packetsDir.getParentFile(), ServerForClients.UPLOADSOKFILENAME));
 		bannedClients = MartusUtilities.loadClientListAndExitOnError(new File(adminStartupDir, ServerForClients.BANNEDCLIENTSFILENAME));
 		testClients = MartusUtilities.loadClientListAndExitOnError(new File(adminStartupDir, ServerForClients.TESTACCOUNTSFILENAME));
@@ -384,7 +387,6 @@ public class CreateStatistics
 				{
 					if(!BulletinHeaderPacket.isValidLocalId(key.getLocalId()))
 						return;
-
 					String martusVersionBulletionWasCreatedWith = getMartusBuildDateForBulletin(key);
 					String martusBuildDate = getBuildDate(martusVersionBulletionWasCreatedWith);
 					String martusBuildNumber = getBuildNumber(martusVersionBulletionWasCreatedWith);
@@ -392,6 +394,7 @@ public class CreateStatistics
 					String testBulletin = isTestBulletin(key.getAccountId());
 					String bulletinType = getBulletinType(key);
 					String isBulletinHidden = getIsBulletinHidden(key.getUniversalId());
+					String isFinalVersion = isFinalVersion(key.getUniversalId());
 					getPublicCode(key.getAccountId());
 					getBulletinHeaderInfo(key);
 					DatabaseKey burKey = BulletinUploadRecord.getBurKey(key);
@@ -416,7 +419,10 @@ public class CreateStatistics
 					
 					String bulletinInfo =  
 					getNormalizedStringAndCheckForErrors(serverName) + DELIMITER +
+					getNormalizedStringAndCheckForErrors(originalBulletinLocalId) + DELIMITER +
 					getNormalizedStringAndCheckForErrors(key.getLocalId()) + DELIMITER +
+					getNormalizedStringAndCheckForErrors(Integer.toString(bulletinVersionNumber)) + DELIMITER +
+					getNormalizedStringAndCheckForErrors(isFinalVersion) + DELIMITER +
 					getNormalizedStringAndCheckForErrors(martusBuildDate) + DELIMITER + 
 					getNormalizedStringAndCheckForErrors(martusBuildNumber) + DELIMITER + 
 					getNormalizedStringAndCheckForErrors(testBulletin) + DELIMITER +
@@ -557,13 +563,19 @@ public class CreateStatistics
 				allHQsProxyUpload = ERROR_MSG;
 				hQsAuthorizedToRead = ERROR_MSG;
 				hQsAuthorizedToUpload = ERROR_MSG;
+				originalBulletinLocalId = ERROR_MSG;
 				publicAttachmentCount = -1;
 				privateAttachmentCount = -1;
 				bulletinSizeInKBytes = -1;
+				bulletinVersionNumber = -1;
+				
+				
 
 				try
 				{
 					BulletinHeaderPacket bhp = BulletinStore.loadBulletinHeaderPacket(fileDatabase, key, security);
+					bulletinVersionNumber = bhp.getVersionNumber();
+					originalBulletinLocalId = bhp.getOriginalRevisionId();
 					Calendar cal = new GregorianCalendar();
 					cal.setTimeInMillis(bhp.getLastSavedTime());		
 					try
@@ -719,6 +731,7 @@ public class CreateStatistics
 				}
 				return martusBuildDateBulletionWasCreatedWith;
 			}
+			
 			private String wasOriginalServer(DatabaseKey burKey)
 			{
 				String wasBurCreatedByThisServer = ERROR_MSG;
@@ -747,6 +760,16 @@ public class CreateStatistics
 					wasBurCreatedByThisServer = ERROR_MSG + " " + e1;
 				}
 				return wasBurCreatedByThisServer;
+			}
+			
+			private String isFinalVersion(UniversalId uId)
+			{
+				String finalVersion = ERROR_MSG;
+				if(store.isLeaf(uId))
+					finalVersion = BULLETIN_FINAL_VERSION_TRUE;
+				else
+					finalVersion = BULLETIN_FINAL_VERSION_FALSE;
+				return finalVersion;
 			}
 			
 			private Date getOriginalUploadDate(DatabaseKey burKey) throws Exception
@@ -780,9 +803,11 @@ public class CreateStatistics
 			String bulletinCustomFieldTypes;
 			String bulletinDateCreated;
 			String bulletinDateEvent;
+			String originalBulletinLocalId;
 			int publicAttachmentCount;
 			int privateAttachmentCount;
 			int bulletinSizeInKBytes;
+			int bulletinVersionNumber;
 		}
 		
 		System.out.println("Creating Bulletin Statistics");
@@ -853,6 +878,7 @@ public class CreateStatistics
 	File destinationDir;
 	String publicCode;
 	boolean errorOccured;
+	ServerBulletinStore store;
 	FileDatabase fileDatabase;
 	Vector clientsThatCanUpload;
 	Vector bannedClients;
@@ -916,7 +942,10 @@ public class CreateStatistics
 	final String BULLETIN_STATS_FILE_NAME = "bulletin";
 	
 	final String BULLETIN_SERVER_NAME = "server";
-	final String BULLETIN_HEADER_PACKET = "bulletin id";
+	final String BULLETIN_ORIGINAL_LOCAL_ID = "bulletin Original id";
+	final String BULLETIN_CURRENT_LOCAL_ID = "bulletin id";
+	final String BULLETIN_VERSION_NUMBER = "version number";
+	final String BULLETIN_FINAL_VERSION = "final version";
 	final String BULLETIN_MARTUS_BUILD_DATE = "Build Date";
 	final String BULLETIN_MARTUS_BUILD_NUMBER = "Build Number";
 	final String BULLETIN_TESTER = "test bulletin";
@@ -959,11 +988,16 @@ public class CreateStatistics
 	final String BULLETIN_HIDDEN_TRUE = "1"; 
 	final String BULLETIN_HIDDEN_FALSE = "0"; 
 	final String BULLETIN_TEST_TRUE = "1"; 
-	final String BULLETIN_TEST_FALSE = "0"; 
+	final String BULLETIN_TEST_FALSE = "0";
+	final String BULLETIN_FINAL_VERSION_TRUE = "1";
+	final String BULLETIN_FINAL_VERSION_FALSE = "0";
 	
 	final String BULLETIN_STATISTICS_HEADER = 
 		getNormalizedStringAndCheckForErrors(BULLETIN_SERVER_NAME) + DELIMITER +
-		getNormalizedStringAndCheckForErrors(BULLETIN_HEADER_PACKET) + DELIMITER +
+		getNormalizedStringAndCheckForErrors(BULLETIN_ORIGINAL_LOCAL_ID) + DELIMITER +
+		getNormalizedStringAndCheckForErrors(BULLETIN_CURRENT_LOCAL_ID) + DELIMITER +
+		getNormalizedStringAndCheckForErrors(BULLETIN_VERSION_NUMBER) + DELIMITER +
+		getNormalizedStringAndCheckForErrors(BULLETIN_FINAL_VERSION) + DELIMITER +
 		getNormalizedStringAndCheckForErrors(BULLETIN_MARTUS_BUILD_DATE) + DELIMITER +
 		getNormalizedStringAndCheckForErrors(BULLETIN_MARTUS_BUILD_NUMBER) + DELIMITER +
 		getNormalizedStringAndCheckForErrors(BULLETIN_TESTER) + DELIMITER +
