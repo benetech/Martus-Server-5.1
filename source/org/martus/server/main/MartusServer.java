@@ -1057,7 +1057,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		try
 		{
 			UnicodeReader reader = new UnicodeReader(getComplianceFile());
-			setComplianceStatement(reader.readAll(100));
+			setComplianceStatement(reader.readAll());
 			reader.close();
 		}
 		catch (IOException e)
