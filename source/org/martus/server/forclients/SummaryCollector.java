@@ -103,6 +103,16 @@ public abstract class SummaryCollector implements Database.PacketVisitor
 		{
 			summary += MartusConstants.regexEqualsDelimeter + bhp.getLastSavedTime();
 		}
+		if(tags.contains(NetworkInterfaceConstants.TAG_BULLETIN_VERSION_NUMBER))
+		{
+			int versionNumber = bhp.getHistory().size() + 1;
+			summary += MartusConstants.regexEqualsDelimeter + versionNumber;
+		}
+		if(tags.contains(NetworkInterfaceConstants.TAG_BULLETIN_ORIGINAL_ANCESTOR))
+		{
+			String originalAncestorLocalId = (String)bhp.getHistory().get(0);
+			summary += MartusConstants.regexEqualsDelimeter + originalAncestorLocalId;
+		}
 		return summary;
 	}
 

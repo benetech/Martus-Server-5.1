@@ -119,7 +119,16 @@ public class TestSummaryCollector extends TestCaseEnhanced
 		
 		tags.add(NetworkInterfaceConstants.TAG_BULLETIN_SIZE);
 		String sizeAndDate = SummaryCollector.extractSummary(bhp, db, tags);
-		assertEquals(minimalSummary + "=0=" + bhp.getLastSavedTime(), sizeAndDate); 
+		String typicalSummary = minimalSummary + "=0=" + bhp.getLastSavedTime();
+		assertEquals(typicalSummary, sizeAndDate); 
+		
+		tags.add(NetworkInterfaceConstants.TAG_BULLETIN_VERSION_NUMBER);
+		String withVersion = SummaryCollector.extractSummary(bhp, db, tags);
+		assertEquals(typicalSummary + "=2", withVersion);
+
+		tags.add(NetworkInterfaceConstants.TAG_BULLETIN_ORIGINAL_ANCESTOR);
+		String withAncestor = SummaryCollector.extractSummary(bhp, db, tags);
+		assertEquals(typicalSummary + "=2=" + original.getLocalId(), withAncestor);
 	}
 
 	MockMartusServer server;
