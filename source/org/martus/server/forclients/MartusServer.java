@@ -111,7 +111,6 @@ public class MartusServer implements NetworkInterfaceConstants
 			server.loadAccount(passphrase);
 			server.setDataDirectory(getDefaultDataDirectory());
 			server.verifyAndLoadConfigurationFiles();
-			server.deleteStartupFiles();
 			server.displayStatistics();
 
 			System.out.println("Setting up sockets (this may take up to a minute or longer)...");
@@ -119,6 +118,7 @@ public class MartusServer implements NetworkInterfaceConstants
 			server.initializeServerForMirroring();
 			server.initializeServerForAmplifiers();
 
+			server.deleteStartupFiles();
 			server.startBackgroundTimers();
 			
 			MartusServer.writeSyncFile(server.getRunningFile());
