@@ -203,6 +203,70 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		super.tearDown();
 	}
 	
+	public void testHQProxyUploadBulletin() throws Exception
+	{
+		TRACE_BEGIN("testUploadNotMyBulletin");
+		testServer.serverForClients.clearCanUploadList();
+		testServer.allowUploads(clientSecurity.getPublicKeyString());
+		testServer.allowUploads(hqSecurity.getPublicKeyString());
+
+		
+		Bulletin b = new Bulletin(clientSecurity);
+		b.set(Bulletin.TAGTITLE, "Title1");
+		b.set(Bulletin.TAGPUBLICINFO, "Details1");
+		b.set(Bulletin.TAGPRIVATEINFO, "PrivateDetails1");
+		Vector hqKey = new Vector();
+		hqKey.add(hqSecurity.getPublicKeyString());
+		b.setAuthorizedToReadKeys(hqKey);
+		b.setSealed();
+		BulletinSaver.saveToClientDatabase(b, clientDatabase, true, clientSecurity);
+		b = BulletinLoader.loadFromDatabase(clientDatabase, new DatabaseKey(b.getUniversalId()), clientSecurity);
+		
+		String draft1ZipString = BulletinForTesting.saveToZipString(clientDatabase, b, clientSecurity);
+		byte[] draft1ZipBytes = Base64.decode(draft1ZipString);
+
+		assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(testServerInterface, 
+				hqSecurity.getPublicKeyString(), b.getLocalId(), draft1ZipBytes.length, 0, 
+				draft1ZipBytes.length, draft1ZipString, hqSecurity));
+
+		assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(testServerInterface, 
+			clientSecurity.getPublicKeyString(), b.getLocalId(), draft1ZipBytes.length, 0, 
+			draft1ZipBytes.length, draft1ZipString, clientSecurity));
+		
+		
+		TRACE_END();
+	}
+	
+	public void testUploadNotMyBulletin() throws Exception
+	{
+		TRACE_BEGIN("testUploadNotMyBulletin");
+		testServer.serverForClients.clearCanUploadList();
+		testServer.allowUploads(clientSecurity.getPublicKeyString());
+		testServer.allowUploads(otherServerSecurity.getPublicKeyString());
+
+		Bulletin b = new Bulletin(clientSecurity);
+		b.set(Bulletin.TAGTITLE, "Title1");
+		b.set(Bulletin.TAGPUBLICINFO, "Details1");
+		b.set(Bulletin.TAGPRIVATEINFO, "PrivateDetails1");
+		b.setSealed();
+		BulletinSaver.saveToClientDatabase(b, clientDatabase, true, clientSecurity);
+		b = BulletinLoader.loadFromDatabase(clientDatabase, new DatabaseKey(b.getUniversalId()), clientSecurity);
+		
+		String draft1ZipString = BulletinForTesting.saveToZipString(clientDatabase, b, clientSecurity);
+		byte[] draft1ZipBytes = Base64.decode(draft1ZipString);
+
+		assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(testServerInterface, 
+			clientSecurity.getPublicKeyString(), b.getLocalId(), draft1ZipBytes.length, 0, 
+			draft1ZipBytes.length, draft1ZipString, clientSecurity));
+		
+		assertEquals(NetworkInterfaceConstants.NOTYOURBULLETIN, uploadBulletinChunk(testServerInterface, 
+				otherServerSecurity.getPublicKeyString(), b.getLocalId(), draft1ZipBytes.length, 0, 
+				draft1ZipBytes.length, draft1ZipString, otherServerSecurity));
+		
+		TRACE_END();
+	}
+	
+	
 	public void testGetNotMyBulletin() throws Exception
 	{
 		TRACE_BEGIN("testGetNotMyBulletin");
@@ -1006,6 +1070,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 
 		TRACE_END();
 	}
+	
 
 
 	public void testUploadDuplicates() throws Exception
