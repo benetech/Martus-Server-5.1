@@ -80,6 +80,7 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants, LoggerInt
 	{
 		Vector startupFiles = new Vector();
 		startupFiles.add(getClientsNotToAmplifiyFile());
+		startupFiles.add(getAmplifyMirroredBulletinsForTestingFile());
 		return startupFiles;
 	}
 
@@ -165,11 +166,21 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants, LoggerInt
 		logNotice("Authorized " + authorizedAmps.size() + " amplifiers to call us");
 		loadClientsNotAmplified();
 		logNotice("Not authorized to amplify " + clientsNotAmplified.size() + " clients.");
+		if(getAmplifyMirroredBulletinsForTestingFile().exists())
+		{
+			logWarning("AMPLIFYING MIRRORED BULLETINS FOR TEST.");
+			amplifyMirroredBulletins = true;
+		}
 	}
 	
 	private File getClientsNotToAmplifiyFile()
 	{
 		return new File(coreServer.getStartupConfigDirectory(), CLIENTS_NOT_TO_AMPLIFY_FILENAME);
+	}
+	
+	private File getAmplifyMirroredBulletinsForTestingFile()
+	{
+		return new File(coreServer.getStartupConfigDirectory(), "amplify_mirrored_bulletins_for_testing.txt");
 	}
 	
 	public File getAuthorizedAmplifiersDirectory()
@@ -505,4 +516,5 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants, LoggerInt
 	ServerSideAmplifierHandler amplifierHandler;
 	Vector authorizedAmps;
 	Vector clientsNotAmplified;
+	public boolean amplifyMirroredBulletins;
 }

@@ -198,9 +198,9 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface, Lo
 					logError("Missing BUR packet for bulletin:" +key.getUniversalId());
 					return;
 				}
-				
-				if(!BulletinUploadRecord.wasBurCreatedByThisCrypto(burInDatabase, security))
-					return;				
+				if(!server.amplifyMirroredBulletins)
+					if(!BulletinUploadRecord.wasBurCreatedByThisCrypto(burInDatabase, security))
+						return;				
 							
 				BulletinHeaderPacket bhp = BulletinStore.loadBulletinHeaderPacket(db, key, security);
 				if(! bhp.isAllPrivate())
