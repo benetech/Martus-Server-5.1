@@ -336,8 +336,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		testServer.allowUploads(clientSecurity.getPublicKeyString());
 		testServer.uploadBulletin(clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipString);
 		
-		MartusSecurity	newClientSecurity = new MartusSecurity();
-		newClientSecurity.createKeyPair(512);
+		MartusCrypto newClientSecurity = MockMartusSecurity.createOtherClient();
 
 		Vector result = getBulletinChunk(newClientSecurity, testServerInterface, b1.getAccount(), b1.getLocalId(), 0, NetworkInterfaceConstants.MAX_CHUNK_SIZE);
 		assertEquals("Succeeded?  You are not the owner or the HQ", NetworkInterfaceConstants.NOTYOURBULLETIN, result.get(0));
@@ -1383,7 +1382,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		MartusCrypto fieldSecurity1 = clientSecurity;
 		testServer.allowUploads(fieldSecurity1.getPublicKeyString());
 
-		MartusSecurity nonFieldSecurity = MockMartusSecurity.createOtherClient();
+		MartusCrypto nonFieldSecurity = MockMartusSecurity.createOtherClient();
 		testServer.allowUploads(nonFieldSecurity.getPublicKeyString());
 
 		Vector list1 = testServer.listFieldOfficeSealedBulletinIds(hqSecurity.getPublicKeyString(), fieldSecurity1.getPublicKeyString(), new Vector());
@@ -1436,7 +1435,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		testServer.security = serverSecurity;
 
 		Database nonFieldDatabase = new MockClientDatabase();
-		MartusSecurity nonFieldSecurity = MockMartusSecurity.createClient();
+		MartusCrypto nonFieldSecurity = MockMartusSecurity.createClient();
 		testServer.allowUploads(nonFieldSecurity.getPublicKeyString());
 
 		Bulletin b = new Bulletin(nonFieldSecurity);

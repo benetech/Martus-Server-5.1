@@ -30,7 +30,6 @@ import java.util.Vector;
 
 import org.martus.common.AmplifierNetworkInterface;
 import org.martus.common.crypto.MartusCrypto;
-import org.martus.common.crypto.MartusSecurity;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.network.NetworkInterfaceConstants;
@@ -204,7 +203,7 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 			catch (Exception e)
 			{
 				log("Error checking bulletin status");
-				String accountInfo = MartusSecurity.formatAccountIdForLog(key.getAccountId());
+				String accountInfo = MartusCrypto.formatAccountIdForLog(key.getAccountId());
 				log(accountInfo);
 				log(key.getLocalId());
 				e.printStackTrace();

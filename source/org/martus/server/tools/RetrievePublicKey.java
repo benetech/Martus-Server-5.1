@@ -105,7 +105,7 @@ public class RetrievePublicKey
 				System.out.println("Error Retrieved Public Key doesn't match public code!");
 				System.exit(3);
 			}
-			MartusSecurity security = new MartusSecurity();
+			MartusCrypto security = new MartusSecurity();
 			byte[] publicKeyBytes = Base64.decode(publicKeyString);
 			ByteArrayInputStream in = new ByteArrayInputStream(publicKeyBytes);
 			if(!security.isValidSignatureOfStream(publicKeyString, in, Base64.decode(sig)))
