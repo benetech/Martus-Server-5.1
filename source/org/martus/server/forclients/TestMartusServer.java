@@ -47,6 +47,7 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
+import org.martus.common.ConfigInfo;
 import org.martus.common.LoggerForTesting;
 import org.martus.common.MartusUtilities;
 import org.martus.common.bulletin.AttachmentProxy;
@@ -435,9 +436,9 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		TRACE_END();
 	}
 	
-	public void testPutContactInfo() throws Exception
+	public void testPutContactInfoNotEncodedBackwardCompatible() throws Exception
 	{
-		TRACE_BEGIN("testPutContactInfo");
+		TRACE_BEGIN("testPutContactInfoNotEncodedBackwardCompatible");
 
 		Vector contactInfo = new Vector();
 		String clientId = clientSecurity.getPublicKeyString();
@@ -494,6 +495,79 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		assertEquals("data not correct?", "Data", inputData);
 		assertEquals("data2 not correct?", "Data2", inputData2);
 		assertEquals("signature doesn't match?", signature, inputSig);		
+
+		contactFile.delete();
+		contactFile.getParentFile().delete();
+
+		testServer.serverForClients.clientsBanned.add(clientId);
+		String banned = testServer.putContactInfo(clientId, contactInfo);
+		assertEquals("Client is banned should not accept contact info", REJECTED, banned);
+		
+		TRACE_END();
+	}
+
+	public void testPutContactInfoEncoded() throws Exception
+	{
+		TRACE_BEGIN("testPutContactInfoEncoded");
+
+		Vector contactInfo = new Vector();
+		String clientId = clientSecurity.getPublicKeyString();
+		String clientNotAuthorized = testServer.putContactInfo(clientId, contactInfo);
+		assertEquals("Client has not been authorized should not accept contact info", REJECTED, clientNotAuthorized);
+
+		testServer.serverForClients.allowUploads(clientId);
+		String resultIncomplete = testServer.putContactInfo(clientId, contactInfo);
+		assertEquals("Empty ok?", INVALID_DATA, resultIncomplete);
+
+		contactInfo.add(ConfigInfo.BASE_64_ENCODED);
+		contactInfo.add("bogus data");
+		resultIncomplete = testServer.putContactInfo(clientId, contactInfo);
+		assertEquals("Incorrect not Incomplete?", INVALID_DATA, resultIncomplete);
+		
+		contactInfo.clear();
+		contactInfo.add(ConfigInfo.BASE_64_ENCODED);
+		contactInfo.add(clientId);
+		contactInfo.add(new Integer(1));
+		contactInfo.add("Data");
+		contactInfo.add("invalid Signature");
+		String invalidSig = testServer.putContactInfo(clientId, contactInfo);
+		assertEquals("Invalid Signature", SIG_ERROR, invalidSig);		
+
+		ConfigInfo configInfo = new ConfigInfo();
+		String author = "Author";
+		configInfo.setAuthor(author);
+		String phoneNumber = "Phone number";
+		configInfo.setPhone(phoneNumber);
+		contactInfo = configInfo.getEncodedContactInfo(clientSecurity);
+		
+		testServer.allowUploads("differentAccountID");
+		String incorrectAccoutResult = testServer.putContactInfo("differentAccountID", contactInfo);
+		assertEquals("Incorrect Accout ", INVALID_DATA, incorrectAccoutResult);		
+
+		File contactFile = testServer.getContactInfoFileForAccount(clientId);
+		assertFalse("Contact File already exists?", contactFile.exists());		
+		String correctResult = testServer.putContactInfo(clientId, contactInfo);
+		assertEquals("Encoded Config Info Correct Signature", OK, correctResult);		
+
+		assertTrue("File Doesn't exist?", contactFile.exists());
+		assertTrue("Size too small", contactFile.length() > 200);
+
+		FileInputStream contactFileInputStream = new FileInputStream(contactFile);
+		DataInputStream in = new DataInputStream(contactFileInputStream);
+
+		String inputPublicKey = in.readUTF();
+		int inputDataCount = in.readInt();
+		String authorInputData = in.readUTF();
+		in.readUTF();
+		in.readUTF();
+		in.readUTF();
+		String phoneInputData = in.readUTF();
+		in.close();
+
+		assertEquals("Public key doesn't match", clientId, inputPublicKey);
+		assertEquals("data size not six?", 6, inputDataCount);
+		assertEquals("Author not correct?", author, authorInputData);
+		assertEquals("Phone Number not correct?", phoneNumber, phoneInputData);
 
 		contactFile.delete();
 		contactFile.getParentFile().delete();

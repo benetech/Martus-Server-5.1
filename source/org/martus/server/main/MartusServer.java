@@ -45,6 +45,7 @@ import java.util.Vector;
 
 import org.martus.amplifier.ServerCallbackInterface;
 import org.martus.amplifier.main.MartusAmplifier;
+import org.martus.common.ConfigInfo;
 import org.martus.common.LoggerInterface;
 import org.martus.common.LoggerToConsole;
 import org.martus.common.MartusUtilities;
@@ -866,6 +867,15 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			return result;
 		if(contactInfo.size() <= 3)
 			return result;
+		try
+		{
+			contactInfo = ConfigInfo.decodeContactInfoVectorIfNecessary(contactInfo);
+		}
+		catch (InvalidBase64Exception e1)
+		{
+			return result;
+		}
+		
 		String publicKey = (String)contactInfo.get(0);
 		if(!publicKey.equals(accountId))
 			return result;
