@@ -32,11 +32,13 @@ import java.util.Vector;
 import org.martus.common.ContactInfo;
 import org.martus.common.LoggerInterface;
 import org.martus.common.MartusUtilities;
+import org.martus.common.MartusXml;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.FileDatabase;
 import org.martus.common.database.ServerFileDatabase;
+import org.martus.common.database.FileDatabase.TooManyAccountsException;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.server.foramplifiers.ServerForAmplifiers;
@@ -365,6 +367,10 @@ public class CreateStatistics
 						errorOccured = true;
 						publicCode = ERROR_MSG + " " + e;
 					}
+					
+					String martusVersionBulletionWasCreatedWith = martusVersionBulletionWasCreatedWith = getMartusBuildDateForBulletin(key);
+					if(martusVersionBulletionWasCreatedWith.startsWith(ERROR_MSG))
+						errorOccured = true;
 
 					String bulletinType = ERROR_MSG + " unknown type";
 					if(key.isSealed())
@@ -400,6 +406,7 @@ public class CreateStatistics
 					
 					
 					String bulletinInfo =  getNormalizedString(localId) + DELIMITER +
+					getNormalizedString(martusVersionBulletionWasCreatedWith) + DELIMITER + 
 					getNormalizedString(bulletinType) + DELIMITER + 
 					getNormalizedString(allPrivate) + DELIMITER + 
 					getNormalizedString(wasBurCreatedByThisServer) + DELIMITER + 
@@ -422,6 +429,29 @@ public class CreateStatistics
 						e2.printStackTrace();
 					}
 				}
+			}
+
+			private String getMartusBuildDateForBulletin(DatabaseKey key) throws IOException, TooManyAccountsException
+			{
+				String martusBuildDateBulletionWasCreatedWith;
+				try
+				{
+					File bhpFile = fileDatabase.getFileForRecord(key);
+					UnicodeReader reader = new UnicodeReader(bhpFile);
+					String headerComment = reader.readLine();
+					if(headerComment.startsWith(MartusXml.packetStartCommentStart))
+					{
+						String[] commentFields = headerComment.split(";");
+						martusBuildDateBulletionWasCreatedWith =  commentFields[1];
+					}
+					else
+						martusBuildDateBulletionWasCreatedWith = ERROR_MSG + " bhp didnot start with " + MartusXml.packetStartCommentStart;
+				}
+				catch(Exception e)
+				{
+					martusBuildDateBulletionWasCreatedWith = ERROR_MSG + " " + e.getMessage();
+				}
+				return martusBuildDateBulletionWasCreatedWith;
 			}
 
 			UnicodeWriter writer;
@@ -577,6 +607,7 @@ public class CreateStatistics
 	final String BULLETIN_STATS_FILE_NAME = "bulletin";
 	
 	final String BULLETIN_HEADER_PACKET = "bulletin id";
+	final String BULLETIN_MARTUS_VERSION = "martus build date";
 	final String BULLETIN_TYPE = "bulletin type";
 	final String BULLETIN_ALL_PRIVATE = "all private";
 	final String BULLETIN_PUBLIC_ATTACHMENT_COUNT = "public attachments";
@@ -593,6 +624,7 @@ public class CreateStatistics
 	
 	final String BULLETIN_STATISTICS_HEADER = 
 		getNormalizedString(BULLETIN_HEADER_PACKET) + DELIMITER +
+		getNormalizedString(BULLETIN_MARTUS_VERSION) + DELIMITER +
 		getNormalizedString(BULLETIN_TYPE) + DELIMITER +
 		getNormalizedString(BULLETIN_ALL_PRIVATE) + DELIMITER +
 //		getNormalizedString(BULLETIN_PUBLIC_ATTACHMENT_COUNT) + DELIMITER +
