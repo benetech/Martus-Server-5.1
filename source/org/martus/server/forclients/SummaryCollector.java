@@ -110,11 +110,14 @@ public abstract class SummaryCollector implements Database.PacketVisitor
 			}
 			else if(tag.equals(NetworkInterfaceConstants.TAG_BULLETIN_HISTORY))
 			{
-				StringBuffer localIds = new StringBuffer();
 				BulletinHistory history = bhp.getHistory();
-				for(int i = 0; i < history.size(); ++i)
-					localIds.append(history.get(i) + " ");
-				summary += BulletinSummary.fieldDelimeter + new String(localIds);
+				if(history.size() > 0)
+				{
+					StringBuffer localIds = new StringBuffer();
+					for(int i = 0; i < history.size(); ++i)
+						localIds.append(history.get(i) + " ");
+					summary += BulletinSummary.fieldDelimeter + new String(localIds);
+				}
 			}
 			else
 				System.out.println("WARNING: requested unknown summary tag: " + tag);
