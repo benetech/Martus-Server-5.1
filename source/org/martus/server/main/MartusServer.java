@@ -973,6 +973,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 
 	public Vector getServerCompliance()
 	{
+		
 		log("getServerCompliance");
 		Vector result = new Vector();
 		result.add(OK);

@@ -25,8 +25,6 @@ Boston, MA 02111-1307, USA.
 */
 package org.martus.server.forclients;
 
-import java.util.GregorianCalendar;
-
 import org.martus.common.test.TestCaseEnhanced;
 
 
@@ -39,29 +37,49 @@ public class TestAuthorizeLogEntry extends TestCaseEnhanced
 	
 	public void testBasics()
 	{
-		String date = "01-02-2004";
+		String date = "2004-02-15";
 		String code = "1234.1234.1234.1234";
 		String group = "My group";
+		String ip = "1.2.3.4";
 		
-		String newClientLineEntry = date + AuthorizeLogEntry.FIELD_DELIMITER + code + AuthorizeLogEntry.FIELD_DELIMITER + group ;
+		String newClientLineEntry = date + AuthorizeLogEntry.FIELD_DELIMITER + code + AuthorizeLogEntry.FIELD_DELIMITER + ip + AuthorizeLogEntry.FIELD_DELIMITER + group ;
 		AuthorizeLogEntry entry = new AuthorizeLogEntry(newClientLineEntry);
 		assertEquals("date not found?", date, entry.getDate());
 		assertEquals("code not found?", code, entry.getPublicCode());
+		assertEquals("ip not found?", ip, entry.getIp());
 		assertEquals("group not found?", group, entry.getGroupName());
 		
 		assertEquals("to String didn't return same value?", newClientLineEntry, entry.toString());
 
 		AuthorizeLogEntry entry2 = new AuthorizeLogEntry(code, group);
+		
+		date = AuthorizeLogEntry.getISODate();
+		assertEquals("date2 not found?", date, entry2.getDate());
+		assertEquals("code2 not found?", code, entry2.getPublicCode());
+		assertEquals("ip can not be found since we have no xmlrpc thread running", null, entry2.getIp());
+		assertEquals("group2 not found?", group, entry2.getGroupName());
+	}
+	
+	public void testStatics()
+	{
+		String date = "2004-02-05";
+		String code = "1234.1234.1234.1234";
+		String ip = "1.2.3.4";
+		String group = "Richards group";
+		String lineEntry = date + AuthorizeLogEntry.FIELD_DELIMITER + code + AuthorizeLogEntry.FIELD_DELIMITER + ip + AuthorizeLogEntry.FIELD_DELIMITER + group ;
 
-		GregorianCalendar today = new GregorianCalendar();
-		String year = new Integer(today.get(GregorianCalendar.YEAR)).toString();
-		String month = new Integer(today.get(GregorianCalendar.MONTH)).toString();
-		String day = new Integer(today.get(GregorianCalendar.DAY_OF_MONTH)).toString();
-		
-		date = year + "-" + month + "-" + day;
-		assertEquals("date not found?", date, entry2.getDate());
-		assertEquals("code not found?", code, entry2.getPublicCode());
-		assertEquals("group not found?", group, entry2.getGroupName());
-		
+		assertEquals("Date not extracted?", date, AuthorizeLogEntry.getDateFromLineEntry(lineEntry));
+		assertEquals("code not extracted?", code, AuthorizeLogEntry.getPublicCodeFromLineEntry(lineEntry));
+		assertEquals("ip not extracted?", ip, AuthorizeLogEntry.getIpFromLineEntry(lineEntry));
+		assertEquals("group not extracted?", group, AuthorizeLogEntry.getGroupNameFromLineEntry(lineEntry));
+	}
+	
+	public void testExtractIpAddressOnly() throws Exception
+	{
+		String ip = "1.2.3.4";
+		String threadId = "2345";
+		String ipThread = ip + ":" + threadId;
+		assertEquals("Should just return ip address", ip, AuthorizeLogEntry.extractIpAddressOnly(ipThread));
+		assertNull("Should return null", AuthorizeLogEntry.extractIpAddressOnly(null));
 	}
 }

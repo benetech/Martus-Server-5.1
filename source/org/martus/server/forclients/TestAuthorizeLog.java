@@ -31,7 +31,10 @@ import java.util.Vector;
 import org.martus.common.LoggerForTesting;
 import org.martus.common.crypto.MartusSecurity;
 import org.martus.common.test.TestCaseEnhanced;
+import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.util.DirectoryUtils;
+import org.martus.util.UnicodeReader;
+import org.martus.util.UnicodeWriter;
 
 
 public class TestAuthorizeLog extends TestCaseEnhanced
@@ -43,8 +46,11 @@ public class TestAuthorizeLog extends TestCaseEnhanced
 	
 	public void setUp() throws Exception
 	{
-		MartusSecurity security = new MartusSecurity();
-		security.createKeyPair(512);
+		if(security == null)
+		{
+			security = new MartusSecurity();
+			security.createKeyPair(512);
+		}
 		tempDir = createTempDirectory();
 		File authorizeLogFile = new File(tempDir, AuthorizeLog.AUTHORIZE_LOG_FILENAME);
 		authorizeLogFile.deleteOnExit();
@@ -59,15 +65,16 @@ public class TestAuthorizeLog extends TestCaseEnhanced
 	public void testAuthorizeLogLoadSaveFile() throws Exception
 	{
 		authorized.loadFile();
-		String lineToAdd = "date	publicCode	group";
+		String lineToAdd = "date	publicCode	ip	group";
 		authorized.appendToFile(new AuthorizeLogEntry(lineToAdd));
 		authorized.loadFile();
 	}
 	
 	public void testGetAuthorizedClientStrings() throws Exception
 	{
-		String newClient = "date2	newClientPublicCode	group2";
+		String newClient = "date2	newClientPublicCode	ip2	group2";
 		authorized.appendToFile(new AuthorizeLogEntry(newClient));
+		
 		Vector currentClients = authorized.getAuthorizedClientStrings();
 		assertContains("new client not added?", newClient, currentClients);
 		authorized.loadFile();
@@ -75,6 +82,51 @@ public class TestAuthorizeLog extends TestCaseEnhanced
 		assertContains("new client not added after load?", newClient, currentClients2);
 	}
 	
+	public void testLowLevelAuthorizeLogToFile() throws Exception
+	{
+		File tempFile1 = createTempFileFromName("$$$MartusTestFileAuthorizeLogLowLevel");
+		UnicodeWriter writer = new UnicodeWriter(tempFile1);
+
+		String date = "2004-01-01";
+		String date2 = "2004-01-02";
+		String code = "1234.1234.1234.1234";
+		String code2 = "1234.4567.1234.1234";
+		String group = "My group";
+		String group2 = "My group2";
+		String ip = "1.2.3.4";
+		String ip2 = "2.2.2.2";
+		String client1 = date + AuthorizeLogEntry.FIELD_DELIMITER + code + AuthorizeLogEntry.FIELD_DELIMITER + ip + AuthorizeLogEntry.FIELD_DELIMITER + group ;
+		String client2 = date2 + AuthorizeLogEntry.FIELD_DELIMITER + code2 + AuthorizeLogEntry.FIELD_DELIMITER + ip2 + AuthorizeLogEntry.FIELD_DELIMITER + group2 ;
+		
+		writer.writeln(client1);
+		writer.close();
+		MartusServerUtilities.createSignatureFileFromFileOnServer(tempFile1, security);
+		
+		AuthorizeLog log = new AuthorizeLog(security, new LoggerForTesting(), tempFile1);	
+		log.loadFile();
+		Vector clientStrings = log.getAuthorizedClientStrings();
+		assertEquals("Size incorrect", 1, clientStrings.size());
+		assertEquals("Client 1 not found", client1, clientStrings.get(0));
+		
+		AuthorizeLogEntry newClient = new AuthorizeLogEntry(client2);
+		log.appendToFile(newClient);
+		clientStrings = log.getAuthorizedClientStrings();
+		assertEquals("new Size incorrect", 2, clientStrings.size());
+		assertContains("Client 2 not found", client2, clientStrings);
+		
+		UnicodeReader reader = new UnicodeReader(tempFile1);
+		String line1 = reader.readLine();
+		assertEquals("Line 1 should match", client1, line1);
+		String line2 = reader.readLine();
+		assertEquals("Line 2 should match", client2, line2);
+		assertNull("There shouldn't be a line 3", reader.readLine());
+		reader.close();
+		
+		tempFile1.delete();
+		
+	}
+	
 	AuthorizeLog authorized;
 	File tempDir;
+	static MartusSecurity security;
 }
