@@ -40,6 +40,7 @@ import org.martus.common.database.Database.RecordHiddenException;
 import org.martus.common.database.FileDatabase.TooManyAccountsException;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.utilities.MartusServerUtilities;
+import org.martus.server.main.BulletinUploadRecord;
 
 public class CreateMissingBURs
 {
@@ -65,8 +66,8 @@ public class CreateMissingBURs
 		IOException, RecordHiddenException, TooManyAccountsException
 	{
 		String timeStamp = db.getTimeStamp(key);
-		String bur = MartusServerUtilities.createBulletinUploadRecordWithSpecificTimeStamp(key.getLocalId(), timeStamp, security);
-		DatabaseKey burKey = MartusServerUtilities.getBurKey(key);
+		String bur = BulletinUploadRecord.createBulletinUploadRecordWithSpecificTimeStamp(key.getLocalId(), timeStamp, security);
+		DatabaseKey burKey = BulletinUploadRecord.getBurKey(key);
 		if(db.doesRecordExist(burKey))
 		{
 			if(ignoreExisting)
@@ -110,7 +111,7 @@ public class CreateMissingBURs
 		for (Iterator iter = keys.iterator(); iter.hasNext();)
 		{
 			DatabaseKey key = (DatabaseKey) iter.next();
-			if(db.doesRecordExist(MartusServerUtilities.getBurKey(key)))
+			if(db.doesRecordExist(BulletinUploadRecord.getBurKey(key)))
 			{
 				System.out.println("Error: BUR already exists: " + key.getLocalId());
 				System.exit(3);

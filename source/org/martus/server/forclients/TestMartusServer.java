@@ -72,6 +72,7 @@ import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
 import org.martus.common.utilities.MartusServerUtilities;
+import org.martus.server.main.BulletinUploadRecord;
 import org.martus.server.main.MartusServer;
 import org.martus.server.main.ServerBulletinStore;
 import org.martus.util.Base64;
@@ -872,7 +873,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		ReadableDatabase serverDatabase = testServer.getDatabase();
 		
 		DatabaseKey headerKey = DatabaseKey.createSealedKey(b1.getUniversalId());
-		DatabaseKey burKey = MartusServerUtilities.getBurKey(headerKey);
+		DatabaseKey burKey = BulletinUploadRecord.getBurKey(headerKey);
 		assertFalse("BUR already exists?", serverDatabase.doesRecordExist(burKey));
 
 		testServer.serverForClients.clearCanUploadList();

@@ -29,17 +29,25 @@ package org.martus.server.main;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.Enumeration;
 import java.util.Vector;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
+import java.util.zip.ZipFile;
 
 import org.martus.common.BulletinStore;
 import org.martus.common.ContactInfo;
+import org.martus.common.MartusUtilities;
+import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MartusCrypto.CreateDigestException;
 import org.martus.common.crypto.MartusCrypto.CryptoException;
 import org.martus.common.crypto.MartusCrypto.DecryptionException;
 import org.martus.common.crypto.MartusCrypto.NoKeyPairException;
+import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.Database.RecordHiddenException;
 import org.martus.common.packet.BulletinHeaderPacket;
+import org.martus.common.packet.Packet;
 import org.martus.common.packet.UniversalId;
 import org.martus.common.packet.Packet.InvalidPacketException;
 import org.martus.common.packet.Packet.SignatureVerificationException;
@@ -57,7 +65,7 @@ public class ServerBulletinStore extends BulletinStore
 			NoKeyPairException
 	{
 		super.deleteBulletinRevision(keyToDelete);
-		DatabaseKey burKey = MartusServerUtilities.getBurKey(keyToDelete);
+		DatabaseKey burKey = BulletinUploadRecord.getBurKey(keyToDelete);
 		deleteSpecificPacket(burKey);			
 	}
 
@@ -79,13 +87,13 @@ public class ServerBulletinStore extends BulletinStore
 	public void writeBur(BulletinHeaderPacket bhp) throws CreateDigestException, IOException, RecordHiddenException
 	{
 		String localId = bhp.getLocalId();
-		String bur = MartusServerUtilities.createBulletinUploadRecord(localId, getSignatureGenerator());
+		String bur = BulletinUploadRecord.createBulletinUploadRecord(localId, getSignatureGenerator());
 		writeBur(bhp, bur);
 	}
 	
 	public void writeBur(BulletinHeaderPacket bhp, String bur) throws IOException, RecordHiddenException
 	{
-		MartusServerUtilities.writeSpecificBurToDatabase(getWriteableDatabase(), bhp, bur);
+		BulletinUploadRecord.writeSpecificBurToDatabase(getWriteableDatabase(), bhp, bur);
 	}
 
 	public boolean doesContactInfoExist(String accountId) throws IOException
@@ -110,4 +118,75 @@ public class ServerBulletinStore extends BulletinStore
 	{
 		return getDatabase().isHidden(key);
 	}
+	
+	public BulletinHeaderPacket saveZipFileToDatabase(File zipFile, String authorAccountId) throws
+			ZipException,
+			IOException,
+			Database.RecordHiddenException,
+			Packet.InvalidPacketException,
+			Packet.SignatureVerificationException,
+			SealedPacketExistsException,
+			DuplicatePacketException,
+			Packet.WrongAccountException,
+			MartusCrypto.DecryptionException
+	{
+		ZipFile zip = null;
+		try
+		{
+			zip = new ZipFile(zipFile);
+			BulletinHeaderPacket header = validateZipFilePacketsForImport(zip, authorAccountId);
+			importBulletinZipFile(zip, authorAccountId);
+			return header;
+		}
+		finally
+		{
+			if(zip != null)
+				zip.close();
+		}
+	}
+
+	public BulletinHeaderPacket validateZipFilePacketsForImport(ZipFile zip, String authorAccountId) throws
+			Packet.InvalidPacketException,
+			IOException,
+			Packet.SignatureVerificationException,
+			SealedPacketExistsException,
+			DuplicatePacketException,
+			Packet.WrongAccountException,
+			MartusCrypto.DecryptionException 
+	{
+		BulletinHeaderPacket header = MartusUtilities.extractHeaderPacket(authorAccountId, zip, getSignatureVerifier());
+		Enumeration entries = zip.entries();
+		while(entries.hasMoreElements())
+		{
+			ZipEntry entry = (ZipEntry)entries.nextElement();
+			UniversalId uid = UniversalId.createFromAccountAndLocalId(authorAccountId, entry.getName());
+			DatabaseKey trySealedKey = DatabaseKey.createSealedKey(uid);
+			if(getDatabase().doesRecordExist(trySealedKey))
+			{
+				DatabaseKey newKey = header.createKeyWithHeaderStatus(uid);
+				if(newKey.isDraft())
+					throw new SealedPacketExistsException(entry.getName());
+				throw new DuplicatePacketException(entry.getName());
+			}
+		}
+		
+		return header;
+	}
+
+	public static class DuplicatePacketException extends Exception
+	{
+		public DuplicatePacketException(String message)
+		{
+			super(message);
+		}
+	}
+	
+	public static class SealedPacketExistsException extends Exception
+	{
+		public SealedPacketExistsException(String message)
+		{
+			super(message);
+		}
+	}
+	
 }

@@ -46,8 +46,8 @@ import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.FieldDataPacket;
 import org.martus.common.packet.UniversalId;
 import org.martus.common.test.UniversalIdForTesting;
-import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.server.forclients.MockMartusServer;
+import org.martus.server.main.BulletinUploadRecord;
 import org.martus.util.TestCaseEnhanced;
 
 public class TestServerForMirroring extends TestCaseEnhanced
@@ -216,10 +216,10 @@ public class TestServerForMirroring extends TestCaseEnhanced
 		String burNotFound = server.getBulletinUploadRecord(bhp1.getAccountId(), bhp1.getLocalId());
 		assertNull("found bur?", burNotFound);
 
-		String expectedBur = MartusServerUtilities.createBulletinUploadRecord(bhp1.getLocalId(), server.getSecurity());
+		String expectedBur = BulletinUploadRecord.createBulletinUploadRecord(bhp1.getLocalId(), server.getSecurity());
 		DatabaseKey headerKey = bhp1.createKeyWithHeaderStatus(bhp1.getUniversalId());
 		String bulletinLocalId = headerKey.getLocalId();
-		MartusServerUtilities.writeSpecificBurToDatabase(coreServer.getWriteableDatabase(), bhp1, expectedBur);
+		BulletinUploadRecord.writeSpecificBurToDatabase(coreServer.getWriteableDatabase(), bhp1, expectedBur);
 		String bur1 = server.getBulletinUploadRecord(bhp1.getAccountId(), bulletinLocalId);
 		assertNotNull("didn't find bur1?", bur1);
 		assertEquals("wrong bur?", expectedBur, bur1);

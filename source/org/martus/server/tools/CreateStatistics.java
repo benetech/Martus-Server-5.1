@@ -34,6 +34,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Vector;
+
 import org.martus.common.BulletinStore;
 import org.martus.common.ContactInfo;
 import org.martus.common.CustomFields;
@@ -60,6 +61,7 @@ import org.martus.server.foramplifiers.ServerForAmplifiers;
 import org.martus.server.forclients.AuthorizeLog;
 import org.martus.server.forclients.AuthorizeLogEntry;
 import org.martus.server.forclients.ServerForClients;
+import org.martus.server.main.BulletinUploadRecord;
 import org.martus.server.main.MartusServer;
 import org.martus.util.FileInputStreamWithSeek;
 import org.martus.util.UnicodeReader;
@@ -385,7 +387,7 @@ public class CreateStatistics
 					String isBulletinHidden = getIsBulletinHidden(key.getUniversalId());
 					getPublicCode(key.getAccountId());
 					getBulletinHeaderInfo(key);
-					DatabaseKey burKey = MartusServerUtilities.getBurKey(key);
+					DatabaseKey burKey = BulletinUploadRecord.getBurKey(key);
 					String wasBurCreatedByThisServer = wasOriginalServer(burKey);
 					String dateBulletinWasSavedOnServer = ERROR_MSG;
 					String timeBulletinWasSavedOnServer = ERROR_MSG;
@@ -724,7 +726,7 @@ public class CreateStatistics
 							wasBurCreatedByThisServer = ERROR_MSG + " record empty?";
 						else 
 						{
-							if(MartusServerUtilities.wasBurCreatedByThisCrypto(burString, security))
+							if(BulletinUploadRecord.wasBurCreatedByThisCrypto(burString, security))
 								wasBurCreatedByThisServer = BULLETIN_ORIGINALLY_UPLOADED_TO_THIS_SERVER_TRUE;
 							else
 								wasBurCreatedByThisServer = BULLETIN_ORIGINALLY_UPLOADED_TO_THIS_SERVER_FALSE;

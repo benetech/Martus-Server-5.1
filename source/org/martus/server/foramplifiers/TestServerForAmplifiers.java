@@ -43,8 +43,8 @@ import org.martus.common.crypto.MockMartusSecurity;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.MockClientDatabase;
 import org.martus.common.network.NetworkInterfaceConstants;
-import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.server.forclients.MockMartusServer;
+import org.martus.server.main.BulletinUploadRecord;
 import org.martus.util.TestCaseEnhanced;
 import org.martus.util.UnicodeWriter;
 
@@ -306,8 +306,8 @@ public class TestServerForAmplifiers extends TestCaseEnhanced
 		assertEquals("Currently B3 is a bulletin not mirrored?", 2, uIds.size());
 		
 		String bulletin3LocalId = b3.getLocalId();
-		String burFromOtherDatabase = MartusServerUtilities.createBulletinUploadRecord(bulletin3LocalId, otherServer.getSecurity());
-		MartusServerUtilities.writeSpecificBurToDatabase(coreServer.getWriteableDatabase(), b3.getBulletinHeaderPacket(), burFromOtherDatabase);
+		String burFromOtherDatabase = BulletinUploadRecord.createBulletinUploadRecord(bulletin3LocalId, otherServer.getSecurity());
+		BulletinUploadRecord.writeSpecificBurToDatabase(coreServer.getWriteableDatabase(), b3.getBulletinHeaderPacket(), burFromOtherDatabase);
 		response = coreServer.serverForAmplifiers.getAmplifierHandler().getPublicBulletinLocalIds(ampAccountId, parameters, signature);
 		uIds = (Vector)response.get(1);
 		assertEquals("incorect # of bulletins found after mirroring, should only amplify own bulletins?", 1, uIds.size());

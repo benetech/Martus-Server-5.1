@@ -36,7 +36,7 @@ import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.ReadableDatabase;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.packet.BulletinHeaderPacket;
-import org.martus.common.utilities.MartusServerUtilities;
+import org.martus.server.main.BulletinUploadRecord;
 
 public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 {
@@ -179,7 +179,7 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 				if(key.isDraft())
 					return;
 				
-				DatabaseKey burKey = MartusServerUtilities.getBurKey(key);
+				DatabaseKey burKey = BulletinUploadRecord.getBurKey(key);
 				MartusCrypto security = server.getSecurity();
 				ReadableDatabase db = server.getDatabase();
 				String burInDatabase = db.readRecord(burKey, security);
@@ -189,7 +189,7 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 					return;
 				}
 				
-				if(!MartusServerUtilities.wasBurCreatedByThisCrypto(burInDatabase, security))
+				if(!BulletinUploadRecord.wasBurCreatedByThisCrypto(burInDatabase, security))
 					return;				
 							
 				BulletinHeaderPacket bhp = BulletinStore.loadBulletinHeaderPacket(db, key, security);

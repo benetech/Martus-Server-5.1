@@ -46,7 +46,7 @@ import org.martus.common.network.mirroring.MirroringInterface;
 import org.martus.common.network.mirroring.CallerSideMirroringGatewayForXmlRpc.SSLSocketSetupException;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
-import org.martus.common.utilities.MartusServerUtilities;
+import org.martus.server.main.BulletinUploadRecord;
 import org.martus.server.main.MartusServer;
 import org.martus.server.main.ServerBulletinStore;
 import org.martus.util.Base64;
@@ -211,7 +211,7 @@ public class ServerForMirroring implements ServerSupplierInterface
 	{
 		UniversalId uid = UniversalId.createFromAccountAndLocalId(authorAccountId, bulletinLocalId);
 		DatabaseKey headerKey = DatabaseKey.createSealedKey(uid);
-		DatabaseKey burKey = MartusServerUtilities.getBurKey(headerKey);
+		DatabaseKey burKey = BulletinUploadRecord.getBurKey(headerKey);
 		try
 		{
 			String bur = getDatabase().readRecord(burKey, getSecurity());

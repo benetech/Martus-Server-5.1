@@ -44,8 +44,8 @@ import org.martus.common.network.mirroring.MirroringInterface;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
 import org.martus.common.test.UniversalIdForTesting;
-import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.server.forclients.MockMartusServer;
+import org.martus.server.main.BulletinUploadRecord;
 import org.martus.server.main.ServerBulletinStore;
 import org.martus.util.Base64;
 import org.martus.util.InputStreamWithSeek;
@@ -158,9 +158,9 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 			DatabaseKey key = DatabaseKey.createSealedKey(b.getUniversalId());
 			BulletinSaver.saveToClientDatabase(b, fakeDatabase, false, clientSecurity);
 
-			String bur = MartusServerUtilities.createBulletinUploadRecord(b.getLocalId(), otherServerSecurity);
+			String bur = BulletinUploadRecord.createBulletinUploadRecord(b.getLocalId(), otherServerSecurity);
 			burs[i] = bur;
-			MartusServerUtilities.writeSpecificBurToDatabase(fakeDatabase, b.getBulletinHeaderPacket(), bur);
+			BulletinUploadRecord.writeSpecificBurToDatabase(fakeDatabase, b.getBulletinHeaderPacket(), bur);
 			assertEquals("after write bur" + i, (i+1)*databaseRecordsPerBulletin, fakeDatabase.getRecordCount());
 
 			InputStreamWithSeek in = fakeDatabase.openInputStream(key, otherServerSecurity);
