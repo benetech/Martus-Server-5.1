@@ -509,7 +509,6 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	public Vector clientsBanned;
 	public Vector testAccounts;
 	private Vector activeWebServers;
-
 	public static final String TESTACCOUNTSFILENAME = "isTester.txt";
 	public static final String BANNEDCLIENTSFILENAME = "banned.txt";
 	public static final String UPLOADSOKFILENAME = "uploadsok.txt";

@@ -34,7 +34,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Vector;
-
 import org.martus.common.BulletinStore;
 import org.martus.common.ContactInfo;
 import org.martus.common.CustomFields;
@@ -388,7 +387,22 @@ public class CreateStatistics
 					getBulletinHeaderInfo(key);
 					DatabaseKey burKey = MartusServerUtilities.getBurKey(key);
 					String wasBurCreatedByThisServer = wasOriginalServer(burKey);
-					String dateBulletinWasSavedOnServer = getOriginalUploadDate(burKey);
+					String dateBulletinWasSavedOnServer = ERROR_MSG;
+					String timeBulletinWasSavedOnServer = ERROR_MSG;
+					try
+					{
+						Date dateTimeBulletinWasSaved = getOriginalUploadDate(burKey);
+						SimpleDateFormat dateFormat = new SimpleDateFormat(ISO_DATE_PATTERN);
+						dateBulletinWasSavedOnServer = dateFormat.format(dateTimeBulletinWasSaved);
+						
+						dateFormat.applyPattern(ISO_TIME_PATTERN);
+						timeBulletinWasSavedOnServer = dateFormat.format(dateTimeBulletinWasSaved);
+					}
+					catch(Exception e1)
+					{
+						dateBulletinWasSavedOnServer = ERROR_MSG;
+						timeBulletinWasSavedOnServer = ERROR_MSG;
+					}
 					getPacketInfo(key);
 					
 					String bulletinInfo =  getNormalizedStringAndCheckForErrors(key.getLocalId()) + DELIMITER +
@@ -412,7 +426,9 @@ public class CreateStatistics
 					getNormalizedStringAndCheckForErrors(wasBurCreatedByThisServer) + DELIMITER +
 					getNormalizedStringAndCheckForErrors(isBulletinHidden) + DELIMITER +
 					getNormalizedStringAndCheckForErrors(dateBulletinWasSavedOnServer) + DELIMITER +
-					getNormalizedStringAndCheckForErrors(dateTimeBulletinLastSaved) + DELIMITER +
+					getNormalizedStringAndCheckForErrors(timeBulletinWasSavedOnServer) + DELIMITER +
+					getNormalizedStringAndCheckForErrors(dateBulletinLastSaved) + DELIMITER +
+					getNormalizedStringAndCheckForErrors(timeBulletinLastSaved) + DELIMITER +
 					getNormalizedStringAndCheckForErrors(allHQsProxyUpload) + DELIMITER +
 					getNormalizedStringAndCheckForErrors(hQsAuthorizedToRead) + DELIMITER +
 					getNormalizedStringAndCheckForErrors(hQsAuthorizedToUpload) + DELIMITER +
@@ -521,7 +537,8 @@ public class CreateStatistics
 			private void getBulletinHeaderInfo(DatabaseKey key)
 			{
 				allPrivate = ERROR_MSG;
-				dateTimeBulletinLastSaved = ERROR_MSG;
+				dateBulletinLastSaved = ERROR_MSG;
+				timeBulletinLastSaved = ERROR_MSG;
 				allHQsProxyUpload = ERROR_MSG;
 				hQsAuthorizedToRead = ERROR_MSG;
 				hQsAuthorizedToUpload = ERROR_MSG;
@@ -534,8 +551,17 @@ public class CreateStatistics
 					BulletinHeaderPacket bhp = BulletinStore.loadBulletinHeaderPacket(fileDatabase, key, security);
 					Calendar cal = new GregorianCalendar();
 					cal.setTimeInMillis(bhp.getLastSavedTime());		
-					SimpleDateFormat dateFormat = new SimpleDateFormat(ISO_DATE_TIME_PATTERN);
-					dateTimeBulletinLastSaved = dateFormat.format(cal);
+					try
+					{
+						SimpleDateFormat formatDate = new SimpleDateFormat(ISO_DATE_PATTERN);
+						dateBulletinLastSaved = formatDate.format(cal.getTime());
+						formatDate.applyPattern(ISO_TIME_PATTERN);
+						timeBulletinLastSaved = formatDate.format(cal.getTime());
+					}
+					catch(RuntimeException e)
+					{
+						dateBulletinLastSaved = ERROR_MSG + " " + e;
+					}
 					
 					bulletinSizeInKBytes = MartusUtilities.getBulletinSize(fileDatabase, bhp) / 1000;
 					String[] publicAttachments = bhp.getPublicAttachmentIds();
@@ -697,33 +723,25 @@ public class CreateStatistics
 				}
 				return wasBurCreatedByThisServer;
 			}
-			private String getOriginalUploadDate(DatabaseKey burKey)
+			
+			private Date getOriginalUploadDate(DatabaseKey burKey) throws Exception
 			{
-				String uploadDate = ERROR_MSG;
-				try
+				if(fileDatabase.getFileForRecord(burKey).exists())
 				{
-					if(fileDatabase.getFileForRecord(burKey).exists())
+					String burString = fileDatabase.readRecord(burKey, security);
+					if(burString.length()!=0)
 					{
-						String burString = fileDatabase.readRecord(burKey, security);
-						if(burString.length()!=0)
-						{
-							String[] burData = burString.split("\n");
-							Date rawDate = MartusServerUtilities.getDateFromFormattedTimeStamp(burData[2]);
-							SimpleDateFormat dateFormat = new SimpleDateFormat(ISO_DATE_TIME_PATTERN);
-							uploadDate = dateFormat.format(rawDate);
-						}
+						String[] burData = burString.split("\n");
+						return MartusServerUtilities.getDateFromFormattedTimeStamp(burData[2]);
 					}
 				}
-				catch(Exception e1)
-				{
-					uploadDate = ERROR_MSG + " " + e1;
-				}
-				return uploadDate;
+				return null;
 			}
 			
 			UnicodeWriter writer;
 			String allPrivate;
-			String dateTimeBulletinLastSaved;
+			String dateBulletinLastSaved;
+			String timeBulletinLastSaved;
 			String allHQsProxyUpload;
 			String hQsAuthorizedToRead;
 			String hQsAuthorizedToUpload;
@@ -816,9 +834,9 @@ public class CreateStatistics
 	Vector hiddenBulletinIds;
 	AuthorizeLog authorizeLog;
 	
-	final String ISO_DATE_PATTERN = "yyyy-mm-dd";
-	final String ISO_DATE_TIME_PATTERN = "yyyy-mm-dd HH:MM";
-	final String MARTUS_BULLETIN_BUILD_DATE_PATTERN = "yyyymmdd";
+	final String ISO_DATE_PATTERN = "yyyy-MM-dd";
+	final String ISO_TIME_PATTERN = "kk:mm";
+	final String MARTUS_BULLETIN_BUILD_DATE_PATTERN = "yyyyMMdd";
 	
 	final String DELIMITER = ",";
 	final String ERROR_MSG = "Error:";
@@ -887,7 +905,9 @@ public class CreateStatistics
 	final String BULLETIN_PRIVATE_ATTACHMENT_COUNT = "private attachments";
 	final String BULLETIN_ORIGINALLY_UPLOADED_TO_THIS_SERVER = "original server";
 	final String BULLETIN_DATE_UPLOADED = "date uploaded";
+	final String BULLETIN_TIME_UPLOADED = "time uploaded";
 	final String BULLETIN_DATE_LAST_SAVED = "date last saved";
+	final String BULLETIN_TIME_LAST_SAVED = "time last saved";
 	final String BULLETIN_HAS_CUSTOM_FIELDS = "has custom fields";
 	final String BULLETIN_CUSTOM_FIELD_TYPES = "custom field types";
 	final String BULLETIN_HIDDEN = "hidden on server";
@@ -932,7 +952,9 @@ public class CreateStatistics
 		getNormalizedStringAndCheckForErrors(BULLETIN_ORIGINALLY_UPLOADED_TO_THIS_SERVER) + DELIMITER +
 		getNormalizedStringAndCheckForErrors(BULLETIN_HIDDEN) + DELIMITER +
 		getNormalizedStringAndCheckForErrors(BULLETIN_DATE_UPLOADED) + DELIMITER +
+		getNormalizedStringAndCheckForErrors(BULLETIN_TIME_UPLOADED) + DELIMITER +
 		getNormalizedStringAndCheckForErrors(BULLETIN_DATE_LAST_SAVED) + DELIMITER +
+		getNormalizedStringAndCheckForErrors(BULLETIN_TIME_LAST_SAVED) + DELIMITER +
 		getNormalizedStringAndCheckForErrors(BULLETIN_ALL_HQS_PROXY_UPLOAD) + DELIMITER +
 		getNormalizedStringAndCheckForErrors(BULLETIN_AUTHORIZED_TO_READ) + DELIMITER +
 		getNormalizedStringAndCheckForErrors(BULLETIN_AUTHORIZED_TO_UPLOAD) + DELIMITER +
