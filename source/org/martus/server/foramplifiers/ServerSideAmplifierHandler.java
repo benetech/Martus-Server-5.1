@@ -49,7 +49,7 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 	
 	public Vector getAccountIds(String myAccountId, Vector parameters, String signature)
 	{
-		log("getAccountIds: " + MartusSecurity.formatAccountIdForLog(myAccountId));
+		log("getAccountIds: " + MartusCrypto.formatAccountIdForLog(myAccountId));
 		if(!server.isAuthorizedAmp(myAccountId))
 			return server.returnSingleResponseAndLog(" returning NOT_AUTHORIZED", NetworkInterfaceConstants.NOT_AUTHORIZED);
 
@@ -95,7 +95,7 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 
 	public Vector getContactInfo(String myAccountId, Vector parameters, String signature)
 	{
-		log("getContactInfo: " + MartusSecurity.formatAccountIdForLog(myAccountId));
+		log("getContactInfo: " + MartusCrypto.formatAccountIdForLog(myAccountId));
 		if(!server.isAuthorizedAmp(myAccountId))
 			return server.returnSingleResponseAndLog(" returning NOT_AUTHORIZED", NetworkInterfaceConstants.NOT_AUTHORIZED);
 
@@ -117,7 +117,7 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 	
 	public Vector getPublicBulletinLocalIds(String myAccountId, Vector parameters, String signature)
 	{
-		log("getPublicBulletinLocalIds: " + MartusSecurity.formatAccountIdForLog(myAccountId));
+		log("getPublicBulletinLocalIds: " + MartusCrypto.formatAccountIdForLog(myAccountId));
 		if(!server.isAuthorizedAmp(myAccountId))
 			return server.returnSingleResponseAndLog(" returning NOT_AUTHORIZED", NetworkInterfaceConstants.NOT_AUTHORIZED);
 
@@ -140,7 +140,7 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 	
 	public Vector getAmplifierBulletinChunk(String myAccountId, Vector parameters, String signature)
 	{
-		log("getAmplifierBulletinChunk: " + MartusSecurity.formatAccountIdForLog(myAccountId));
+		log("getAmplifierBulletinChunk: " + MartusCrypto.formatAccountIdForLog(myAccountId));
 		if(!server.isAuthorizedAmp(myAccountId))
 			return server.returnSingleResponseAndLog(" returning NOT_AUTHORIZED", NetworkInterfaceConstants.NOT_AUTHORIZED);
 

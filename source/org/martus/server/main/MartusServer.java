@@ -1004,7 +1004,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			Vector decodedContactInfo = ContactInfo.loadFromFile(contactFile);
 			if(!security.verifySignatureOfVectorOfStrings(decodedContactInfo, accountId))
 			{
-				String accountInfo = MartusSecurity.formatAccountIdForLog(accountId);
+				String accountInfo = MartusCrypto.formatAccountIdForLog(accountId);
 				log("getContactInfo: "+ accountInfo +": Signature failed");
 				results.add(NetworkInterfaceConstants.SIG_ERROR);
 				return results;

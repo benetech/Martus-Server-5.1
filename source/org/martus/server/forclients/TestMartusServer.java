@@ -104,27 +104,23 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 
 		if(clientSecurity == null)
 		{
-			clientSecurity = new MartusSecurity();
-			clientSecurity.createKeyPair(512);
+			clientSecurity = MockMartusSecurity.createClient();
 			clientAccountId = clientSecurity.getPublicKeyString();
 		}
 		
 		if(serverSecurity == null)
 		{
-			serverSecurity = new MartusSecurity();
-			serverSecurity.createKeyPair(512);
+			serverSecurity = MockMartusSecurity.createServer();
 		}
 		
 		if(otherServerSecurity == null)
 		{
-			otherServerSecurity = new MartusSecurity();
-			otherServerSecurity.createKeyPair(512);
+			otherServerSecurity = MockMartusSecurity.createOtherServer();
 		}
 
 		if(hqSecurity == null)
 		{
-			hqSecurity = new MartusSecurity();
-			hqSecurity.createKeyPair(512);
+			hqSecurity = MockMartusSecurity.createHQ();
 		}
 		if(tempFile == null)
 		{
@@ -237,7 +233,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		MyMock myMock = new MyMock();
 		testServer.security = serverSecurity;
 		
-		MartusSecurity fieldSecurity1 = clientSecurity;
+		MartusCrypto fieldSecurity1 = clientSecurity;
 		testServer.allowUploads(fieldSecurity1.getPublicKeyString());
 		Bulletin bulletin = new Bulletin(clientSecurity);
 		HQKeys keys = new HQKeys();
@@ -1350,7 +1346,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		return result;
 	}
 		
-	Vector getBulletinChunk(MartusSecurity securityToUse, NetworkInterface server, String authorAccountId, String bulletinLocalId, int chunkOffset, int maxChunkSize) throws Exception
+	Vector getBulletinChunk(MartusCrypto securityToUse, NetworkInterface server, String authorAccountId, String bulletinLocalId, int chunkOffset, int maxChunkSize) throws Exception
 	{
 		Vector parameters = new Vector();
 		parameters.add(authorAccountId);
@@ -1384,7 +1380,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 
 		testServer.security = serverSecurity;
 
-		MartusSecurity fieldSecurity1 = clientSecurity;
+		MartusCrypto fieldSecurity1 = clientSecurity;
 		testServer.allowUploads(fieldSecurity1.getPublicKeyString());
 
 		MartusSecurity nonFieldSecurity = MockMartusSecurity.createOtherClient();
@@ -1456,7 +1452,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		assertNotNull("null id1 [0]", list1.get(0));
 		assertEquals(NetworkInterfaceConstants.OK, list1.get(0));
 
-		MartusSecurity fieldSecurity1 = clientSecurity;
+		MartusCrypto fieldSecurity1 = clientSecurity;
 		testServer.allowUploads(fieldSecurity1.getPublicKeyString());
 		Bulletin bulletin = new Bulletin(clientSecurity);
 		HQKeys keys = new HQKeys();
@@ -1995,11 +1991,11 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 	static Bulletin draft;
 
 	static final int databaseRecordsPerBulletin = 4;
-	static MartusSecurity clientSecurity;
+	static MartusCrypto clientSecurity;
 	static String clientAccountId;
-	static MartusSecurity serverSecurity;
-	static MartusSecurity otherServerSecurity;
-	static MartusSecurity hqSecurity;
+	static MartusCrypto serverSecurity;
+	static MartusCrypto otherServerSecurity;
+	static MartusCrypto hqSecurity;
 	static MockClientDatabase clientDatabase;
 
 	final static byte[] b1AttachmentBytes = {1,2,3,4,4,3,2,1};

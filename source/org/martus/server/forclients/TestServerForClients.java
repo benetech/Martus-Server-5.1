@@ -34,10 +34,11 @@ import org.martus.common.HQKey;
 import org.martus.common.HQKeys;
 import org.martus.common.bulletin.AttachmentProxy;
 import org.martus.common.bulletin.Bulletin;
+import org.martus.common.bulletin.BulletinForTesting;
 import org.martus.common.bulletin.BulletinLoader;
 import org.martus.common.bulletin.BulletinSaver;
-import org.martus.common.bulletin.BulletinForTesting;
-import org.martus.common.crypto.MartusSecurity;
+import org.martus.common.crypto.MartusCrypto;
+import org.martus.common.crypto.MockMartusSecurity;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.MockClientDatabase;
 import org.martus.common.database.MockServerDatabase;
@@ -66,27 +67,23 @@ public class TestServerForClients extends TestCaseEnhanced
 
 		if(clientSecurity == null)
 		{
-			clientSecurity = new MartusSecurity();
-			clientSecurity.createKeyPair(512);
+			clientSecurity = MockMartusSecurity.createClient();
 			clientAccountId = clientSecurity.getPublicKeyString();
 		}
 		
 		if(serverSecurity == null)
 		{
-			serverSecurity = new MartusSecurity();
-			serverSecurity.createKeyPair(512);
+			serverSecurity = MockMartusSecurity.createServer();
 		}
 		
 		if(testServerSecurity == null)
 		{
-			testServerSecurity = new MartusSecurity();
-			testServerSecurity.createKeyPair(512);
+			testServerSecurity = MockMartusSecurity.createOtherServer();
 		}
 
 		if(hqSecurity == null)
 		{
-			hqSecurity = new MartusSecurity();
-			hqSecurity.createKeyPair(512);
+			hqSecurity = MockMartusSecurity.createHQ();
 		}
 		if(tempFile == null)
 		{
@@ -277,11 +274,11 @@ public class TestServerForClients extends TestCaseEnhanced
 		assertEquals( label + " error wrong result code", expected, vector.get(0));
 	}
 
-	static MartusSecurity clientSecurity;
+	static MartusCrypto clientSecurity;
 	static String clientAccountId;
-	static MartusSecurity serverSecurity;
-	static MartusSecurity testServerSecurity;
-	static MartusSecurity hqSecurity;
+	static MartusCrypto serverSecurity;
+	static MartusCrypto testServerSecurity;
+	static MartusCrypto hqSecurity;
 	static MockClientDatabase clientDatabase;
 
 	static Bulletin b1;

@@ -29,9 +29,8 @@ package org.martus.server.formirroring;
 import java.util.Vector;
 
 import org.martus.common.crypto.MartusCrypto;
-import org.martus.common.crypto.MartusSecurity;
 import org.martus.common.network.NetworkInterfaceConstants;
-import org.martus.common.network.mirroring.*;
+import org.martus.common.network.mirroring.MirroringInterface;
 
 public class SupplierSideMirroringHandler implements MirroringInterface, NetworkInterfaceConstants
 {
@@ -120,7 +119,7 @@ public class SupplierSideMirroringHandler implements MirroringInterface, Network
 					String accountInfo = authorAccountId;
 					try
 					{
-						accountInfo = MartusSecurity.getFormattedPublicCode(authorAccountId);
+						accountInfo = MartusCrypto.getFormattedPublicCode(authorAccountId);
 					}
 					catch (Exception justUseAccountIdInstead)
 					{

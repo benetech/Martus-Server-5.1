@@ -32,6 +32,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MartusSecurity;
 import org.martus.common.crypto.MartusCrypto.AuthorizationFailedException;
 import org.martus.common.crypto.MartusCrypto.DecryptionException;
@@ -161,7 +162,7 @@ public class DecryptFile
 		System.exit(0);
 	}
 
-	public static void decryptToFile(MartusSecurity security, OutputStream plainTextOutput, String retrievedEncryptedText)
+	public static void decryptToFile(MartusCrypto security, OutputStream plainTextOutput, String retrievedEncryptedText)
 		throws InvalidBase64Exception, NoKeyPairException, DecryptionException
 	{
 		byte[] encryptedBytes = Base64.decode(retrievedEncryptedText);

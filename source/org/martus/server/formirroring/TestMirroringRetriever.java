@@ -35,12 +35,12 @@ import org.martus.common.bulletin.Bulletin;
 import org.martus.common.bulletin.BulletinSaver;
 import org.martus.common.bulletin.BulletinZipUtilities;
 import org.martus.common.crypto.MartusCrypto;
-import org.martus.common.crypto.MartusSecurity;
 import org.martus.common.crypto.MockMartusSecurity;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.MockServerDatabase;
-import org.martus.common.network.mirroring.*;
+import org.martus.common.network.mirroring.CallerSideMirroringGateway;
+import org.martus.common.network.mirroring.MirroringInterface;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
 import org.martus.common.test.UniversalIdForTesting;
@@ -244,7 +244,7 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 	final static int databaseRecordsPerBulletin = 4;
 
 	MockServerDatabase db;
-	MartusSecurity security;
+	MartusCrypto security;
 	FakeServerSupplier supplier;
 	SupplierSideMirroringHandler handler;
 	CallerSideMirroringGateway realGateway;

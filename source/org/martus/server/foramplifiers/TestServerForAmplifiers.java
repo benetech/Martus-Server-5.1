@@ -38,7 +38,7 @@ import org.martus.common.bulletin.Bulletin;
 import org.martus.common.bulletin.BulletinForTesting;
 import org.martus.common.bulletin.BulletinLoader;
 import org.martus.common.bulletin.BulletinSaver;
-import org.martus.common.crypto.MartusSecurity;
+import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MockMartusSecurity;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.MockClientDatabase;
@@ -359,7 +359,7 @@ public class TestServerForAmplifiers extends TestCaseEnhanced
 	private static Bulletin b4;
 	private static String b4ZipString;
 
-	private static MartusSecurity clientSecurity;
+	private static MartusCrypto clientSecurity;
 	private static MockClientDatabase clientDatabase;
 
 	final static byte[] b1AttachmentBytes = {1,2,3,4,4,3,2,1};
