@@ -132,8 +132,6 @@ public class TestServerForAmplifiers extends TestCaseEnhanced
 
 	protected void tearDown() throws Exception
 	{
-		coreServer.deleteAllFiles();
-		otherServer.deleteAllFiles();
 		super.tearDown();
 	}
 	
@@ -148,6 +146,7 @@ public class TestServerForAmplifiers extends TestCaseEnhanced
 		File compliance = new File(coreServer.getStartupConfigDirectory(), "compliance.txt");
 		compliance.deleteOnExit();
 		compliance.createNewFile();
+		coreServer.setAmplifierListenerEnabled(true);
 		coreServer.loadConfigurationFiles();
 
 		Vector response = coreServer.serverForAmplifiers.getAmplifierHandler().getContactInfo(amplifier.getPublicKeyString(), parameters, signature);
@@ -198,7 +197,8 @@ public class TestServerForAmplifiers extends TestCaseEnhanced
 		assertEquals("data size not two?", 2, ((Integer)infoReturned.get(1)).intValue());
 		assertEquals("data not correct?", data1, infoReturned.get(2));
 		assertEquals("data2 not correct?", data2, infoReturned.get(3));
-		assertEquals("signature doesn't match?", infoSignature, infoReturned.get(4));		
+		assertEquals("signature doesn't match?", infoSignature, infoReturned.get(4));
+		
 	}
 
 
@@ -206,11 +206,13 @@ public class TestServerForAmplifiers extends TestCaseEnhanced
 	{
 		MockMartusServer nobodyAuthorizedCore = new MockMartusServer();
 		ServerForAmplifiers nobodyAuthorized = new ServerForAmplifiers(nobodyAuthorizedCore, logger);
+		nobodyAuthorizedCore.setAmplifierListenerEnabled(true);
 		nobodyAuthorized.loadConfigurationFiles();
 		assertFalse("client already authorized?", nobodyAuthorized.isAuthorizedAmp(clientSecurity.getPublicKeyString()));
 		nobodyAuthorizedCore.deleteAllFiles();
 		
 		MockMartusServer oneAuthorizedCore = new MockMartusServer();
+		oneAuthorizedCore.setAmplifierListenerEnabled(true);
 		oneAuthorizedCore.enterSecureMode();
 		File ampsWhoCallUs = new File(oneAuthorizedCore.getStartupConfigDirectory(), "ampsWhoCallUs");
 		ampsWhoCallUs.deleteOnExit();
@@ -245,7 +247,7 @@ public class TestServerForAmplifiers extends TestCaseEnhanced
 		File pubKeyFile1 = new File(ampsWhoCallUs, "code=1.2.3.4.5-ip=1.2.3.4.txt");
 		pubKeyFile1.deleteOnExit();
 		MartusUtilities.exportServerPublicKey(amplifier, pubKeyFile1);
-		
+		coreServer.setAmplifierListenerEnabled(true);
 		coreServer.loadConfigurationFiles();
 		compliance.delete();
 		pubKeyFile1.delete();
@@ -297,6 +299,7 @@ public class TestServerForAmplifiers extends TestCaseEnhanced
 		File compliance = new File(coreServer.getStartupConfigDirectory(), "compliance.txt");
 		compliance.deleteOnExit();
 		compliance.createNewFile();
+		coreServer.setAmplifierListenerEnabled(true);
 		coreServer.loadConfigurationFiles();
 		compliance.delete();
 		

@@ -345,7 +345,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		return mirrorListenerEnabled;
 	}
 
-	private void setAmplifierListenerEnabled(boolean amplifierListenerEnabled)
+	public void setAmplifierListenerEnabled(boolean amplifierListenerEnabled)
 	{
 		this.amplifierListenerEnabled = amplifierListenerEnabled;
 	}

@@ -44,6 +44,8 @@ public class TestForAmplifiers
 	public static Test suite ( ) 
 	{
 		TestSuite suite= new TestSuite("All Server Amplifier Tests");
+		
+		suite.addTestSuite(TestServerForAmplifiers.class);
 		return suite;
 	}
 }
