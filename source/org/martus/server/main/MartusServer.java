@@ -956,10 +956,11 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		if( isShutdownRequested() )
 			return returnSingleResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
 		
-		if(!FieldDataPacket.isValidLocalId(packetLocalId))
-		{
-			return returnSingleResponseAndLog( "  attempt to download non-fielddatapacket: " + packetLocalId, NetworkInterfaceConstants.INVALID_DATA );
-		}
+		boolean isHeaderPacket = BulletinHeaderPacket.isValidLocalId(packetLocalId);
+		boolean isFieldDataPacket = FieldDataPacket.isValidLocalId(packetLocalId);
+		boolean isAllowed = isHeaderPacket || isFieldDataPacket;
+		if(!isAllowed)
+			return returnSingleResponseAndLog( "  attempt to download disallowed packet type: " + packetLocalId, NetworkInterfaceConstants.INVALID_DATA );
 		
 		Database db = getDatabase();
 		
