@@ -24,7 +24,7 @@ Boston, MA 02111-1307, USA.
 
 */
 
-package org.martus.server.main;
+package org.martus.server.forclients;
 
 import java.util.Vector;
 
@@ -34,6 +34,7 @@ import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.packet.BulletinHeaderPacket;
+import org.martus.server.main.MartusServer;
 
 
 public abstract class SummaryCollector implements Database.PacketVisitor
@@ -59,7 +60,7 @@ public abstract class SummaryCollector implements Database.PacketVisitor
 		
 		if(!MartusServer.keyBelongsToClient(key, authorAccountId))
 			return;
-
+		
 		if(!isWanted(key))
 			return;
 		
@@ -84,7 +85,7 @@ public abstract class SummaryCollector implements Database.PacketVisitor
 	
 	public Vector collectSummaries()
 	{
-		getDatabase().visitAllRecords(this);
+		server.getStore().visitAllBulletins(this);
 		return summaries;	
 	}
 	
