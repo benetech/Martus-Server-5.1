@@ -32,14 +32,15 @@ import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Vector;
-import org.martus.amplifier.search.BulletinField;
 import org.martus.common.ContactInfo;
+import org.martus.common.CustomFields;
 import org.martus.common.FieldSpec;
 import org.martus.common.HQKey;
 import org.martus.common.HQKeys;
 import org.martus.common.LoggerInterface;
 import org.martus.common.MartusUtilities;
 import org.martus.common.MartusXml;
+import org.martus.common.StandardFieldSpecs;
 import org.martus.common.bulletin.BulletinConstants;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.database.Database;
@@ -367,11 +368,13 @@ public class CreateStatistics
 					String wasBurCreatedByThisServer = wasOriginalServer(burKey);
 					String dateBulletinWasSavedOnServer = getOriginalUploadDate(burKey);
 					getPacketInfo(key);
+					
 					String bulletinInfo =  getNormalizedString(key.getLocalId()) + DELIMITER +
 					getNormalizedString(martusVersionBulletionWasCreatedWith) + DELIMITER + 
 					getNormalizedString(bulletinType) + DELIMITER +
 					getNormalizedString(Integer.toString(bulletinSizeInKBytes)) + DELIMITER + 
 					getNormalizedString(allPrivate) + DELIMITER +
+					getNormalizedString(bulletinHasCustomFields) + DELIMITER +
 					getNormalizedString(bulletinSummary) + DELIMITER +
 					getNormalizedString(bulletinLanguage) + DELIMITER +
 					getNormalizedString(bulletinLocation) + DELIMITER +
@@ -415,6 +418,7 @@ public class CreateStatistics
 				bulletinKeywords = ERROR_MSG;
 				bulletinDateCreated = ERROR_MSG;
 				bulletinDateEvent = ERROR_MSG;
+				bulletinHasCustomFields = ERROR_MSG;
 				try
 				{
 					BulletinHeaderPacket bhp = MartusServer.loadBulletinHeaderPacket(fileDatabase, key, security);
@@ -426,17 +430,18 @@ public class CreateStatistics
 						bulletinKeywords = "";
 						bulletinDateCreated = "";
 						bulletinDateEvent = "";
+						bulletinHasCustomFields = "";
 						return;
 					}
 					String fieldDataPacketId = bhp.getFieldDataPacketId();
 					DatabaseKey fieldKey = DatabaseKey.createSealedKey(UniversalId.createFromAccountAndLocalId(
 						bhp.getAccountId(), fieldDataPacketId));
-						
-					FieldSpec[] fieldSpec = BulletinField.getDefaultSearchFieldSpecs();
+					FieldSpec[] standardPublicFieldSpecs = StandardFieldSpecs.getDefaultPublicFieldSpecs();
 					FieldDataPacket fdp = new FieldDataPacket(UniversalId.createFromAccountAndLocalId(
-						bhp.getAccountId(), fieldDataPacketId), fieldSpec);
+						bhp.getAccountId(), fieldDataPacketId), standardPublicFieldSpecs);
 					FileInputStreamWithSeek in = new FileInputStreamWithSeek(fileDatabase.getFileForRecord(fieldKey));
 					fdp.loadFromXml(in, bhp.getFieldDataSignature(), security);
+
 					in.close();
 					bulletinSummary = fdp.get(BulletinConstants.TAGSUMMARY);
 					bulletinLanguage = fdp.get(BulletinConstants.TAGLANGUAGE);
@@ -455,6 +460,12 @@ public class CreateStatistics
 					{
 						bulletinDateEvent = rawBeginDate;
 					}
+					
+					CustomFields customFields = new CustomFields(fdp.getFieldSpecs());
+					if(FieldDataPacket.isCustomFieldSpecs(customFields))
+						bulletinHasCustomFields = BULLETIN_HAS_CUSTOM_FIELDS_TRUE;
+					else
+						bulletinHasCustomFields = BULLETIN_HAS_CUSTOM_FIELDS_FALSE;
 				}
 				catch(Exception e)
 				{
@@ -642,6 +653,7 @@ public class CreateStatistics
 			String bulletinLanguage;
 			String bulletinLocation;
 			String bulletinKeywords;
+			String bulletinHasCustomFields;
 			String bulletinDateCreated;
 			String bulletinDateEvent;
 			int publicAttachmentCount;
@@ -784,6 +796,7 @@ public class CreateStatistics
 	final String BULLETIN_ORIGINALLY_UPLOADED_TO_THIS_SERVER = "original server";
 	final String BULLETIN_DATE_UPLOADED = "date uploaded";
 	final String BULLETIN_DATE_LAST_SAVED = "date last saved";
+	final String BULLETIN_HAS_CUSTOM_FIELDS = "has custom fields";
 	final String BULLETIN_HAS_UNKNOWN_TAGS = "has unknown tags";
 	final String BULLETIN_ALL_HQS_PROXY_UPLOAD = "all HQs proxy upload";
 	final String BULLETIN_AUTHORIZED_TO_READ = "HQs authorized to read";
@@ -799,6 +812,8 @@ public class CreateStatistics
 	final String BULLETIN_HAS_UNKNOWN_TAGS_FALSE = "0";
 	final String BULLETIN_ALL_HQS_PROXY_UPLOAD_TRUE = "1";
 	final String BULLETIN_ALL_HQS_PROXY_UPLOAD_FALSE = "0";
+	final String BULLETIN_HAS_CUSTOM_FIELDS_TRUE = "1";
+	final String BULLETIN_HAS_CUSTOM_FIELDS_FALSE = "0";
 	
 	final String BULLETIN_STATISTICS_HEADER = 
 		getNormalizedString(BULLETIN_HEADER_PACKET) + DELIMITER +
@@ -806,6 +821,7 @@ public class CreateStatistics
 		getNormalizedString(BULLETIN_TYPE) + DELIMITER +
 		getNormalizedString(BULLETIN_SIZE) + DELIMITER +
 		getNormalizedString(BULLETIN_ALL_PRIVATE) + DELIMITER +
+		getNormalizedString(BULLETIN_HAS_CUSTOM_FIELDS) + DELIMITER +
 		getNormalizedString(BULLETIN_SUMMARY) + DELIMITER +
 		getNormalizedString(BULLETIN_LANGUAGE) + DELIMITER +
 		getNormalizedString(BULLETIN_LOCATION) + DELIMITER +
