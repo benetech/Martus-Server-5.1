@@ -232,8 +232,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	{
 		System.out.print("Server Public Code: ");
 		String accountId = getAccountId();
-		String publicCode = MartusCrypto.computePublicCode(accountId);
-		System.out.println(MartusCrypto.formatPublicCode(publicCode));
+		System.out.println(MartusCrypto.computeFormattedPublicCode(accountId));
 		System.out.println();
 	}
 
@@ -1201,8 +1200,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		String formattedCode = "";
 		try 
 		{
-			String publicCode = MartusCrypto.computePublicCode(clientId);
-			formattedCode = MartusCrypto.formatPublicCode(publicCode);
+			formattedCode = MartusCrypto.computeFormattedPublicCode(clientId);
 		} 
 		catch(InvalidBase64Exception e) 
 		{

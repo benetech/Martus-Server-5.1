@@ -93,8 +93,7 @@ public class IsPassphraseValid
 		try
 		{
 			MartusSecurity security = (MartusSecurity) MartusServerUtilities.loadCurrentMartusSecurity(keyPairFile, passphrase.toCharArray());
-			String publicCode = MartusCrypto.computePublicCode(security.getPublicKeyString());
-			System.out.println("Public Code: " + MartusCrypto.formatPublicCode(publicCode));
+			System.out.println("Public Code: " + MartusCrypto.computeFormattedPublicCode(security.getPublicKeyString()));
 			System.exit(0);
 		}
 		catch (AuthorizationFailedException e)

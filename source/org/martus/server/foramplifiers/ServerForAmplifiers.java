@@ -275,8 +275,7 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 		String formattedCode = "";
 		try 
 		{
-			String publicCode = MartusCrypto.computePublicCode(clientId);
-			formattedCode = MartusCrypto.formatPublicCode(publicCode);
+			formattedCode = MartusCrypto.computeFormattedPublicCode(clientId);
 		} 
 		catch(InvalidBase64Exception e) 
 		{
