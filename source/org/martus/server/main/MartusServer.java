@@ -78,7 +78,6 @@ import org.martus.common.packet.Packet.InvalidPacketException;
 import org.martus.common.packet.Packet.SignatureVerificationException;
 import org.martus.common.packet.Packet.WrongPacketTypeException;
 import org.martus.common.utilities.MartusServerUtilities;
-import org.martus.common.utilities.XmlRpcThread;
 import org.martus.common.utilities.MartusServerUtilities.DuplicatePacketException;
 import org.martus.common.utilities.MartusServerUtilities.SealedPacketExistsException;
 import org.martus.server.foramplifiers.ServerForAmplifiers;
@@ -88,6 +87,7 @@ import org.martus.util.Base64;
 import org.martus.util.InputStreamWithSeek;
 import org.martus.util.UnicodeReader;
 import org.martus.util.Base64.InvalidBase64Exception;
+import org.martus.util.xmlrpc.XmlRpcThread;
 
 public class MartusServer implements NetworkInterfaceConstants, ServerCallbackInterface
 {
