@@ -34,6 +34,7 @@ import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.packet.BulletinHeaderPacket;
+import org.martus.common.packet.BulletinHistory;
 import org.martus.server.main.MartusServer;
 
 
@@ -109,9 +110,9 @@ public abstract class SummaryCollector implements Database.PacketVisitor
 			else if(tag.equals(NetworkInterfaceConstants.TAG_BULLETIN_HISTORY))
 			{
 				StringBuffer localIds = new StringBuffer();
-				Vector history = bhp.getHistory();
+				BulletinHistory history = bhp.getHistory();
 				for(int i = 0; i < history.size(); ++i)
-					localIds.append((String)history.get(i) + " ");
+					localIds.append(history.get(i) + " ");
 				summary += BulletinSummary.fieldDelimeter + new String(localIds);
 			}
 			else
