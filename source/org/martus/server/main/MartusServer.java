@@ -2170,6 +2170,8 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		
 		synchronized void protectedRun()
 		{
+			if(isShutdownRequested())
+				return;
 			if(isMirrorListenerEnabled())
 				serverForMirroring.doBackgroundTick();
 			if(MartusServer.needsAmpSync)
