@@ -75,17 +75,16 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 		amplifierHandler = new ServerSideAmplifierHandler(this);
 	}
 	
+	public Vector getDeleteOnStartupFiles()
+	{
+		Vector startupFiles = new Vector();
+		startupFiles.add(getClientsNotToAmplifiyFile());
+		return startupFiles;
+	}
+	
 	public void deleteStartupFiles()
 	{
-		File notAmplifiedFile = getClientsNotToAmplifiyFile();
-		if(notAmplifiedFile.exists())
-		{	
-			if(!notAmplifiedFile.delete())
-			{
-				System.out.println("Unable to delete " + notAmplifiedFile.getAbsolutePath() );
-				System.exit(15);
-			}
-		}
+		MartusUtilities.deleteAllFiles(getDeleteOnStartupFiles());
 	}
 	
 

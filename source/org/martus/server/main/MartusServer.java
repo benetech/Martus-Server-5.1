@@ -103,10 +103,13 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			server.processCommandLine(args);
 			server.deleteRunningFile();
 
+			if(server.anyUnexpectedFilesInStartupDirectory())
+				System.exit(EXIT_UNEXPECTED_FILE_STARTUP);
+			
 			if(!server.hasAccount())
 			{
 				System.out.println("***** Key pair file not found *****");
-				System.exit(2);
+				System.exit(EXIT_KEYPAIR_FILE_MISSING);
 			}
 
 			char[] passphrase = server.insecurePassword;
@@ -124,7 +127,9 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			server.initializeServerForAmplifiers();
 			server.initalizeAmplifier(passphrase);
 
-			server.deleteStartupFiles();
+			if(!server.deleteStartupFiles())
+				System.exit(EXIT_STARTUP_DIRECTORY_NOT_EMPTY);
+			
 			server.startBackgroundTimers();
 			
 			MartusServer.writeSyncFile(server.getRunningFile());
@@ -132,29 +137,29 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			   !server.isClientListenerEnabled() && !server.isMirrorListenerEnabled())
 			{				
 				System.out.println("No listeners or web amplifier enabled... Exiting.");
-				server.serverExit(20);
+				server.serverExit(EXIT_NO_LISTENERS);
 			}
 			System.out.println("Waiting for connection...");
 		}
 		catch(CryptoInitializationException e) 
 		{
 			System.out.println("Crypto Initialization Exception" + e);
-			System.exit(1);			
+			System.exit(EXIT_CRYPTO_INITIALIZATION);			
 		}
 		catch (AuthorizationFailedException e)
 		{
 			System.out.println("Invalid password: " + e);
-			System.exit(73);
+			System.exit(EXIT_INVALID_PASSWORD);
 		}
 		catch (UnknownHostException e)
 		{
 			System.out.println("ipAddress invalid: " + e);
-			System.exit(23);
+			System.exit(EXIT_INVALID_IPADDRESS);
 		}
 		catch (Exception e)
 		{
 			System.out.println("MartusServer.main: " + e);
-			System.exit(3);
+			System.exit(EXIT_UNEXPECTED_EXCEPTION);
 		}
 			
 	}
@@ -186,6 +191,24 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		serverForAmplifiers = new ServerForAmplifiers(this, getLogger());
 		amp = new MartusAmplifier(this);
 		failedUploadRequestsPerIp = new Hashtable();
+	}
+	
+	public boolean anyUnexpectedFilesInStartupDirectory()
+	{
+		Vector startupFilesWeExpect = getDeleteOnStartupFiles();
+		File[] allFilesInStartupDirectory = getStartupConfigDirectory().listFiles();
+		for(int i = 0; i<allFilesInStartupDirectory.length; ++i)
+		{
+			File file = allFilesInStartupDirectory[i];
+			if(!file.isFile())
+				continue;
+			if(!startupFilesWeExpect.contains(file))
+			{	
+				log("Startup File not expected =" + file.getAbsolutePath());
+				return true;
+			}
+		}
+		return false;
 	}
 
 	protected void startBackgroundTimers()
@@ -1378,38 +1401,45 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		return getDatabase().getFolderForAccount(clientId);
 	}
 	
-	public void deleteStartupFiles()
+	private Vector getMainServersDeleteOnStartupFiles()
+	{
+		Vector startupFiles = new Vector();
+		startupFiles.add(getKeyPairFile());
+		startupFiles.add(getHiddenPacketsFile());
+		startupFiles.add(getComplianceFile());
+		return startupFiles;
+		
+	}
+	public Vector getDeleteOnStartupFiles()
+	{
+		Vector startupFiles = new Vector();
+		startupFiles.addAll(getMainServersDeleteOnStartupFiles());
+		startupFiles.addAll(amp.getDeleteOnStartupFiles());
+		startupFiles.addAll(serverForClients.getDeleteOnStartupFiles());
+		startupFiles.addAll(serverForAmplifiers.getDeleteOnStartupFiles());
+		startupFiles.addAll(serverForMirroring.getDeleteOnStartupFiles());
+		return startupFiles;
+	}
+	
+	public boolean deleteStartupFiles()
 	{
 		if(!isSecureMode())
-			return;
+			return true;
 
+		MartusUtilities.deleteAllFiles(getMainServersDeleteOnStartupFiles());
 		amp.deleteAmplifierStartupFiles();
 		serverForClients.deleteStartupFiles();
 		serverForAmplifiers.deleteStartupFiles();
 		serverForMirroring.deleteStartupFiles();
 		
-		if(!getKeyPairFile().delete())
+		File startupDir = getStartupConfigDirectory();
+		File[] remainingStartupFiles = startupDir.listFiles();
+		if(remainingStartupFiles.length != 0)
 		{
-			System.out.println("Unable to delete keypair");
-			System.exit(5);
+			log("Files still exist in the folder: " + startupDir.getAbsolutePath());
+			return false;
 		}
-
-		if(!getHiddenPacketsFile().delete())
-		{
-			System.out.println("Unable to delete isHidden");
-			System.exit(5);
-		}
-
-		if(getComplianceFile().exists())
-		{
-			if(!getComplianceFile().delete())
-			{
-				System.out.println("Unable to delete " + getComplianceFile().getAbsolutePath() );
-				System.exit(5);
-			}
-		}
-
-
+		return true;
 	}
 
 	public boolean isShutdownRequested()
@@ -1787,7 +1817,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		catch(Exception e)
 		{
 			System.out.println("MartusServer.main: " + e);
-			System.exit(3);
+			System.exit(EXIT_UNEXPECTED_EXCEPTION);
 		}
 		return passphrase.toCharArray();
 	}
@@ -2130,6 +2160,15 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 
 	public char[] insecurePassword;
 	public long amplifierDataSynchIntervalMillis;
+	
+	private static final int EXIT_CRYPTO_INITIALIZATION = 1;
+	private static final int EXIT_KEYPAIR_FILE_MISSING = 2;
+	private static final int EXIT_UNEXPECTED_EXCEPTION = 3;
+	private static final int EXIT_UNEXPECTED_FILE_STARTUP = 4;
+	private static final int EXIT_STARTUP_DIRECTORY_NOT_EMPTY = 5;
+	private static final int EXIT_NO_LISTENERS = 20;
+	private static final int EXIT_INVALID_IPADDRESS = 23;
+	private static final int EXIT_INVALID_PASSWORD = 73;
 	
 	private static final String KEYPAIRFILENAME = "keypair.dat";
 	private static final String HIDDENPACKETSFILENAME = "isHidden.txt";

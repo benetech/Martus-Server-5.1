@@ -26,8 +26,6 @@ Boston, MA 02111-1307, USA.
 
 package org.martus.server.main;
 
-import org.martus.common.test.*;
-
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
@@ -47,7 +45,7 @@ public class TestServerCore
 	{
 		TestSuite suite= new TestSuite("All Server Core Martus Tests");
 
-		suite.addTest(new TestSuite(TestServerFileDatabase.class));
+		suite.addTest(new TestSuite(TestServerDeleteStartupFiles.class));
 
 	    return suite;
 	}

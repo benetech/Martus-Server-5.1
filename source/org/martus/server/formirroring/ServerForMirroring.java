@@ -56,9 +56,16 @@ public class ServerForMirroring implements ServerSupplierInterface
 		logger = loggerToUse;
 	}
 
+	public Vector getDeleteOnStartupFiles()
+	{
+		Vector startupFiles = new Vector();
+		startupFiles.add(getMirrorConfigFile());
+		return startupFiles;
+	}
+	
 	public void deleteStartupFiles()
 	{
-		deleteConfigurationFiles();
+		MartusUtilities.deleteAllFiles(getDeleteOnStartupFiles());
 	}
 	
 	public void log(String message)
@@ -94,19 +101,6 @@ public class ServerForMirroring implements ServerSupplierInterface
 		log("Authorized " + authorizedCallers.size() + " Mirrors to call us");
 	}
 	
-	private void deleteConfigurationFiles()
-	{
-		File mirrorConfigFile = getMirrorConfigFile();
-		if(mirrorConfigFile.exists())
-		{	
-			if(!mirrorConfigFile.delete())
-			{
-				System.out.println("Unable to delete " + mirrorConfigFile.getAbsolutePath() );
-				System.exit(21);
-			}
-		}
-	}
-
 	public void addListeners() throws IOException, InvalidPublicKeyFileException, PublicInformationInvalidException
 	{
 		log("Initializing ServerForMirroring");

@@ -55,10 +55,17 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		activeWebServers = new Vector();
 	}
 	
+	public Vector getDeleteOnStartupFiles()
+	{
+		Vector startupFiles = new Vector();
+		startupFiles.add(getMagicWordsFile());
+		startupFiles.add(getBannedFile());
+		return startupFiles;
+	}
+	
 	public void deleteStartupFiles()
 	{
-		deleteMagicWordsFile();
-		deleteBannedFile();
+		MartusUtilities.deleteAllFiles(getDeleteOnStartupFiles());
 	}
 	
 	public MartusCrypto getSecurity()
@@ -318,18 +325,6 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		}
 	}
 
-	private void deleteBannedFile()
-	{
-		File bannedFile = getBannedFile();
-		if(!bannedFile.exists())
-			return;
-		if(!bannedFile.delete())
-		{
-			System.out.println("Unable to delete " + bannedFile.getAbsolutePath() );
-			System.exit(5);
-		}
-	}
-
 	public boolean isValidMagicWord(String tryMagicWord)
 	{
 		return (magicWords.isValidMagicWord(tryMagicWord));
@@ -348,18 +343,6 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	void loadMagicWordsFile() throws IOException
 	{
 		magicWords.loadMagicWords(getMagicWordsFile());
-	}
-
-	private void deleteMagicWordsFile()
-	{
-		File magicWordsFile = getMagicWordsFile();
-		if(!magicWordsFile.exists())
-			return;
-		if(!magicWordsFile.delete())
-		{
-			System.out.println("Unable to delete magicwords");
-			System.exit(4);
-		}
 	}
 
 	public synchronized void allowUploads(String clientId)
