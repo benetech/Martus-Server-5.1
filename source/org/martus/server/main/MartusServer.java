@@ -30,7 +30,6 @@ import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -276,7 +275,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			serverForAmplifiers.loadConfigurationFiles();
 
 		//Tests will fail if compliance isn't last.
-		loadHiddenPacketsFile();
+		MartusServerUtilities.loadHiddenPacketsFile(getHiddenPacketsFile(), getDatabase(), getLogger());
 		loadComplianceStatementFile();
 	}
 
@@ -2066,59 +2065,58 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		return new File(getStartupConfigDirectory(), HIDDENPACKETSFILENAME);
 	}
 	
-	public void loadHiddenPacketsFile()
-	{
-		File isHiddenFile = getHiddenPacketsFile();
-		try
-		{
-			UnicodeReader reader = new UnicodeReader(isHiddenFile);
-			loadHiddenPacketsList(reader, database, getLogger());
-		}
-		catch(FileNotFoundException nothingToWorryAbout)
-		{
-			log("Deleted packets file not found: " + isHiddenFile.getName());
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-			log("Error loading Deleted Packets file: " + isHiddenFile.getName());
-		}
-	}
-
-	public static void loadHiddenPacketsList(UnicodeReader reader, Database db, LoggerInterface logger) throws IOException, InvalidBase64Exception
-	{
-		String accountId = null;
-		try
-		{
-			while(true)
-			{
-				String thisLine = reader.readLine();
-				if(thisLine == null)
-					return;
-				if(thisLine.startsWith(" "))
-					hidePackets(db, accountId, thisLine, logger);
-				else
-					accountId = thisLine;
-			}
-		}
-		finally
-		{
-			reader.close();
-		}
-	}
-	
-	static void hidePackets(Database db, String accountId, String packetList, LoggerInterface logger) throws InvalidBase64Exception
-	{
-		String publicCode = MartusCrypto.getFormattedPublicCode(accountId);
-		String[] packetIds = packetList.trim().split("\\s+");
-		for (int i = 0; i < packetIds.length; i++)
-		{
-			String localId = packetIds[i].trim();
-			UniversalId uid = UniversalId.createFromAccountAndLocalId(accountId, localId);
-			db.hide(uid);
-			logger.log("Deleting " + publicCode + ": " + localId);
-		}
-	}
+//	public static void loadHiddenPacketsFile(File hiddenFile, Database database, LoggerInterface logger)
+//	{		
+//		try
+//		{
+//			UnicodeReader reader = new UnicodeReader(hiddenFile);
+//			loadHiddenPacketsList(reader, database, logger);
+//		}
+//		catch(FileNotFoundException nothingToWorryAbout)
+//		{
+//			logger.log("Deleted packets file not found: " + hiddenFile.getName());
+//		}
+//		catch (Exception e)
+//		{
+//			e.printStackTrace();
+//			logger.log("Error loading Deleted Packets file: " + hiddenFile.getName());
+//		}
+//	}
+//
+//	public static void loadHiddenPacketsList(UnicodeReader reader, Database db, LoggerInterface logger) throws IOException, InvalidBase64Exception
+//	{
+//		String accountId = null;
+//		try
+//		{
+//			while(true)
+//			{
+//				String thisLine = reader.readLine();
+//				if(thisLine == null)
+//					return;
+//				if(thisLine.startsWith(" "))
+//					hidePackets(db, accountId, thisLine, logger);
+//				else
+//					accountId = thisLine;
+//			}
+//		}
+//		finally
+//		{
+//			reader.close();
+//		}
+//	}
+//	
+//	static void hidePackets(Database db, String accountId, String packetList, LoggerInterface logger) throws InvalidBase64Exception
+//	{
+//		String publicCode = MartusCrypto.getFormattedPublicCode(accountId);
+//		String[] packetIds = packetList.trim().split("\\s+");
+//		for (int i = 0; i < packetIds.length; i++)
+//		{
+//			String localId = packetIds[i].trim();
+//			UniversalId uid = UniversalId.createFromAccountAndLocalId(accountId, localId);
+//			db.hide(uid);
+//			logger.log("Deleting " + publicCode + ": " + localId);
+//		}
+//	}
 	
 	public File getDataDirectory()
 	{
