@@ -180,7 +180,7 @@ public class TestServerForClients extends TestCaseEnhanced
 		
 		String bogusStringParameter = "this is never used in this call. right?";
 
-		testServer.allowUploads(clientId);
+		testServer.allowUploads(clientId, null);
 		testServer.loadBannedClients(tempBanned);
 
 		Vector vecResult = null;

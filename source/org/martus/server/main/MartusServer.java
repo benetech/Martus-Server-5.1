@@ -458,9 +458,8 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			incrementFailedUploadRequestsForCurrentClientIp();
 			return NetworkInterfaceConstants.REJECTED;
 		}
-		log("requestUploadRights granted to: " + getPublicCode(clientId) + " with magicword=" + tryMagicWord);
-			
-		serverForClients.allowUploads(clientId);
+		
+		serverForClients.allowUploads(clientId, tryMagicWord);
 		return NetworkInterfaceConstants.OK;
 	}
 	

@@ -445,7 +445,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		String clientNotAuthorized = testServer.putContactInfo(clientId, contactInfo);
 		assertEquals("Client has not been authorized should not accept contact info", REJECTED, clientNotAuthorized);
 
-		testServer.serverForClients.allowUploads(clientId);
+		testServer.serverForClients.allowUploads(clientId, null);
 		String resultIncomplete = testServer.putContactInfo(clientId, contactInfo);
 		assertEquals("Empty ok?", INVALID_DATA, resultIncomplete);
 
@@ -515,7 +515,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		String clientNotAuthorized = testServer.putContactInfo(clientId, contactInfoManual);
 		assertEquals("Client has not been authorized should not accept contact info", REJECTED, clientNotAuthorized);
 
-		testServer.serverForClients.allowUploads(clientId);
+		testServer.serverForClients.allowUploads(clientId, null);
 		String resultIncomplete = testServer.putContactInfo(clientId, contactInfoManual);
 		assertEquals("Empty ok?", INVALID_DATA, resultIncomplete);
 

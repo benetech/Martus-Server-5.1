@@ -35,6 +35,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Vector;
 
+import org.martus.common.MagicWordEntry;
 import org.martus.common.MagicWords;
 import org.martus.common.MartusUtilities;
 import org.martus.common.MartusUtilities.FileVerificationException;
@@ -332,10 +333,26 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			System.exit(12);
 		}
 	}
-
-	public boolean isValidMagicWord(String tryMagicWord)
+	
+	public String getGroupNameForMagicWord(String tryMagicWord)
 	{
-		return (magicWords.isValidMagicWord(tryMagicWord));
+		MagicWordEntry entry = magicWords.getMagicWordEntry(tryMagicWord);
+		if(entry==null)
+			return "";
+		return entry.getGroupName();
+	}
+
+	public String getHumanReadableMagicWord(String magicWordToUse)
+	{
+		MagicWordEntry entry = magicWords.getMagicWordEntry(magicWordToUse);
+		if(entry==null)
+			return "";
+		return entry.getMagicWord();
+	}
+	
+	public boolean isValidMagicWord(String magicWordToUse)
+	{
+		return (magicWords.isValidMagicWord(magicWordToUse));
 	}
 	
 	public void addMagicWordForTesting(String newMagicWordInfo, String groupInfo)
@@ -353,9 +370,13 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		magicWords.loadMagicWords(getMagicWordsFile());
 	}
 
-	public synchronized void allowUploads(String clientId)
+	public synchronized void allowUploads(String clientId, String magicWordUsed)
 	{
-		log("allowUploads " + coreServer.getClientAliasForLogging(clientId) + " : " + getPublicCode(clientId));
+		String magicWord = getHumanReadableMagicWord(magicWordUsed);
+		String groupName = getGroupNameForMagicWord(magicWordUsed);
+		String publicCode = getPublicCode(clientId);
+		
+		log("allowUploads granted to" + coreServer.getClientAliasForLogging(clientId) + " : " + publicCode + " groupName= " + groupName + " with magicword=" + magicWord);
 		clientsThatCanUpload.add(clientId);
 		
 		try

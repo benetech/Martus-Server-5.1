@@ -363,7 +363,7 @@ public class MockMartusServer extends MartusServer implements ServerForClientsIn
 
 	public void allowUploads(String clientId)
 	{
-		serverForClients.allowUploads(clientId);
+		serverForClients.allowUploads(clientId, null);
 	}
 
 	public boolean shouldSimulateBadConnection()
