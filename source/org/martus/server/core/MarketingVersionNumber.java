@@ -26,7 +26,7 @@ Boston, MA 02111-1307, USA.
 
 package org.martus.server.core;
 
-public class ServerConstants
+public class MarketingVersionNumber
 {
 	public static final String marketingVersionNumber = "1.5";
 }

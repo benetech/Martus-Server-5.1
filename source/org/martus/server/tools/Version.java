@@ -26,12 +26,12 @@ Boston, MA 02111-1307, USA.
 
 package org.martus.server.tools;
 
-import org.martus.server.core.ServerConstants;
+import org.martus.server.core.MarketingVersionNumber;
 
 public class Version
 {
 	public static void main(String[] args)
 	{
-		System.out.println(ServerConstants.marketingVersionNumber);
+		System.out.println(MarketingVersionNumber.marketingVersionNumber);
 	}
 }

@@ -47,6 +47,7 @@ import java.util.Vector;
 import org.martus.common.LoggerInterface;
 import org.martus.common.LoggerToConsole;
 import org.martus.common.MartusUtilities;
+import org.martus.common.VersionBuildDate;
 import org.martus.common.XmlRpcThread;
 import org.martus.common.MartusUtilities.FileTooLargeException;
 import org.martus.common.MartusUtilities.FileVerificationException;
@@ -79,7 +80,7 @@ import org.martus.common.packet.Packet.WrongPacketTypeException;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.common.utilities.MartusServerUtilities.DuplicatePacketException;
 import org.martus.common.utilities.MartusServerUtilities.SealedPacketExistsException;
-import org.martus.server.core.ServerConstants;
+import org.martus.server.core.MarketingVersionNumber;
 import org.martus.server.foramplifiers.ServerForAmplifiers;
 import org.martus.server.formirroring.ServerForMirroring;
 import org.martus.util.Base64;
@@ -1725,8 +1726,8 @@ public class MartusServer implements NetworkInterfaceConstants
 	private static void displayVersion()
 	{
 		System.out.println("MartusServer");
-		System.out.println("Version " + ServerConstants.marketingVersionNumber);
-		String versionInfo = MartusUtilities.getVersionDate();
+		System.out.println("Version " + MarketingVersionNumber.marketingVersionNumber);
+		String versionInfo = VersionBuildDate.getVersionBuildDate();
 		System.out.println("Build Date " + versionInfo);
 	}
 
