@@ -45,7 +45,50 @@ public class CreateStatistics
 	{
 		try
 		{
-			new CreateStatistics(args);
+			boolean prompt = true;
+			boolean deletePrevious = false;
+			File dataDir = null;
+			File destinationDir = null;
+			File keyPairFile = null;
+
+			for (int i = 0; i < args.length; i++)
+			{
+				if(args[i].startsWith("--no-prompt"))
+					prompt = false;
+			
+				if(args[i].startsWith("--delete-previous"))
+					deletePrevious = true;
+			
+				String value = args[i].substring(args[i].indexOf("=")+1);
+				if(args[i].startsWith("--packet-directory="))
+					dataDir = new File(value);
+				
+				if(args[i].startsWith("--keypair"))
+					keyPairFile = new File(value);
+				
+				if(args[i].startsWith("--destination-directory"))
+					destinationDir = new File(value);
+			}
+			
+			if(destinationDir == null || dataDir == null || keyPairFile == null)
+			{
+				System.err.println("Incorrect arguments: CreateStatistics [--no-prompt] [--delete-previous] --packet-directory=<packetdir> --keypair-file=<keypair> --destination-directory=<destinationdir>\n");
+				System.exit(2);
+			}
+			
+			destinationDir.mkdirs();
+			if(prompt)
+			{
+				System.out.print("Enter server passphrase:");
+				System.out.flush();
+			}
+			
+			BufferedReader reader = new BufferedReader(new UnicodeReader(System.in));
+			//TODO password is a string
+			String passphrase = reader.readLine();
+			MartusCrypto security = MartusServerUtilities.loadCurrentMartusSecurity(keyPairFile, passphrase.toCharArray());
+
+			new CreateStatistics(security, dataDir, destinationDir, deletePrevious);
 		}
 		catch(Exception e)
 		{
@@ -53,31 +96,22 @@ public class CreateStatistics
 			e.printStackTrace();
 			System.exit(1);
 		}
+		System.out.println("Done!");
+		System.exit(0);
 	}
 	
-	public CreateStatistics(String[] args) throws Exception
+	public CreateStatistics(MartusCrypto securityToUse, File dataDirToUse, File destinationDirToUse, boolean deletePreviousToUse) throws Exception
 	{
-		processArgs(args);
-		if(prompt)
-		{
-			System.out.print("Enter server passphrase:");
-			System.out.flush();
-		}
-		
-		BufferedReader reader = new BufferedReader(new UnicodeReader(System.in));
-		//TODO password is a string
-		String passphrase = reader.readLine();
-		security = MartusServerUtilities.loadCurrentMartusSecurity(keyPairFile, passphrase.toCharArray());
-
-		fileDatabase = new ServerFileDatabase(dataDir, security);
+		security = securityToUse;
+		deletePrevious = deletePreviousToUse;
+		destinationDir = destinationDirToUse;
+		fileDatabase = new ServerFileDatabase(dataDirToUse, security);
 		fileDatabase.initialize();
 		
 		CreateAccountStatistics();
 //		CreateBulletinStatistics();
 //		CreatePacketStatistics();
 //		CreateMagicWordStatistics();
-		System.out.println("Done!");
-		System.exit(0);
 	}
 	
 	private void CreateAccountStatistics() throws Exception
@@ -93,28 +127,8 @@ public class CreateStatistics
 		writer.writeln(ACCOUNT_STATISTICS_HEADER);
 		fileDatabase.visitAllAccounts(new AccountVisitor(writer));
 		writer.close();
-		
-	}
-	
-/*	private void CreateBulletinStatistics()
-	{
-		System.out.println("Creating Bulletin Statistics");
-
 	}
 
-	private void CreatePacketStatistics()
-	{
-		System.out.println("Creating Packet Statistics");
-
-	}
-
-	private void CreateMagicWordStatistics()
-	{
-		System.out.println("Creating Magic Word Statistics");
-
-	}
-*/
-	
 	class AccountVisitor implements Database.AccountVisitor 
 	{
 		public AccountVisitor(UnicodeWriter writerToUse)
@@ -198,6 +212,26 @@ public class CreateStatistics
 		private UnicodeWriter writer;
 	}
 	
+/*	private void CreateBulletinStatistics()
+	{
+		System.out.println("Creating Bulletin Statistics");
+
+	}
+
+	private void CreatePacketStatistics()
+	{
+		System.out.println("Creating Packet Statistics");
+
+	}
+
+	private void CreateMagicWordStatistics()
+	{
+		System.out.println("Creating Magic Word Statistics");
+
+	}
+*/
+
+	
 	String getNormalizedString(Object rawdata)
 	{
 		String data = (String)rawdata;
@@ -206,44 +240,10 @@ public class CreateStatistics
 		return "\"" + normalized + "\"";
 	}
 	
-	private void processArgs(String[] args)
-	{
-		prompt = true;
-		for (int i = 0; i < args.length; i++)
-		{
-			if(args[i].startsWith("--no-prompt"))
-				prompt = false;
-		
-			if(args[i].startsWith("--delete-previous"))
-				deletePrevious = true;
-
-			String value = args[i].substring(args[i].indexOf("=")+1);
-			if(args[i].startsWith("--packet-directory="))
-				dataDir = new File(value);
-			
-			if(args[i].startsWith("--keypair"))
-				keyPairFile = new File(value);
-			
-			if(args[i].startsWith("--destination-directory"))
-				destinationDir = new File(value);
-		}
-
-		if(destinationDir == null || dataDir == null || keyPairFile == null)
-		{
-			System.err.println("Incorrect arguments: CreateStatistics [--no-prompt] [--delete-previous] --packet-directory=<packetdir> --keypair-file=<keypair> --destination-directory=<destinationdir>\n");
-			System.exit(2);
-		}
-		
-		destinationDir.mkdirs();
-	}
-	
-	private boolean prompt;
 	private boolean deletePrevious;
+	private MartusCrypto security;
+	private File destinationDir;
 	FileDatabase fileDatabase;
-	private File dataDir = null;
-	private File destinationDir = null;
-	private File keyPairFile = null;
-	private MartusCrypto security = null;
 	
 	final String DELIMITER = ",";
 	final String ACCOUNT_STATS_FILE_NAME = "accounts.csv";
