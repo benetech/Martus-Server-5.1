@@ -1858,6 +1858,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		String enableClientListenerTag = "--client-listener";
 		String enableMirrorListenerTag = "--mirror-listener";
 		String enableAmplifierListenerTag = "--amplifier-listener";
+		String simulateBadConnectionTag = "--simulate-bad-connection";
 		
 		setAmplifierEnabled(false);
 		String amplifierIndexingMessage = "";
@@ -1878,6 +1879,8 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 				setListenersIpAddress(argument.substring(listenersIpTag.length()));
 			if(argument.equals(noPasswordTag))
 				insecurePassword = "password".toCharArray();
+			if(argument.equals(simulateBadConnectionTag))
+				simulateBadConnection = true;
 			if(argument.startsWith(ampipTag))
 				setAmpIpAddress(argument.substring(ampipTag.length()));
 
@@ -1908,6 +1911,9 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			System.out.println("Running in SECURE mode");
 		else
 			System.out.println("***RUNNING IN INSECURE MODE***");
+			
+		if(simulateBadConnection)
+			System.out.println("***SIMULATING BAD CONNECTIONS!!!***");
 		
 		if(isClientListenerEnabled())
 			System.out.println("Client listener enabled on " + getListenersIpAddress());
@@ -2121,6 +2127,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	private boolean secureMode;
 	private static String listenersIpAddress; 
 	private String ampIpAddress;
+	public boolean simulateBadConnection;
 
 	public char[] insecurePassword;
 	public long amplifierDataSynchIntervalMillis;

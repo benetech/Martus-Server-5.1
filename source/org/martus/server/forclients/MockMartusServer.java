@@ -366,6 +366,11 @@ public class MockMartusServer extends MartusServer implements ServerForClientsIn
 		serverForClients.allowUploads(clientId);
 	}
 
+	public boolean shouldSimulateBadConnection()
+	{
+		return false;
+	}
+
 	public String mockUploadBulletin(String authorAccountId, String bulletinLocalId, String data)
 	{
 		if(!canClientUpload(authorAccountId))
@@ -414,5 +419,4 @@ public class MockMartusServer extends MartusServer implements ServerForClientsIn
 	private String authenticateResponse;
 	
 	public static final String CLIENT_IP_ADDRESS = "192.168.1.123";
-
 }

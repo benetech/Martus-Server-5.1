@@ -51,4 +51,5 @@ public interface ServerForClientsInterface
 	public Vector listFieldOfficeDraftBulletinIds(String myAccountId, String authorAccountId, Vector retrieveTags);
 	public Vector listFieldOfficeSealedBulletinIds(String myAccountId, String authorAccountId, Vector retrieveTags);
 	public Vector listMyDraftBulletinIds(String authorAccountId, Vector retrieveTags);
+	public boolean shouldSimulateBadConnection();
 }

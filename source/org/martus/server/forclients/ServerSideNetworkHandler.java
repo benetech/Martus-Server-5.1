@@ -52,6 +52,20 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 		server.clientConnectionStart();
 		log("getServerInfo");
 		
+		if(server.shouldSimulateBadConnection())
+		{
+			log("WARNING: Simulating bad connection!");
+			int ONE_MINUTE_OF_MILLIS = 60*1000;
+			try
+			{
+				Thread.sleep(ONE_MINUTE_OF_MILLIS);
+			}
+			catch (InterruptedException e)
+			{
+				e.printStackTrace();
+			}
+		}
+		
 		String version = server.ping();
 		Vector data = new Vector();
 		data.add(version);

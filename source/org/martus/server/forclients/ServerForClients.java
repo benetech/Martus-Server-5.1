@@ -177,6 +177,11 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		activeClientsCounter--;
 	}
 	
+	public boolean shouldSimulateBadConnection()
+	{
+		return coreServer.simulateBadConnection;
+	}
+	
 	public void handleNonSSL(int[] ports) throws UnknownHostException
 	{
 		ServerSideNetworkHandlerForNonSSL nonSSLServerHandler = new ServerSideNetworkHandlerForNonSSL(this);
