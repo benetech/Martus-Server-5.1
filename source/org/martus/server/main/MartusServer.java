@@ -479,6 +479,9 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		if(!isSignatureCorrect(signedString, signature, authorAccountId))
 		{
 			log("  returning SIG_ERROR");
+			log("Account: " + MartusCrypto.formatAccountIdForLog(authorAccountId));
+			log("signedString: " + signedString.toString());
+			log("signature: " + signature);
 			return NetworkInterfaceConstants.SIG_ERROR;
 		}
 		
@@ -910,15 +913,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			Vector contactInfo = MartusServerUtilities.getContactInfo(contactFile);
 			if(!security.verifySignatureOfVectorOfStrings(contactInfo, accountId))
 			{
-				String accountInfo = accountId;
-				try
-				{
-					accountInfo = MartusSecurity.getFormattedPublicCode(accountId);
-				}
-				catch (InvalidBase64Exception justUseAccountIdInstead)
-				{
-				}
-				
+				String accountInfo = MartusSecurity.formatAccountIdForLog(accountId);
 				log("getContactInfo: "+ accountInfo +": Signature failed");
 				results.add(NetworkInterfaceConstants.SIG_ERROR);
 				return results;
@@ -998,6 +993,10 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		String signedString = authorAccountId + "," + bulletinLocalId + "," + packetLocalId + "," + myAccountId;
 		if(!isSignatureCorrect(signedString, signature, myAccountId))
 		{
+			log("  returning SIG_ERROR");
+			log("Account: " + MartusCrypto.formatAccountIdForLog(authorAccountId));
+			log("signedString: " + signedString.toString());
+			log("signature: " + signature);
 			return returnSingleResponseAndLog("", NetworkInterfaceConstants.SIG_ERROR);
 		}
 		

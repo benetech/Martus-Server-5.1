@@ -43,7 +43,7 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 	
 	void log(String message)
 	{
-		server.log(message);
+		server.log("Client SSL handler: " + message);
 	}
 
 	// begin ServerInterface	
@@ -85,17 +85,14 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 		server.clientConnectionStart();
 		log("getUploadRights");
 
-		Vector result = new Vector();
-		if(!isSignatureOk(myAccountId, parameters, signature, server.getSecurity()))
-		{
-			server.clientConnectionExit();
-			result.add(SIG_ERROR);
+		Vector result = checkSignature(myAccountId, parameters, signature);
+		if(result != null)
 			return result;
-		}
-
+		result = new Vector();
+		
 		int index = 0;
 		String tryMagicWord = (String)parameters.get(index++);
-		server.log("request for client " + server.getPublicCode(myAccountId));
+		server.log("requested " + server.getPublicCode(myAccountId));
 		
 		String legacyResult = server.requestUploadRights(myAccountId, tryMagicWord);
 		result.add(legacyResult);
@@ -109,14 +106,11 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 		server.clientConnectionStart();
 		log("getSealedBulletinIds");
 
-		Vector result = new Vector();
-		if(!isSignatureOk(myAccountId, parameters, signature, server.getSecurity()))
-		{
-			result.add(SIG_ERROR);
-			server.clientConnectionExit();
+		Vector result = checkSignature(myAccountId, parameters, signature);
+		if(result != null)
 			return result;
-		}
-			
+		result = new Vector();
+		
 		int index = 0;
 		String authorAccountId = (String)parameters.get(index++);
 		Vector retrieveTags = new Vector();
@@ -137,14 +131,11 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 		server.clientConnectionStart();
 		log("getDraftBulletinIds");
 
-		Vector result = new Vector();
-		if(!isSignatureOk(myAccountId, parameters, signature, server.getSecurity()))
-		{
-			result.add(SIG_ERROR);			
-			server.clientConnectionExit();			
+		Vector result = checkSignature(myAccountId, parameters, signature);
+		if(result != null)
 			return result;
-		}
-			
+		result = new Vector();
+		
 		int index = 0;
 		String authorAccountId = (String)parameters.get(index++);
 		Vector retrieveTags = new Vector();
@@ -165,17 +156,14 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 		server.clientConnectionStart();
 		log("getFieldOfficeAccountIds");
 		
-		Vector result = new Vector();
-		if(!isSignatureOk(myAccountId, parameters, signature, server.getSecurity()))
-		{
-			result.add(SIG_ERROR);			
-			server.clientConnectionExit();			
+		Vector result = checkSignature(myAccountId, parameters, signature);
+		if(result != null)
 			return result;
-		}
-			
+		result = new Vector();
+		
 		int index = 0;
 		String hqAccountId = (String)parameters.get(index++);
-		server.log("request for client " + server.getPublicCode(hqAccountId));
+		server.log("requested for " + server.getPublicCode(hqAccountId));
 
 		Vector legacyResult = server.listFieldOfficeAccounts(hqAccountId);
 		String resultCode = (String)legacyResult.get(0);
@@ -194,14 +182,11 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 		server.clientConnectionStart();
 		log("putBulletinChunk");
 
-		Vector result = new Vector();
-		if(!isSignatureOk(myAccountId, parameters, signature, server.getSecurity()))
-		{
-			result.add(SIG_ERROR);			
-			server.clientConnectionExit();			
+		Vector result = checkSignature(myAccountId, parameters, signature);
+		if(result != null)
 			return result;
-		}
-			
+		result = new Vector();
+		
 		int index = 0;
 		String authorAccountId = (String)parameters.get(index++);
 		String bulletinLocalId= (String)parameters.get(index++);
@@ -224,14 +209,11 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 		server.clientConnectionStart();
 		log("getBulletinChunk");
 			
-		Vector result = new Vector();
-		if(!isSignatureOk(myAccountId, parameters, signature, server.getSecurity()))
-		{
-			result.add(SIG_ERROR);			
-			server.clientConnectionExit();			
+		Vector result = checkSignature(myAccountId, parameters, signature);
+		if(result != null)
 			return result;
-		}
-			
+		result = new Vector();
+		
 		int index = 0;
 		String authorAccountId = (String)parameters.get(index++);
 		String bulletinLocalId= (String)parameters.get(index++);
@@ -256,15 +238,11 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 		server.clientConnectionStart();
 		log("getPacket");
 
-		Vector result = new Vector();
-		if(!isSignatureOk(myAccountId, parameters, signature, server.getSecurity()))
-		{
-			result.add(SIG_ERROR);			
-			server.clientConnectionExit();			
+		Vector result = checkSignature(myAccountId, parameters, signature);
+		if(result != null)
 			return result;
-		}
-			
-	
+		result = new Vector();
+		
 		int index = 0;
 		String authorAccountId = (String)parameters.get(index++);
 		String bulletinLocalId= (String)parameters.get(index++);
@@ -289,13 +267,10 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 		server.clientConnectionStart();
 		log("deleteDraftBulletins");
 
-		Vector result = new Vector();
-		if(!isSignatureOk(myAccountId, parameters, signature, server.getSecurity()))
-		{
-			result.add(SIG_ERROR);			
-			server.clientConnectionExit();			
+		Vector result = checkSignature(myAccountId, parameters, signature);
+		if(result != null)
 			return result;
-		}
+		result = new Vector();
 
 		int idCount = ((Integer)parameters.get(0)).intValue();
 		String[] idList = new String[idCount];
@@ -317,21 +292,12 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 	
 	public Vector putContactInfo(String myAccountId, Vector parameters, String signature) 
 	{
+		log("putContactInfo");
 		server.clientConnectionStart();
-		Vector result = new Vector();
-		if(!isSignatureOk(myAccountId, parameters, signature, server.getSecurity()))
-		{
-			log("putContactInfo:Signature Error");
-			if(!badContactInfoAccounts.contains(myAccountId))
-			{
-				badContactInfoAccounts.add(myAccountId);
-				log("parameters: " + parameters.toString());
-				log("signature: " + signature);
-			}
-			result.add(SIG_ERROR);
-			server.clientConnectionExit();
+		Vector result = checkSignature(myAccountId, parameters, signature);
+		if(result != null)
 			return result;
-		}
+		result = new Vector();
 		result.add(server.putContactInfo(myAccountId, parameters));
 		server.clientConnectionExit();
 		return result;
@@ -339,17 +305,13 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 
 	public Vector getNews(String myAccountId, Vector parameters, String signature)
 	{
+		log("getNews");
 		server.clientConnectionStart();
-		Vector result = new Vector();
-
-		if(!isSignatureOk(myAccountId, parameters, signature, server.getSecurity()))
-		{
-			log("getNews:Signature Error");
-			result.add(SIG_ERROR);
-			server.clientConnectionExit();
+		Vector result = checkSignature(myAccountId, parameters, signature);
+		if(result != null)
 			return result;
-		}
-		
+		result = new Vector();
+			
 		String versionLabel = "";
 		String versionBuildDate = "";
 		
@@ -367,25 +329,36 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 
 	public Vector getServerCompliance(String myAccountId, Vector parameters, String signature)
 	{
+		log("getServerCompliance");
 		server.clientConnectionStart();
-		Vector result = new Vector();
-
-		if(!isSignatureOk(myAccountId, parameters, signature, server.getSecurity()))
-		{
-			log("getServerCompliance:Signature Error");
-			result.add(SIG_ERROR);
-			server.clientConnectionExit();
+		Vector result = checkSignature(myAccountId, parameters, signature);
+		if(result != null)
 			return result;
-		}
-		
+		result = new Vector();
 		result = server.getServerCompliance();
 		server.clientConnectionExit();
 		return result;
 	}
 
+	private Vector checkSignature(String myAccountId, Vector parameters, String signature)
+	{
+		if(!isSignatureOk(myAccountId, parameters, signature, server.getSecurity()))
+		{
+			log("ERROR: Signature Failed");
+			log("Account: " + MartusCrypto.formatAccountIdForLog(myAccountId));
+			log("parameters: " + parameters.toString());
+			log("signature: " + signature);
+			server.clientConnectionExit();			
+			Vector error = new Vector(); 
+			error.add(SIG_ERROR);			
+			return error;
+		}
+		return null;
+	}
+	
 	private boolean isSignatureOk(String myAccountId, Vector parameters, String signature, MartusCrypto verifier)
 	{
-		server.log("request for client " + server.getPublicCode(myAccountId));
+		//server.log("request for client " + server.getPublicCode(myAccountId));
 		return verifier.verifySignatureOfVectorOfStrings(parameters, myAccountId, signature);
 	}
 

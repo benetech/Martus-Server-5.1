@@ -45,9 +45,12 @@ public class SupplierSideMirroringHandler implements MirroringInterface, Network
 	{
 		try
 		{
-			if(!isSignatureAcceptable(callerAccountId, parameters, signature))
+			if(!isSignatureOk(callerAccountId, parameters, signature))
 			{
-				log("request: bad sig");
+				log("ERROR: Signature Failed");
+				log("Account: " + MartusCrypto.formatAccountIdForLog(callerAccountId));
+				log("parameters: " + parameters.toString());
+				log("signature: " + signature);
 				Vector result = new Vector();
 				result.add(SIG_ERROR);		
 				return result;
@@ -64,7 +67,7 @@ public class SupplierSideMirroringHandler implements MirroringInterface, Network
 
 	}
 
-	private boolean isSignatureAcceptable(String callerAccountId, Vector parameters, String signature)
+	private boolean isSignatureOk(String callerAccountId, Vector parameters, String signature)
 	{
 		int cmd = extractCommand(parameters.get(0));
 		if(cmd == cmdPing)

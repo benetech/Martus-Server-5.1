@@ -37,7 +37,6 @@ import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.util.ByteArrayInputStreamWithSeek;
-import org.martus.util.Base64.InvalidBase64Exception;
 
 public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 {
@@ -50,6 +49,7 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 	
 	public Vector getAccountIds(String myAccountId, Vector parameters, String signature)
 	{
+		log("getAccountIds: " + MartusSecurity.formatAccountIdForLog(myAccountId));
 		if(!server.isAuthorizedAmp(myAccountId))
 			return server.returnSingleResponseAndLog(" returning NOT_AUTHORIZED", NetworkInterfaceConstants.NOT_AUTHORIZED);
 
@@ -79,83 +79,53 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 			Vector accounts;
 		}
 		
-		Vector result = new Vector();
-		try
-		{
-			String publicCode = MartusSecurity.getFormattedPublicCode(myAccountId); 
-			if(!isSignatureOk(myAccountId, parameters, signature, server.getSecurity()))
-			{
-				result.add(NetworkInterfaceConstants.SIG_ERROR);
-				log("Amp getAccountIds bad sig: " + publicCode);
-				return result;
-			}
-			
-			log("Amp getAccountIds: " + publicCode);
-			AccountVisitor visitor = new AccountVisitor();
-			server.getDatabase().visitAllAccounts(visitor);
-			
-			result.add(NetworkInterfaceConstants.OK);
-			result.add(visitor.getAccounts());
-			log("Amp getAccountIds exit OK");
+		Vector result = checkSignature(myAccountId, parameters, signature);
+		if(result != null)
 			return result;
-		}
-		catch (InvalidBase64Exception e)
-		{
-			log("Amp getAccountIds ERROR");
-			e.printStackTrace();
-			result.add(NetworkInterfaceConstants.SERVER_ERROR);
-			return result;
-		}
+		result = new Vector();
+		
+		AccountVisitor visitor = new AccountVisitor();
+		server.getDatabase().visitAllAccounts(visitor);
+		
+		result.add(NetworkInterfaceConstants.OK);
+		result.add(visitor.getAccounts());
+		log("getAccountIds exit OK");
+		return result;
 	}
 
 	public Vector getContactInfo(String myAccountId, Vector parameters, String signature)
 	{
+		log("getContactInfo: " + MartusSecurity.formatAccountIdForLog(myAccountId));
 		if(!server.isAuthorizedAmp(myAccountId))
 			return server.returnSingleResponseAndLog(" returning NOT_AUTHORIZED", NetworkInterfaceConstants.NOT_AUTHORIZED);
 
-		Vector result = new Vector();
-		try
+		Vector result = checkSignature(myAccountId, parameters, signature);
+		if(result != null)
+			return result;
+		result = new Vector();
+		
+		if(parameters.size() != 1)
 		{
-			String publicCode = MartusSecurity.getFormattedPublicCode(myAccountId); 
-			if(!isSignatureOk(myAccountId, parameters, signature, server.getSecurity()))
-			{
-				result.add(NetworkInterfaceConstants.SIG_ERROR);
-				log("Amp getAccountContactInfo bad sig: " + publicCode);
-				return result;
-			}
-			
-
-			if(parameters.size() != 1)
-			{
-				result.add(NetworkInterfaceConstants.INCOMPLETE);
-				log("Amp getAccountContactInfo incomplete request");
-				return result;
-			}
-
-			result = server.getContactInfo((String)parameters.get(0));
+			result.add(NetworkInterfaceConstants.INCOMPLETE);
+			log("getAccountContactInfo incomplete request");
 			return result;
 		}
-		catch (Exception e)
-		{
-			log("Amp getAccountContactInfo ERROR");
-			e.printStackTrace();
-			result.add(NetworkInterfaceConstants.SERVER_ERROR);
-			return result;
-		}
+
+		result = server.getContactInfo((String)parameters.get(0));
+		return result;
 	}
 	
 	public Vector getPublicBulletinLocalIds(String myAccountId, Vector parameters, String signature)
 	{
+		log("getPublicBulletinLocalIds: " + MartusSecurity.formatAccountIdForLog(myAccountId));
 		if(!server.isAuthorizedAmp(myAccountId))
 			return server.returnSingleResponseAndLog(" returning NOT_AUTHORIZED", NetworkInterfaceConstants.NOT_AUTHORIZED);
 
-		Vector result = new Vector();
-		if(!isSignatureOk(myAccountId, parameters, signature, server.getSecurity()))
-		{
-			result.add(NetworkInterfaceConstants.SIG_ERROR);
+		Vector result = checkSignature(myAccountId, parameters, signature);
+		if(result != null)
 			return result;
-		}
-
+		result = new Vector();
+		
 		String accountString = (String) parameters.get(0);
 
 		LocallIdOfPublicBulletinsCollector collector = new LocallIdOfPublicBulletinsCollector();
@@ -170,15 +140,14 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 	
 	public Vector getAmplifierBulletinChunk(String myAccountId, Vector parameters, String signature)
 	{
+		log("getAmplifierBulletinChunk: " + MartusSecurity.formatAccountIdForLog(myAccountId));
 		if(!server.isAuthorizedAmp(myAccountId))
 			return server.returnSingleResponseAndLog(" returning NOT_AUTHORIZED", NetworkInterfaceConstants.NOT_AUTHORIZED);
 
-		Vector result = new Vector();
-		if(!isSignatureOk(myAccountId, parameters, signature, server.getSecurity()))
-		{
-			result.add(NetworkInterfaceConstants.SIG_ERROR);
+		Vector result = checkSignature(myAccountId, parameters, signature);
+		if(result != null)
 			return result;
-		}
+		result = new Vector();
 		
 		int index = 0;
 		String authorAccountId = (String)parameters.get(index++);
@@ -235,14 +204,7 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 			catch (Exception e)
 			{
 				log("Error checking bulletin status");
-				String accountInfo = key.getAccountId();
-				try
-				{
-					accountInfo = MartusSecurity.getFormattedPublicCode(accountInfo);
-				}
-				catch (InvalidBase64Exception justUseAccountIdInstead)
-				{
-				}
+				String accountInfo = MartusSecurity.formatAccountIdForLog(key.getAccountId());
 				log(accountInfo);
 				log(key.getLocalId());
 				e.printStackTrace();
@@ -256,11 +218,26 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 	{
 		return verifier.verifySignatureOfVectorOfStrings(parameters, myAccountId, signature);
 	}
+
+	private Vector checkSignature(String myAccountId, Vector parameters, String signature)
+	{
+		if(!isSignatureOk(myAccountId, parameters, signature, server.getSecurity()))
+		{
+			log("ERROR: Signature Failed");
+			log("Account: " + MartusCrypto.formatAccountIdForLog(myAccountId));
+			log("parameters: " + parameters.toString());
+			log("signature: " + signature);
+			Vector error = new Vector(); 
+			error.add(NetworkInterfaceConstants.SIG_ERROR);			
+			return error;
+		}
+		return null;
+	}
 	
 	void log(String message)
 	{
-		server.log(message);
+		server.log("Amp handler: " + message);
 	}
-	
+
 	ServerForAmplifiers server;
 }
