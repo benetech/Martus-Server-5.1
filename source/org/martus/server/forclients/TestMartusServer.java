@@ -39,7 +39,6 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
-import java.security.PublicKey;
 import java.util.Enumeration;
 import java.util.Vector;
 import java.util.zip.ZipEntry;
@@ -220,7 +219,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 				return false;						
 			}
 
-			public boolean isValidSignatureOfStream(PublicKey publicKey, InputStream inputStream, byte[] signature) throws
+			public boolean isValidSignatureOfStream(String publicKey, InputStream inputStream, byte[] signature) throws
 					MartusSignatureException
 			{
 				if(!shouldFailNext)
