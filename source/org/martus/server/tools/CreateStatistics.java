@@ -141,15 +141,18 @@ public class CreateStatistics
 
 	private void CreateAccountStatistics() throws Exception
 	{
+		final File accountStatsError = new File(destinationDir,ACCOUNT_STATS_FILE_NAME + ERR_EXT + CSV_EXT);
 		class AccountVisitor implements Database.AccountVisitor 
 		{
 			public AccountVisitor(UnicodeWriter writerToUse)
 			{
 				writer = writerToUse;
 			}
+			class noContactInfoException extends IOException{};
 			class HarmlessException extends IOException{};
 			public void visit(String accountId)
 			{
+				boolean errorOccured = false;
 				File accountDir = fileDatabase.getAbsoluteAccountDirectory(accountId);
 				File bucket = accountDir.getParentFile();
 				String publicCode = "";
@@ -159,7 +162,7 @@ public class CreateStatistics
 				}
 				catch(Exception e)
 				{
-					publicCode = "ERROR: " + e;
+					publicCode = ERROR_MSG + " " + e;
 				}
 				try
 				{
@@ -174,7 +177,7 @@ public class CreateStatistics
 					{
 						File contactFile = fileDatabase.getContactInfoFile(accountId);
 						if(!contactFile.exists())
-							throw new HarmlessException();
+							throw new noContactInfoException();
 						Vector contactInfoRaw = ContactInfo.loadFromFile(contactFile);
 						Vector contactInfo = ContactInfo.decodeContactInfoVectorIfNecessary(contactInfoRaw);
 						int size = contactInfo.size();
@@ -183,13 +186,13 @@ public class CreateStatistics
 							String contactAccountIdInsideFile = (String)contactInfo.get(0);
 							if(!security.verifySignatureOfVectorOfStrings(contactInfo, contactAccountIdInsideFile))
 							{
-								author = "Error: Signature failure contactInfo";
+								author = ERROR_MSG + " Signature failure contactInfo";
 								throw new HarmlessException();
 							}
 							
 							if(!contactAccountIdInsideFile.equals(accountId))
 							{
-								author = "Error: AccountId doesn't match contactInfo's AccountId";
+								author = ERROR_MSG + " AccountId doesn't match contactInfo's AccountId";
 								throw new HarmlessException();
 							}			
 						}
@@ -207,16 +210,31 @@ public class CreateStatistics
 						if(size>7)
 							address = (String)(contactInfo.get(7));
 					}
+					catch (noContactInfoException e)
+					{
+					}
 					catch (HarmlessException e)
 					{
+						errorOccured = true;
 					}
 					catch (IOException e)
 					{
-						author = "Error: IO exception contactInfo";
+						errorOccured = true;
+						author = ERROR_MSG + " IO exception contactInfo";
 					}
 					catch(InvalidBase64Exception e)
 					{
-						author = "Error: InvalidBase64Exception contactInfo";
+						errorOccured = true;
+						author = ERROR_MSG + " InvalidBase64Exception contactInfo";
+					}
+					if(errorOccured)
+					{
+						organization = ERROR_MSG;
+						email = ERROR_MSG;
+						webpage = ERROR_MSG;
+						phone = ERROR_MSG;
+						address = ERROR_MSG;					
+					
 					}
 
 					String uploadOk = isAllowedToUpload(accountId);
@@ -252,28 +270,48 @@ public class CreateStatistics
 						getNormalizedString(accountId);
 
 					writer.writeln(accountInfo);
+					if(errorOccured)
+						writeErrorLog(accountStatsError, ACCOUNT_STATISTICS_HEADER, accountInfo);
 				}
 				catch(Exception e1)
 				{
-					e1.printStackTrace();
+					try
+					{
+						writeErrorLog(accountStatsError, ACCOUNT_STATISTICS_HEADER, e1.getMessage());
+						e1.printStackTrace();
+					}
+					catch(IOException e2)
+					{
+						e2.printStackTrace();
+					}
 				}
 			}
 			private UnicodeWriter writer;
 		}
 
+		
+		
 		System.out.println("Creating Account Statistics");
-		File accountStats = new File(destinationDir,ACCOUNT_STATS_FILE_NAME);
+		File accountStats = new File(destinationDir,ACCOUNT_STATS_FILE_NAME + CSV_EXT);
 		if(deletePrevious)
+		{
 			accountStats.delete();
+			accountStatsError.delete();
+		}
+		
 		if(accountStats.exists())
 			throw new Exception("File Exists.  Please delete before running: "+accountStats.getAbsolutePath());
+		if(accountStatsError.exists())
+			throw new Exception("File Exists.  Please delete before running: "+accountStatsError.getAbsolutePath());
 		
 		UnicodeWriter writer = new UnicodeWriter(accountStats);
 		writer.writeln(ACCOUNT_STATISTICS_HEADER);
 		fileDatabase.visitAllAccounts(new AccountVisitor(writer));
 		writer.close();
-	}
+
 	
+	}
+
 	String isAllowedToUpload(String accountId)
 	{
 		if(clientsThatCanUpload.contains(accountId))
@@ -295,8 +333,10 @@ public class CreateStatistics
 		return ACCOUNT_AMPLIFY_TRUE;
 	}
 	
+	
 	private void CreateBulletinStatistics() throws Exception
 	{
+		final File bulletinStatsError = new File(destinationDir, BULLETIN_STATS_FILE_NAME + ERR_EXT + CSV_EXT);
 		class BulletinVisitor implements Database.PacketVisitor
 		{
 			public BulletinVisitor(UnicodeWriter writerToUse)
@@ -308,6 +348,7 @@ public class CreateStatistics
 			{
 				try
 				{
+					boolean errorOccured = false;
 					if(!BulletinHeaderPacket.isValidLocalId(key.getLocalId()))
 						return;
 					
@@ -321,23 +362,31 @@ public class CreateStatistics
 					}
 					catch(Exception e)
 					{
-						publicCode = "ERROR: " + e;
+						errorOccured = true;
+						publicCode = ERROR_MSG + " " + e;
 					}
 
-					String bulletinType = "unknown?";
+					String bulletinType = ERROR_MSG + " unknown type";
 					if(key.isSealed())
 						bulletinType = BULLETIN_SEALED;
 					else if(key.isDraft())
 						bulletinType = BULLETIN_DRAFT;
+					else
+						errorOccured = true;
 					
 					DatabaseKey burKey = MartusServerUtilities.getBurKey(key);
 					String wasBurCreatedByThisServer = wasOriginalServer(burKey);
+					if(wasBurCreatedByThisServer.startsWith(ERROR_MSG))
+						errorOccured = true;
 					String dateBulletinWasCreated = getOriginalUploadDate(burKey);
+					if(dateBulletinWasCreated.startsWith(ERROR_MSG))
+						errorOccured = true;
 					
 					String allPrivate = "";
 					try
 					{
 						BulletinHeaderPacket bhp = MartusServer.loadBulletinHeaderPacket(fileDatabase, key, security);
+
 						if(bhp.isAllPrivate())
 							allPrivate = BULLETIN_ALL_PRIVATE_TRUE;
 						else
@@ -345,7 +394,8 @@ public class CreateStatistics
 					}
 					catch(Exception e1)
 					{
-						allPrivate = "Error: " + e1;
+						errorOccured = true;
+						allPrivate = ERROR_MSG + " " + e1;
 					}
 					
 					
@@ -357,22 +407,37 @@ public class CreateStatistics
 					getNormalizedString(publicCode);
 					
 					writer.writeln(bulletinInfo);
+					if(errorOccured)
+						writeErrorLog(bulletinStatsError, BULLETIN_STATISTICS_HEADER, bulletinInfo);
 				}
 				catch(IOException e)
 				{
-					e.printStackTrace();
+					try
+					{
+						writeErrorLog(bulletinStatsError, BULLETIN_STATISTICS_HEADER, e.getMessage());
+						e.printStackTrace();
+					}
+					catch(IOException e2)
+					{
+						e2.printStackTrace();
+					}
 				}
 			}
-			
+
 			UnicodeWriter writer;
 		}
 		
 		System.out.println("Creating Bulletin Statistics");
-		File bulletinStats = new File(destinationDir,BULLETIN_STATS_FILE_NAME);
+		File bulletinStats = new File(destinationDir,BULLETIN_STATS_FILE_NAME + CSV_EXT);
 		if(deletePrevious)
+		{
 			bulletinStats.delete();
+			bulletinStatsError.delete();
+		}
 		if(bulletinStats.exists())
 			throw new Exception("File Exists.  Please delete before running: "+bulletinStats.getAbsolutePath());
+		if(bulletinStatsError.exists())
+			throw new Exception("File Exists.  Please delete before running: "+bulletinStatsError.getAbsolutePath());
 		
 		UnicodeWriter writer = new UnicodeWriter(bulletinStats);
 		writer.writeln(BULLETIN_STATISTICS_HEADER);
@@ -387,23 +452,24 @@ public class CreateStatistics
 		{
 			if(!fileDatabase.getFileForRecord(burKey).exists())
 			{
-				wasBurCreatedByThisServer ="Error: missing BUR";
+				wasBurCreatedByThisServer =ERROR_MSG + " missing BUR";
 			}
 			else
 			{
 				String burString = fileDatabase.readRecord(burKey, security);
 				if(burString.length()==0)
-					wasBurCreatedByThisServer = "Error: record empty?";
+					wasBurCreatedByThisServer = ERROR_MSG + " record empty?";
 				else if(MartusServerUtilities.wasBurCreatedByThisCrypto(burString, security))
 					wasBurCreatedByThisServer = BULLETIN_ORIGINALLY_UPLOADED_TO_THIS_SERVER_TRUE;
 			}
 		}
 		catch(Exception e1)
 		{
-			wasBurCreatedByThisServer = "ERROR: " + e1;
+			wasBurCreatedByThisServer = ERROR_MSG + " " + e1;
 		}
 		return wasBurCreatedByThisServer;
 	}
+	
 	String getOriginalUploadDate(DatabaseKey burKey)
 	{
 		String uploadDate = "unknown";
@@ -421,7 +487,7 @@ public class CreateStatistics
 		}
 		catch(Exception e1)
 		{
-			uploadDate = "ERROR: " + e1;
+			uploadDate = ERROR_MSG + " " + e1;
 		}
 		return uploadDate;
 	}
@@ -435,6 +501,15 @@ public class CreateStatistics
 	}
 */
 
+	void writeErrorLog(File bulletinStatsError, String headerString, String errorMsg) throws IOException
+	{
+		boolean includeErrorHeader = (!bulletinStatsError.exists());
+		UnicodeWriter writerErr = new UnicodeWriter(bulletinStatsError, UnicodeWriter.APPEND);
+		if(includeErrorHeader)
+			writerErr.writeln(headerString);
+		writerErr.writeln(errorMsg);
+		writerErr.close();
+	}
 	
 	String getNormalizedString(Object rawdata)
 	{
@@ -447,7 +522,7 @@ public class CreateStatistics
 	private boolean deletePrevious;
 	MartusCrypto security;
 	private File packetsDir;
-	private File destinationDir;
+	File destinationDir;
 	private File adminStartupDir;
 	FileDatabase fileDatabase;
 	Vector clientsThatCanUpload;
@@ -456,7 +531,10 @@ public class CreateStatistics
 	AuthorizeLog authorizeLog;
 	
 	final String DELIMITER = ",";
-	final String ACCOUNT_STATS_FILE_NAME = "accounts.csv";
+	final String ERROR_MSG = "Error:";
+	final String ERR_EXT = ".err";
+	final String CSV_EXT = ".csv";
+	final String ACCOUNT_STATS_FILE_NAME = "accounts";
 	final String ACCOUNT_PUBLIC_CODE = "public code";
 	final String ACCOUNT_UPLOAD_OK = "can upload";
 	final String ACCOUNT_BANNED = "banned";
@@ -470,7 +548,7 @@ public class CreateStatistics
 	final String ACCOUNT_WEBPAGE = "web page";
 	final String ACCOUNT_PHONE = "phone";
 	final String ACCOUNT_ADDRESS = "address";
-	final String ACCOUNT_BUCKET = "account bucket";
+	final String ACCOUNT_FOLDER = "account folder";
 	final String ACCOUNT_PUBLIC_KEY = "public key";
 	final String ACCOUNT_UPLOAD_OK_TRUE = "1";
 	final String ACCOUNT_UPLOAD_OK_FALSE = "0";
@@ -493,14 +571,16 @@ public class CreateStatistics
 		getNormalizedString(ACCOUNT_WEBPAGE) + DELIMITER + 
 		getNormalizedString(ACCOUNT_PHONE) + DELIMITER + 
 		getNormalizedString(ACCOUNT_ADDRESS) + DELIMITER + 
-		getNormalizedString(ACCOUNT_BUCKET) + DELIMITER + 
+		getNormalizedString(ACCOUNT_FOLDER) + DELIMITER + 
 		getNormalizedString(ACCOUNT_PUBLIC_KEY);
 
-	final String BULLETIN_STATS_FILE_NAME = "bulletin.csv";
+	final String BULLETIN_STATS_FILE_NAME = "bulletin";
 	
 	final String BULLETIN_HEADER_PACKET = "bulletin id";
 	final String BULLETIN_TYPE = "bulletin type";
 	final String BULLETIN_ALL_PRIVATE = "all private";
+	final String BULLETIN_PUBLIC_ATTACHMENT_COUNT = "public attachments";
+	final String BULLETIN_PRIVATE_ATTACHMENT_COUNT = "private attachments";
 	final String BULLETIN_ORIGINALLY_UPLOADED_TO_THIS_SERVER = "original server";
 	final String BULLETIN_DATE_UPLOADED = "date uploaded";
 	
@@ -515,6 +595,8 @@ public class CreateStatistics
 		getNormalizedString(BULLETIN_HEADER_PACKET) + DELIMITER +
 		getNormalizedString(BULLETIN_TYPE) + DELIMITER +
 		getNormalizedString(BULLETIN_ALL_PRIVATE) + DELIMITER +
+//		getNormalizedString(BULLETIN_PUBLIC_ATTACHMENT_COUNT) + DELIMITER +
+		//getNormalizedString(BULLETIN_PRIVATE_ATTACHMENT_COUNT) + DELIMITER +
 		getNormalizedString(BULLETIN_ORIGINALLY_UPLOADED_TO_THIS_SERVER) + DELIMITER +
 		getNormalizedString(BULLETIN_DATE_UPLOADED) + DELIMITER +
 		getNormalizedString(ACCOUNT_PUBLIC_CODE);
