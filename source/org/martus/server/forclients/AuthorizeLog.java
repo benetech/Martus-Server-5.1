@@ -99,7 +99,7 @@ public class AuthorizeLog
 		{
 			AuthorizeLogEntry authorizeLogEntry = ((AuthorizeLogEntry)authorizedClients.get(i));
 			if(authorizeLogEntry.getPublicCode().equals(publicCode))
-					return authorizeLogEntry;
+				return authorizeLogEntry;
 		}
 		return null;
 	}
