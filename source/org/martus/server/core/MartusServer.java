@@ -24,7 +24,7 @@ Boston, MA 02111-1307, USA.
 
 */
 
-package org.martus.server.forclients;
+package org.martus.server.core;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -81,8 +81,8 @@ import org.martus.common.packet.Packet.WrongPacketTypeException;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.common.utilities.MartusServerUtilities.DuplicatePacketException;
 import org.martus.common.utilities.MartusServerUtilities.SealedPacketExistsException;
-import org.martus.server.core.MarketingVersionNumber;
 import org.martus.server.foramplifiers.ServerForAmplifiers;
+import org.martus.server.forclients.ServerForClients;
 import org.martus.server.formirroring.ServerForMirroring;
 import org.martus.util.Base64;
 import org.martus.util.InputStreamWithSeek;
@@ -1145,7 +1145,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		return null;
 	}
 
-	String saveUploadedBulletinZipFile(String authorAccountId, String bulletinLocalId, File zipFile) 
+	protected String saveUploadedBulletinZipFile(String authorAccountId, String bulletinLocalId, File zipFile) 
 	{
 		String result = NetworkInterfaceConstants.OK;
 		
@@ -1312,7 +1312,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		}
 	}
 
-	String getClientAliasForLogging(String clientId)
+	public String getClientAliasForLogging(String clientId)
 	{
 		return getDatabase().getFolderForAccount(clientId);
 	}
@@ -1504,7 +1504,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		return bhp;
 	}
 
-	class UnexpectedExitException extends Exception{}
+	public class UnexpectedExitException extends Exception{}
 	
 	public void serverExit(int exitCode) throws UnexpectedExitException 
 	{
@@ -1781,19 +1781,21 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	public void processCommandLine(String[] args)
 	{
 		long indexEveryXMinutes = 0;
-		String indexEveryXHourTag = "indexinghours=";
-		String indexEveryXMinutesTag = "indexingminutes=";
-		String ampipTag = "ampip=";
-		String mainIpTag = "mainip=";
-
+		String indexEveryXHourTag = "--amplifier-indexing-hours=";
+		String indexEveryXMinutesTag = "--amplifier-indexing-minutes=";
+		String ampipTag = "--amplifier-ip=";
+		String mainIpTag = "--listeners-ip=";
+		String secureModeTag = "secure";
+		
 		for(int arg = 0; arg < args.length; ++arg)
 		{
 			String argument = args[arg];
-			if(argument.equals("secure"))
+			if(argument.equals(secureModeTag))
 				enterSecureMode();
 			if(argument.startsWith(mainIpTag))
 				mainIpAddress = argument.substring(mainIpTag.length());
-			if(argument.equals("nopassword"))
+			String noPasswordTag = "nopassword";
+			if(argument.equals(noPasswordTag))
 				insecurePassword = "password".toCharArray();
 			if(argument.startsWith(ampipTag))
 				setAmpIpAddress(argument.substring(ampipTag.length()));
@@ -1863,7 +1865,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		setDatabase(diskDatabase);
 	}
 
-	File getKeyPairFile()
+	protected File getKeyPairFile()
 	{
 		return new File(getStartupConfigDirectory(), getKeypairFilename());
 	}
@@ -2009,7 +2011,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	public MartusAmplifier amp;
 	
 	private File dataDirectory;
-	Database database;
+	protected Database database;
 	private String complianceStatement; 
 	
 	Hashtable failedUploadRequestsPerIp;
@@ -2036,5 +2038,4 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	private static final long magicWordsGuessIntervalMillis = 60 * 1000;
 	private static final long shutdownRequestIntervalMillis = 1000;
 	private static final long MINUTES_TO_MILLI = 60 * 1000;
-
 }

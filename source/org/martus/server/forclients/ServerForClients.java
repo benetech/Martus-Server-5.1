@@ -40,6 +40,7 @@ import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.network.MartusSecureWebServer;
 import org.martus.common.network.MartusXmlRpcServer;
 import org.martus.common.utilities.MartusServerUtilities;
+import org.martus.server.core.*;
 import org.martus.util.UnicodeReader;
 import org.martus.util.UnicodeWriter;
 import org.martus.util.WebServerWithClientId;
@@ -71,7 +72,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		coreServer.log(message);
 	}
 	
-	void displayClientStatistics()
+	public void displayClientStatistics()
 	{
 		System.out.println();
 		System.out.println(clientsThatCanUpload.size() + " client(s) currently allowed to upload");
@@ -306,7 +307,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		}
 	}
 
-	void deleteBannedFile()
+	public void deleteBannedFile()
 	{
 		if(getBannedFile().exists())
 		{
@@ -354,7 +355,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		}
 	}
 
-	void deleteMagicWordsFile()
+	public void deleteMagicWordsFile()
 	{
 		if(!getMagicWordsFile().delete())
 		{
