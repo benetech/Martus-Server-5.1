@@ -234,8 +234,16 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 			}
 			catch (Exception e)
 			{
-				log("Error checking bulletin status.");
-				log(key.getAccountId());
+				log("Error checking bulletin status");
+				String accountInfo = key.getAccountId();
+				try
+				{
+					accountInfo = MartusSecurity.getFormattedPublicCode(accountInfo);
+				}
+				catch (InvalidBase64Exception justUseAccountIdInstead)
+				{
+				}
+				log(accountInfo);
 				log(key.getLocalId());
 				e.printStackTrace();
 			}

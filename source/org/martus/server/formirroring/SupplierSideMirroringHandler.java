@@ -29,6 +29,7 @@ package org.martus.server.formirroring;
 import java.util.Vector;
 
 import org.martus.common.crypto.MartusCrypto;
+import org.martus.common.crypto.MartusSecurity;
 import org.martus.common.network.NetworkInterfaceConstants;
 
 public class SupplierSideMirroringHandler implements MirroringInterface, NetworkInterfaceConstants
@@ -111,7 +112,16 @@ public class SupplierSideMirroringHandler implements MirroringInterface, Network
 				}
 				catch (Exception e)
 				{
-					log("listBulletins: Bad account:" + authorAccountId);
+					
+					String accountInfo = authorAccountId;
+					try
+					{
+						accountInfo = MartusSecurity.getFormattedPublicCode(authorAccountId);
+					}
+					catch (Exception justUseAccountIdInstead)
+					{
+					}
+					log("listBulletins: Bad account:" + accountInfo);
 					result.add(INVALID_DATA);
 					return result;
 				}

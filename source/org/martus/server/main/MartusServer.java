@@ -910,7 +910,16 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			Vector contactInfo = MartusServerUtilities.getContactInfo(contactFile);
 			if(!security.verifySignatureOfVectorOfStrings(contactInfo, accountId))
 			{
-				log("getContactInfo: "+accountId +": Signature failed");
+				String accountInfo = accountId;
+				try
+				{
+					accountInfo = MartusSecurity.getFormattedPublicCode(accountId);
+				}
+				catch (InvalidBase64Exception justUseAccountIdInstead)
+				{
+				}
+				
+				log("getContactInfo: "+ accountInfo +": Signature failed");
 				results.add(NetworkInterfaceConstants.SIG_ERROR);
 				return results;
 			}
