@@ -236,7 +236,7 @@ public class MockMartusServer extends MartusServer implements ServerForClientsIn
 	
 	public void deleteAllData() throws Exception
 	{
-		getDatabase().deleteAllData();
+		getStore().deleteAllData();
 		lastClientId = null;
 		lastUploadedBulletinId = null;
 	}

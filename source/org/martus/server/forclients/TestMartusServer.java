@@ -46,6 +46,7 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
+import org.martus.common.BulletinStore;
 import org.martus.common.ContactInfo;
 import org.martus.common.HQKey;
 import org.martus.common.HQKeys;
@@ -185,7 +186,6 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		testServer.setSecurity(serverSecurity);
 		testServer.verifyAndLoadConfigurationFiles();
 		testServerInterface = new ServerSideNetworkHandler(testServer);
-		serverDatabase = (MockServerDatabase)testServer.getDatabase();
 
 		TRACE_END();
 	}
@@ -933,6 +933,8 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 	{
 		TRACE_BEGIN("testUploadBulletinChunks");
 
+		Database serverDatabase = testServer.getDatabase();
+		
 		DatabaseKey headerKey = new DatabaseKey(b1.getUniversalId());
 		DatabaseKey burKey = MartusServerUtilities.getBurKey(headerKey);
 		assertFalse("BUR already exists?", serverDatabase.doesRecordExist(burKey));
@@ -1524,40 +1526,44 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 	{
 		TRACE_BEGIN("testDeleteDraftBulletinsThroughHandler");
 
+		BulletinStore store = testServer.getStore();
+
 		String[] allIds = uploadSampleDrafts();
 		String resultAllOk = testServer.deleteDraftBulletins(clientAccountId, allIds);
 		assertEquals("Good 3 not ok?", OK, resultAllOk);
-		assertEquals("Didn't delete all?", 0, serverDatabase.getRecordCount());
+		assertEquals("Didn't delete all?", 0, store.getBulletinCount());
 		
 		String[] twoGoodOneBad = uploadSampleDrafts();
 		twoGoodOneBad[1] = "Not a valid local id";
 		String resultOneBad = testServer.deleteDraftBulletins(clientAccountId, twoGoodOneBad);
 		assertEquals("Two good one bad not incomplete?", INCOMPLETE, resultOneBad);
-		assertEquals("Didn't delete two?", 1*databaseRecordsPerBulletin, serverDatabase.getRecordCount());
+		assertEquals("Didn't delete two?", 1, store.getBulletinCount());
 		
 		uploadSampleBulletin();
-		int newRecordCount = serverDatabase.getRecordCount();
-		assertNotEquals("Didn't upload?", 1*databaseRecordsPerBulletin, newRecordCount);
+		int newRecordCount = store.getBulletinCount();
+		assertNotEquals("Didn't upload?", 1, newRecordCount);
 		String[] justSealed = new String[] {b1.getLocalId()};
 		testServer.deleteDraftBulletins(clientAccountId, justSealed);
 		assertEquals("Sealed not ok?", OK, resultAllOk);
-		assertEquals("Deleted sealed?", newRecordCount, serverDatabase.getRecordCount());
+		assertEquals("Deleted sealed?", newRecordCount, store.getBulletinCount());
 
 		TRACE_END();
 	}
 
 	String[] uploadSampleDrafts() throws Exception
 	{
-		assertEquals("db not empty?", 0, serverDatabase.getRecordCount());
+		BulletinStore store = testServer.getStore();
+
+		assertEquals("db not empty?", 0, store.getBulletinCount());
 		Bulletin draft1 = new Bulletin(clientSecurity);
 		uploadSampleDraftBulletin(draft1);
-		assertEquals("Didn't save 1?", 1*databaseRecordsPerBulletin, serverDatabase.getRecordCount());
+		assertEquals("Didn't save 1?", 1, store.getBulletinCount());
 		Bulletin draft2 = new Bulletin(clientSecurity);
 		uploadSampleDraftBulletin(draft2);
-		assertEquals("Didn't save 2?", 2*databaseRecordsPerBulletin, serverDatabase.getRecordCount());
+		assertEquals("Didn't save 2?", 2, store.getBulletinCount());
 		Bulletin draft3 = new Bulletin(clientSecurity);
 		uploadSampleDraftBulletin(draft3);
-		assertEquals("Didn't save 3?", 3*databaseRecordsPerBulletin, serverDatabase.getRecordCount());
+		assertEquals("Didn't save 3?", 3, store.getBulletinCount());
 
 		return new String[] {draft1.getLocalId(), draft2.getLocalId(), draft3.getLocalId()};
 	}
@@ -2000,7 +2006,6 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 
 	static Bulletin draft;
 
-	static final int databaseRecordsPerBulletin = 4;
 	static MartusCrypto clientSecurity;
 	static String clientAccountId;
 	static MartusCrypto serverSecurity;
@@ -2014,6 +2019,4 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 	
 	MockMartusServer testServer;
 	NetworkInterface testServerInterface;
-	MockServerDatabase serverDatabase;
-	
 }

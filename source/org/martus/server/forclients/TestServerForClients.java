@@ -42,7 +42,6 @@ import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MockMartusSecurity;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.MockClientDatabase;
-import org.martus.common.database.MockServerDatabase;
 import org.martus.common.network.NetworkInterface;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.util.Base64;
@@ -150,7 +149,6 @@ public class TestServerForClients extends TestCaseEnhanced
 		mockServer.setSecurity(testServerSecurity);
 		testServer = mockServer.serverForClients;
 		testServerInterface = new ServerSideNetworkHandler(testServer);
-		serverDatabase = (MockServerDatabase)mockServer.getDatabase();
 
 		TRACE_END();
 	}
@@ -345,6 +343,4 @@ public class TestServerForClients extends TestCaseEnhanced
 	MockMartusServer mockServer; 
 	ServerForClients testServer;
 	NetworkInterface testServerInterface;
-	MockServerDatabase serverDatabase;
-
 }

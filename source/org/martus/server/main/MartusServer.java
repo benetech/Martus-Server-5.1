@@ -287,15 +287,15 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		MartusServerUtilities.loadHiddenPacketsFile(getHiddenPacketsFile(), getDatabase(), getLogger());
 		loadComplianceStatementFile();
 	}
+	
+	public BulletinStore getStore()
+	{
+		return store;
+	}
 
 	public Database getDatabase()
 	{
-		return database;
-	}
-	
-	private void setDatabase(Database databaseToUse)
-	{
-		database = databaseToUse;
+		return store.getDatabase();
 	}
 	
 	public void setAmpIpAddress(String ampIpAddress)
@@ -860,8 +860,6 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			
 			public void visit(DatabaseKey key)
 			{
-				if(!BulletinHeaderPacket.isValidLocalId(key.getLocalId()))
-					return;
 				try
 				{
 					BulletinHeaderPacket bhp = loadBulletinHeaderPacket(getDatabase(), key);
@@ -896,7 +894,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			return returnSingleResponseAndLog("  returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN);
 
 		FieldOfficeAccountCollector visitor = new FieldOfficeAccountCollector(hqAccountIdToUse);
-		getDatabase().visitAllRecords(visitor);
+		getStore().visitAllBulletinRevisions(visitor);
 	
 		log("listFieldOfficeAccounts: Exit");
 		return visitor.getAccounts();	
@@ -2080,8 +2078,6 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			System.out.println("Account Map did not verify against signature file");
 			System.exit(7);
 		}
-		
-		setDatabase(databaseToUse);
 	}
 
 	protected File getKeyPairFile()
@@ -2204,7 +2200,6 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	private boolean amplifierListenerEnabled;
 	
 	private File dataDirectory;
-	private Database database;
 	private BulletinStore store;
 	private String complianceStatement; 
 	
