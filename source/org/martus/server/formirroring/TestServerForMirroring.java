@@ -97,7 +97,7 @@ public class TestServerForMirroring extends TestCaseEnhanced
 		fdp1.writeXmlToClientDatabase(db, false, clientSecurity1);
 		
 		UniversalId otherPacketId = UniversalIdForTesting.createFromAccountAndPrefix(clientSecurity2.getPublicKeyString(), "X");
-		DatabaseKey key = new DatabaseKey(otherPacketId);
+		DatabaseKey key = DatabaseKey.createSealedKey(otherPacketId);
 		db.writeRecord(key, "Not a valid packet");
 	}
 

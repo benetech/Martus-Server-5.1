@@ -189,7 +189,8 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	{
 		dataDirectory = dir;
 		setLogger(loggerToUse);
-		security = securityToUse;
+		store = new ServerBulletinStore();
+		store.setSignatureGenerator(securityToUse);
 		MartusSecureWebServer.security = getSecurity();
 		
 		getTriggerDirectory().mkdirs();
@@ -199,7 +200,6 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		serverForAmplifiers = new ServerForAmplifiers(this, getLogger());
 		amp = new MartusAmplifier(this);
 		failedUploadRequestsPerIp = new Hashtable();
-		store = new ServerBulletinStore();
 	}
 	
 	public ServerForClients createServerForClients()
@@ -297,12 +297,16 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		return store;
 	}
 
-	public Database getDatabase()
+	public ReadableDatabase getDatabase()
 	{
-		// FIXME: This cast is EVIL and must be removed!!! Not optional!!! kbs
-		return (Database)store.getDatabase();
+		return store.getDatabase();
 	}
 	
+	public MartusCrypto getSecurity()
+	{
+		return getStore().getSignatureGenerator();
+	}
+
 	public void setAmpIpAddress(String ampIpAddress)
 	{
 		this.ampIpAddress = ampIpAddress;
@@ -333,11 +337,6 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		return logger;
 	}
 
-	public MartusCrypto getSecurity()
-	{
-		return security;
-	}
-	
 	public boolean isSecureMode()
 	{
 		return secureMode;
@@ -404,7 +403,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	
 	public String getAccountId()
 	{
-		return security.getPublicKeyString();
+		return getSecurity().getPublicKeyString();
 	}
 	
 	public String ping()
@@ -423,10 +422,10 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		Vector result = new Vector();
 		try
 		{
-			String publicKeyString = security.getPublicKeyString();
+			String publicKeyString = getSecurity().getPublicKeyString();
 			byte[] publicKeyBytes = Base64.decode(publicKeyString);
 			ByteArrayInputStream in = new ByteArrayInputStream(publicKeyBytes);
-			byte[] sigBytes = security.createSignatureOfStream(in);
+			byte[] sigBytes = getSecurity().createSignatureOfStream(in);
 			
 			result.add(NetworkInterfaceConstants.OK);
 			result.add(publicKeyString);
@@ -511,11 +510,10 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		}
 		
 		UniversalId uid = UniversalId.createFromAccountAndLocalId(authorAccountId, bulletinLocalId);
-		DatabaseKey key = new DatabaseKey(uid);
 		File interimZipFile;
 		try 
 		{
-			interimZipFile = getDatabase().getIncomingInterimFile(key);
+			interimZipFile = getStore().getIncomingInterimFile(uid);
 		} 
 		catch (IOException e) 
 		{
@@ -667,7 +665,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		ZipFile zip = new ZipFile(zipFile);
 		try
 		{
-			BulletinHeaderPacket header = MartusUtilities.extractHeaderPacket(authorAccountId, zip, security);
+			BulletinHeaderPacket header = MartusUtilities.extractHeaderPacket(authorAccountId, zip, getSecurity());
 			return header.isAuthorizedToUpload(uploaderAccountId);
 		}
 		finally
@@ -809,13 +807,12 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		if(contentSize + 3 != contactInfo.size())
 			return result;
 
-		if(!security.verifySignatureOfVectorOfStrings(contactInfo, publicKey))
+		if(!getSecurity().verifySignatureOfVectorOfStrings(contactInfo, publicKey))
 			return NetworkInterfaceConstants.SIG_ERROR;
 
 		try
 		{
-			File contactFile = getDatabase().getContactInfoFile(accountId);
-			MartusServerUtilities.writeContatctInfo(accountId, contactInfo, contactFile);
+			getStore().writeContactInfo(accountId, contactInfo);
 		}
 		catch (IOException e)
 		{
@@ -828,11 +825,9 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	public Vector getContactInfo(String accountId)
 	{
 		Vector results = new Vector();
-		File contactFile;
 		try
 		{
-			contactFile = getDatabase().getContactInfoFile(accountId);
-			if(!contactFile.exists())
+			if(!getStore().doesContactInfoExist(accountId))
 			{
 				results.add(NetworkInterfaceConstants.NOT_FOUND);
 				return results;
@@ -847,8 +842,8 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		
 		try
 		{
-			Vector decodedContactInfo = ContactInfo.loadFromFile(contactFile);
-			if(!security.verifySignatureOfVectorOfStrings(decodedContactInfo, accountId))
+			Vector decodedContactInfo = getStore().readContactInfo(accountId);
+			if(!getSecurity().verifySignatureOfVectorOfStrings(decodedContactInfo, accountId))
 			{
 				String accountInfo = MartusCrypto.formatAccountIdForLog(accountId);
 				log("getContactInfo: "+ accountInfo +": Signature failed");
@@ -909,12 +904,6 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		result.add(compliance);
 		return result;
 	}	
-
-	public File getContactInfoFileForAccount(String accountId) throws
-		IOException
-	{
-		return getDatabase().getContactInfoFile(accountId);
-	}
 
 	public Vector downloadFieldDataPacket(String authorAccountId, String bulletinLocalId, String packetLocalId, String myAccountId, String signature)
 	{
@@ -978,11 +967,11 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		}
 		
 		UniversalId dataPacketUid = UniversalId.createFromAccountAndLocalId(authorAccountId, packetLocalId);
-		DatabaseKey dataPacketKey = new DatabaseKey(dataPacketUid);
+		DatabaseKey dataPacketKey = null;
 		if(headerKey.isDraft())
-			dataPacketKey.setDraft();
+			dataPacketKey = DatabaseKey.createDraftKey(dataPacketUid);
 		else
-			dataPacketKey.setSealed();
+			dataPacketKey = DatabaseKey.createSealedKey(dataPacketUid);
 			
 		if(!db.doesRecordExist(dataPacketKey))
 		{
@@ -997,7 +986,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 				return returnSingleResponseAndLog( "  neither author nor HQ account", NetworkInterfaceConstants.NOTYOURBULLETIN );
 			}
 			
-			String packetXml = db.readRecord(dataPacketKey, security);
+			String packetXml = db.readRecord(dataPacketKey, getSecurity());
 		
 			result.add(NetworkInterfaceConstants.OK);
 			result.add(packetXml);
@@ -1019,7 +1008,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		try 
 		{
 			InputStream in = new ByteArrayInputStream(Base64.decode(tokenToSign));
-			byte[] sig = security.createSignatureOfStream(in);
+			byte[] sig = getSecurity().createSignatureOfStream(in);
 			return Base64.encode(sig);
 		} 
 		catch(MartusSignatureException e) 
@@ -1084,13 +1073,13 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		MartusCrypto.AuthorizationFailedException,
 		MartusCrypto.InvalidKeyPairFileVersionException
 	{
-		security.readKeyPair(in, passphrase);
+		getSecurity().readKeyPair(in, passphrase);
 	}
 	
 	void writeKeyPair(OutputStream out, char[] passphrase) throws 
 		IOException
 	{
-		security.writeKeyPair(out, passphrase);
+		getSecurity().writeKeyPair(out, passphrase);
 	}
 	
 	public static String getDefaultDataDirectoryPath()
@@ -1161,8 +1150,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	public DatabaseKey findHeaderKeyInDatabase(String authorAccountId,String bulletinLocalId) 
 	{
 		UniversalId uid = UniversalId.createFromAccountAndLocalId(authorAccountId, bulletinLocalId);
-		DatabaseKey headerKey = new DatabaseKey(uid);
-		headerKey.setSealed();
+		DatabaseKey headerKey = DatabaseKey.createSealedKey(uid);
 		if(getDatabase().doesRecordExist(headerKey))
 			return headerKey;
 
@@ -1180,8 +1168,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		BulletinHeaderPacket bhp = null;
 		try
 		{
-			Database db = getDatabase();
-			bhp = MartusServerUtilities.saveZipFileToDatabase(db, authorAccountId, zipFile, security);
+			bhp = getStore().saveZipFileToDatabase(authorAccountId, zipFile);
 		}
 		catch (DuplicatePacketException e)
 		{
@@ -1213,9 +1200,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 
 		try
 		{
-			String bulletinLocalId1 = bhp.getLocalId();
-			String bur = MartusServerUtilities.createBulletinUploadRecord(bulletinLocalId1, security);
-			MartusServerUtilities.writeSpecificBurToDatabase(getDatabase(), bhp, bur);
+			getStore().writeBur(bhp);
 		}
 		catch (Exception e)
 		{
@@ -1295,17 +1280,17 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			NoKeyPairException,
 			MartusUtilities.FileVerificationException, IOException, RecordHiddenException
 	{
-		File tempFile = getDatabase().getOutgoingInterimFile(headerKey);
+		File tempFile = getStore().getOutgoingInterimFile(headerKey.getUniversalId());
 		File tempFileSignature = MartusUtilities.getSignatureFileFromFile(tempFile);
 		if(tempFile.exists() && tempFileSignature.exists())
 		{
-			if(verifyBulletinInterimFile(tempFile, tempFileSignature, security.getPublicKeyString()))
+			if(verifyBulletinInterimFile(tempFile, tempFileSignature, getSecurity().getPublicKeyString()))
 				return tempFile;
 		}
 		MartusUtilities.deleteInterimFileAndSignature(tempFile);
-		BulletinZipUtilities.exportBulletinPacketsFromDatabaseToZipFile(getDatabase(), headerKey, tempFile, security);
-		tempFileSignature = MartusUtilities.createSignatureFileFromFile(tempFile, security);
-		if(!verifyBulletinInterimFile(tempFile, tempFileSignature, security.getPublicKeyString()))
+		BulletinZipUtilities.exportBulletinPacketsFromDatabaseToZipFile(getDatabase(), headerKey, tempFile, getSecurity());
+		tempFileSignature = MartusUtilities.createSignatureFileFromFile(tempFile, getSecurity());
+		if(!verifyBulletinInterimFile(tempFile, tempFileSignature, getSecurity().getPublicKeyString()))
 			throw new MartusUtilities.FileVerificationException();
 		log("    Total file size =" + tempFile.length());
 		
@@ -1316,7 +1301,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	{
 			try 
 			{
-				MartusUtilities.verifyFileAndSignature(bulletinZipFile, bulletinSignatureFile, security, accountId);
+				MartusUtilities.verifyFileAndSignature(bulletinZipFile, bulletinSignatureFile, getSecurity(), accountId);
 				return true;
 			} 
 			catch (MartusUtilities.FileVerificationException e) 
@@ -1331,7 +1316,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		try
 		{
 			ByteArrayInputStream in = new ByteArrayInputStream(signedString.getBytes("UTF-8"));
-			return security.isValidSignatureOfStream(signerPublicKey, in, Base64.decode(signature));
+			return getSecurity().isValidSignatureOfStream(signerPublicKey, in, Base64.decode(signature));
 		}
 		catch(Exception e)
 		{
@@ -1556,7 +1541,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		SignatureVerificationException,
 		DecryptionException
 	{
-		return BulletinStore.loadBulletinHeaderPacket(db, key, security);
+		return BulletinStore.loadBulletinHeaderPacket(db, key, getSecurity());
 	}
 	
 	public class UnexpectedExitException extends Exception{}
@@ -1846,8 +1831,6 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		}
 	}
 	
-
-	public MartusCrypto security;
 
 	ServerForMirroring serverForMirroring;
 	public ServerForClients serverForClients;

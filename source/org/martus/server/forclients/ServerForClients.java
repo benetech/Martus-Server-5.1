@@ -33,7 +33,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Vector;
 
-import org.martus.common.BulletinStore;
 import org.martus.common.MagicWordEntry;
 import org.martus.common.MagicWords;
 import org.martus.common.MartusUtilities;
@@ -48,6 +47,7 @@ import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.server.main.MartusServer;
+import org.martus.server.main.ServerBulletinStore;
 import org.martus.util.InputStreamWithSeek;
 import org.martus.util.UnicodeWriter;
 import org.martus.util.xmlrpc.WebServerWithClientId;
@@ -75,6 +75,11 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	public void deleteStartupFiles()
 	{
 		MartusUtilities.deleteAllFiles(getDeleteOnStartupFiles());
+	}
+	
+	public ServerBulletinStore getStore()
+	{
+		return coreServer.getStore();
 	}
 	
 	public MartusCrypto getSecurity()
@@ -366,15 +371,16 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			UniversalId uid = UniversalId.createFromAccountAndLocalId(accountId, localIds[i]);
 			try
 			{
+				// TODO: reading the bhp protects us from trying to delete a sealed bulletin
+				// instead, the store should offer helpers to do this without having to 
+				// read the bhp at all
 				DatabaseKey key = DatabaseKey.createDraftKey(uid);
 				BulletinHeaderPacket bhp = new BulletinHeaderPacket(uid);
 				InputStreamWithSeek in = coreServer.getDatabase().openInputStream(key, getSecurity());
 				bhp.loadFromXml(in, null, getSecurity());
 				in.close();
 		
-				BulletinStore.deleteBulletinRevisionFromDatabase(bhp, coreServer.getDatabase(), getSecurity());
-				DatabaseKey burKey = MartusServerUtilities.getBurKey(key);
-				coreServer.getDatabase().discardRecord(burKey);			
+				getStore().deleteBulletinRevision(key);
 			}
 			catch (Exception e)
 			{

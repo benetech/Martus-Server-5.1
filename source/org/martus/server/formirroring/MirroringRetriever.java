@@ -37,26 +37,24 @@ import org.martus.common.MartusUtilities.ServerErrorException;
 import org.martus.common.bulletin.BulletinZipUtilities;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MartusCrypto.MartusSignatureException;
-import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.network.NetworkResponse;
-import org.martus.common.network.mirroring.*;
+import org.martus.common.network.mirroring.CallerSideMirroringGatewayInterface;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
-import org.martus.common.utilities.MartusServerUtilities;
+import org.martus.server.main.ServerBulletinStore;
 import org.martus.util.Base64.InvalidBase64Exception;
 
 public class MirroringRetriever
 {
-	public MirroringRetriever(Database databaseToUse, CallerSideMirroringGatewayInterface gatewayToUse, 
-						String ipToUse, LoggerInterface loggerToUse, MartusCrypto securityToUse)
+	public MirroringRetriever(ServerBulletinStore storeToUse, CallerSideMirroringGatewayInterface gatewayToUse, 
+						String ipToUse, LoggerInterface loggerToUse)
 	{
-		db = databaseToUse;
+		store = storeToUse;
 		gateway = gatewayToUse;
 		ip = ipToUse;
 		logger = loggerToUse;
-		security = securityToUse;
 		
 		uidsToRetrieve = new Vector();
 		accountsToRetrieve = new Vector();
@@ -82,8 +80,8 @@ public class MirroringRetriever
 			{
 				zip.deleteOnExit();
 				retrieveOneBulletin(zip, uid);
-				BulletinHeaderPacket bhp = MartusServerUtilities.saveZipFileToDatabase(db, uid.getAccountId(), zip, security);
-				MartusServerUtilities.writeSpecificBurToDatabase(db, bhp, bur);
+				BulletinHeaderPacket bhp = store.saveZipFileToDatabase(uid.getAccountId(), zip);
+				store.writeBur(bhp, bur);
 			}
 			finally
 			{
@@ -110,7 +108,7 @@ public class MirroringRetriever
 	private String retrieveBurFromMirror(UniversalId uid)
 		throws MartusSignatureException, MissingBulletinUploadRecordException, ServerNotAvailableException
 	{
-		NetworkResponse response = gateway.getBulletinUploadRecord(security, uid);
+		NetworkResponse response = gateway.getBulletinUploadRecord(getSecurity(), uid);
 		String resultCode = response.getResultCode();
 		if(resultCode.equals(NetworkInterfaceConstants.NO_SERVER))
 		{
@@ -139,7 +137,7 @@ public class MirroringRetriever
 
 			String publicCode = MartusCrypto.getFormattedPublicCode(nextAccountId);
 			//log("listBulletins: " + publicCode);
-			NetworkResponse response = gateway.listBulletinsForMirroring(security, nextAccountId);
+			NetworkResponse response = gateway.listBulletinsForMirroring(getSecurity(), nextAccountId);
 			if(response.getResultCode().equals(NetworkInterfaceConstants.OK))
 			{
 				Vector infos = response.getResultVector();
@@ -167,8 +165,8 @@ public class MirroringRetriever
 			Vector info = (Vector)infos.get(i);
 			String localId = (String)info.get(0);
 			UniversalId uid = UniversalId.createFromAccountAndLocalId(accountId, localId);
-			DatabaseKey key = new DatabaseKey(uid);
-			if(!db.doesRecordExist(key) && !db.isHidden(key))
+			DatabaseKey key = DatabaseKey.createSealedKey(uid);
+			if(!store.doesBulletinRevisionExist(key) && !store.isHidden(key))
 				uids.add(uid);
 		}
 		return uids;
@@ -195,7 +193,7 @@ public class MirroringRetriever
 		try
 		{
 			log("Getting list of accounts");
-			NetworkResponse response = gateway.listAccountsForMirroring(security);
+			NetworkResponse response = gateway.listAccountsForMirroring(getSecurity());
 			String resultCode = response.getResultCode();
 			if(resultCode.equals(NetworkInterfaceConstants.OK))
 			{
@@ -227,7 +225,7 @@ public class MirroringRetriever
 
 		int chunkSize = MIRRORING_MAX_CHUNK_SIZE;
 		ProgressMeterInterface nullProgressMeter = null;
-		int totalLength = BulletinZipUtilities.retrieveBulletinZipToStream(uid, out, chunkSize, gateway, security, nullProgressMeter);
+		int totalLength = BulletinZipUtilities.retrieveBulletinZipToStream(uid, out, chunkSize, gateway, getSecurity(), nullProgressMeter);
 
 		out.close();
 
@@ -238,16 +236,20 @@ public class MirroringRetriever
 		}
 	}
 	
+	private MartusCrypto getSecurity()
+	{
+		return store.getSignatureGenerator();
+	}
+
 	void log(String message)
 	{
 		logger.log("Mirror calling " + ip + ": " + message);
 	}
 	
-	Database db;	
+	ServerBulletinStore store;	
 	CallerSideMirroringGatewayInterface gateway;
 	String ip;
 	LoggerInterface logger;
-	MartusCrypto security;
 	
 	Vector uidsToRetrieve;
 	Vector accountsToRetrieve;

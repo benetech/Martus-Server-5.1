@@ -38,6 +38,7 @@ import org.martus.common.MartusUtilities.PublicInformationInvalidException;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
+import org.martus.common.database.ReadableDatabase;
 import org.martus.common.network.MartusXmlRpcServer;
 import org.martus.common.network.mirroring.CallerSideMirroringGateway;
 import org.martus.common.network.mirroring.CallerSideMirroringGatewayForXmlRpc;
@@ -47,6 +48,7 @@ import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.server.main.MartusServer;
+import org.martus.server.main.ServerBulletinStore;
 import org.martus.util.Base64;
 import org.martus.util.DirectoryUtils;
 import org.martus.util.InputStreamWithSeek;
@@ -57,6 +59,11 @@ public class ServerForMirroring implements ServerSupplierInterface
 	{
 		coreServer = coreServerToUse;
 		logger = loggerToUse;
+	}
+	
+	public ServerBulletinStore getStore()
+	{
+		return coreServer.getStore();
 	}
 
 	public Vector getDeleteOnStartupFiles()
@@ -203,7 +210,7 @@ public class ServerForMirroring implements ServerSupplierInterface
 	public String getBulletinUploadRecord(String authorAccountId, String bulletinLocalId)
 	{
 		UniversalId uid = UniversalId.createFromAccountAndLocalId(authorAccountId, bulletinLocalId);
-		DatabaseKey headerKey = new DatabaseKey(uid);
+		DatabaseKey headerKey = DatabaseKey.createSealedKey(uid);
 		DatabaseKey burKey = MartusServerUtilities.getBurKey(headerKey);
 		try
 		{
@@ -228,7 +235,7 @@ public class ServerForMirroring implements ServerSupplierInterface
 		return coreServer.getSecurity();
 	}
 
-	Database getDatabase()
+	ReadableDatabase getDatabase()
 	{
 		return coreServer.getDatabase();
 	}
@@ -280,7 +287,7 @@ public class ServerForMirroring implements ServerSupplierInterface
 	{
 		String ip = MartusUtilities.extractIpFromFileName(publicKeyFile.getName());
 		CallerSideMirroringGateway gateway = createGatewayToCall(ip, publicKeyFile);
-		MirroringRetriever retriever = new MirroringRetriever(getDatabase(), gateway, ip, logger, getSecurity());
+		MirroringRetriever retriever = new MirroringRetriever(getStore(), gateway, ip, logger);
 		return retriever;
 	}
 	

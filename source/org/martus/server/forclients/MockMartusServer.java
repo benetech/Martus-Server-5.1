@@ -33,6 +33,7 @@ import java.util.Vector;
 import org.martus.common.LoggerForTesting;
 import org.martus.common.MartusUtilities;
 import org.martus.common.crypto.MartusCrypto;
+import org.martus.common.crypto.MockMartusSecurity;
 import org.martus.common.database.Database;
 import org.martus.common.database.MockServerDatabase;
 import org.martus.common.network.NetworkInterfaceConstants;
@@ -61,6 +62,7 @@ public class MockMartusServer extends MartusServer
 	public MockMartusServer(File dataDir, Database databaseToUse) throws Exception
 	{
 		super(dataDir, new LoggerForTesting());
+		getStore().setSignatureGenerator(MockMartusSecurity.createServer());
 		initializeBulletinStore(databaseToUse);
 	}
 	
@@ -71,12 +73,12 @@ public class MockMartusServer extends MartusServer
 	
 	public Database getWriteableDatabase()
 	{
-		return getDatabase();
+		return (Database)getDatabase();
 	}
 
 	public void setSecurity(MartusCrypto securityToUse)
 	{
-		security = securityToUse;
+		getStore().setSignatureGenerator(securityToUse);
 	}
 	
 	public void verifyAndLoadConfigurationFiles() throws Exception

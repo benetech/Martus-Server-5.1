@@ -48,8 +48,8 @@ import org.martus.common.crypto.MartusCrypto.CryptoException;
 import org.martus.common.crypto.MartusCrypto.DecryptionException;
 import org.martus.common.crypto.MartusCrypto.MartusSignatureException;
 import org.martus.common.crypto.MartusCrypto.NoKeyPairException;
-import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
+import org.martus.common.database.ReadableDatabase;
 import org.martus.common.database.Database.RecordHiddenException;
 import org.martus.common.network.MartusSecureWebServer;
 import org.martus.common.network.MartusXmlRpcServer;
@@ -59,6 +59,7 @@ import org.martus.common.packet.Packet.InvalidPacketException;
 import org.martus.common.packet.Packet.SignatureVerificationException;
 import org.martus.common.packet.Packet.WrongPacketTypeException;
 import org.martus.server.main.MartusServer;
+import org.martus.server.main.ServerBulletinStore;
 import org.martus.util.Base64;
 import org.martus.util.DirectoryUtils;
 import org.martus.util.Base64.InvalidBase64Exception;
@@ -100,7 +101,12 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 		logger.log(message);
 	}
 	
-	public Database getDatabase()
+	public ServerBulletinStore getStore()
+	{
+		return coreServer.getStore();
+	}
+	
+	public ReadableDatabase getDatabase()
 	{
 		return coreServer.getDatabase();
 	}
@@ -332,8 +338,7 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 	public DatabaseKey findHeaderKeyInDatabase(String authorAccountId,String bulletinLocalId) 
 	{
 		UniversalId uid = UniversalId.createFromAccountAndLocalId(authorAccountId, bulletinLocalId);
-		DatabaseKey headerKey = new DatabaseKey(uid);
-		headerKey.setSealed();
+		DatabaseKey headerKey = DatabaseKey.createSealedKey(uid);
 		if(getDatabase().doesRecordExist(headerKey))
 			return headerKey;
 
@@ -401,7 +406,7 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 			NoKeyPairException,
 			MartusUtilities.FileVerificationException, IOException, RecordHiddenException
 	{
-		File tempFile = getDatabase().getOutgoingInterimPublicOnlyFile(headerKey);
+		File tempFile = getStore().getOutgoingInterimPublicOnlyFile(headerKey.getUniversalId());
 		File tempFileSignature = MartusUtilities.getSignatureFileFromFile(tempFile);
 		if(tempFile.exists() && tempFileSignature.exists())
 		{

@@ -132,7 +132,8 @@ public class ListPacketsForBulletin
 			db.initialize();
 			
 			UniversalId uId = UniversalId.createFromAccountAndLocalId(accountPublicKey, bulletinLocalId);
-			DatabaseKey dbKey = new DatabaseKey(uId);
+			DatabaseKey dbKey = DatabaseKey.createSealedKey(uId);
+			System.out.println("Assuming SEALED status");
 			
 			BulletinHeaderPacket bhp = new BulletinHeaderPacket(uId);
 			try

@@ -174,7 +174,7 @@ public class TestServerForClients extends TestCaseEnhanced
 	{
 		TRACE_BEGIN("testListFieldOfficeDraftBulletinIds");
 
-		mockServer.security = serverSecurity;
+		mockServer.setSecurity(serverSecurity);
 
 		MartusCrypto fieldSecurity1 = clientSecurity;
 		mockServer.allowUploads(fieldSecurity1.getPublicKeyString());
@@ -363,7 +363,7 @@ public class TestServerForClients extends TestCaseEnhanced
 		
 		testServer.allowUploads(sampleId, dummyMagicWord);
 		MockMartusServer other = new MockMartusServer(mockServer.getDataDirectory());
-		other.setSecurity(mockServer.security);
+		other.setSecurity(mockServer.getSecurity());
 		other.setClientListenerEnabled(true);
 		other.verifyAndLoadConfigurationFiles();
 		assertEquals("didn't get saved/loaded?", true, other.canClientUpload(sampleId));
@@ -546,7 +546,7 @@ public class TestServerForClients extends TestCaseEnhanced
 	
 	void uploadSampleBulletin() 
 	{
-		mockServer.security = serverSecurity;
+		mockServer.setSecurity(serverSecurity);
 		mockServer.serverForClients.clearCanUploadList();
 		testServer.allowUploads(clientSecurity.getPublicKeyString(), "silly magic word");
 		mockServer.uploadBulletin(clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipString);
@@ -554,7 +554,7 @@ public class TestServerForClients extends TestCaseEnhanced
 	
 	String uploadSampleDraftBulletin(Bulletin draft) throws Exception
 	{
-		mockServer.security = serverSecurity;
+		mockServer.setSecurity(serverSecurity);
 		testServer.clearCanUploadList();
 		mockServer.allowUploads(clientSecurity.getPublicKeyString());
 		

@@ -45,6 +45,8 @@ import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
 import org.martus.common.test.UniversalIdForTesting;
 import org.martus.common.utilities.MartusServerUtilities;
+import org.martus.server.forclients.MockMartusServer;
+import org.martus.server.main.ServerBulletinStore;
 import org.martus.util.Base64;
 import org.martus.util.InputStreamWithSeek;
 import org.martus.util.TestCaseEnhanced;
@@ -59,8 +61,8 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 	public void setUp() throws Exception
 	{
 		super.setUp();
-		db = new MockServerDatabase();
-		security = MockMartusSecurity.createServer();
+		server = new MockMartusServer();
+		MartusCrypto security = server.getSecurity();
 		
 		supplier = new FakeServerSupplier();
 		supplier.authorizedCaller = security.getPublicKeyString();
@@ -68,7 +70,7 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		handler = new SupplierSideMirroringHandler(supplier, security);
 		realGateway = new CallerSideMirroringGateway(handler);
 		LoggerForTesting logger = new LoggerForTesting();
-		realRetriever = new MirroringRetriever(db, realGateway, "Dummy IP", logger, security);
+		realRetriever = new MirroringRetriever(server.getStore(), realGateway, "Dummy IP", logger);
 		
 	}
 	
@@ -153,8 +155,7 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 			Bulletin b = new Bulletin(clientSecurity);
 			b.setSealed();
 			bulletins.add(b);
-			DatabaseKey key = new DatabaseKey(b.getUniversalId());
-			key.setSealed();
+			DatabaseKey key = DatabaseKey.createSealedKey(b.getUniversalId());
 			BulletinSaver.saveToClientDatabase(b, fakeDatabase, false, clientSecurity);
 
 			String bur = MartusServerUtilities.createBulletinUploadRecord(b.getLocalId(), otherServerSecurity);
@@ -169,18 +170,19 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 			supplier.addBulletinToMirror(key, sigString);
 		}
 
+		ServerBulletinStore store = server.getStore();
 		realRetriever.shouldSleepNextCycle = false;
-		assertEquals("before tick a", 0, db.getRecordCount());
+		assertEquals("before tick a", 0, store.getBulletinCount());
 		// get account list
 		realRetriever.retrieveNextBulletin();
 		assertNull("tick a asked for account?", supplier.gotAccount);
 		assertNull("tick a asked for id?", supplier.gotLocalId);
-		assertEquals("after tick a", 0, db.getRecordCount());
+		assertEquals("after tick a", 0, store.getBulletinCount());
 		//get bulletin list
 		realRetriever.retrieveNextBulletin();
 		assertNull("tick b asked for account?", supplier.gotAccount);
 		assertNull("tick b asked for id?", supplier.gotLocalId);
-		assertEquals("after tick b", 0, db.getRecordCount());
+		assertEquals("after tick b", 0, store.getBulletinCount());
 
 		assertTrue("shouldsleep defaulting false?", realRetriever.shouldSleepNextCycle);
 		supplier.returnResultTag = MirroringInterface.RESULT_OK;
@@ -192,15 +194,15 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 			realRetriever.retrieveNextBulletin();
 			assertEquals("tick " + goodTick + " wrong account?", clientSecurity.getPublicKeyString(), supplier.gotAccount);
 			assertEquals("tick " + goodTick + " wrong id?", ((Bulletin)bulletins.get(goodTick)).getLocalId(), supplier.gotLocalId);
-			assertEquals("after tick " + goodTick, (goodTick+1)*databaseRecordsPerBulletin, db.getRecordCount());
+			assertEquals("after tick " + goodTick, (goodTick+1), store.getBulletinCount());
 			assertFalse("shouldsleep " + goodTick + " wrong?", realRetriever.shouldSleepNextCycle);
 		}
 		realRetriever.retrieveNextBulletin();
-		assertEquals("after extra tick", 3*databaseRecordsPerBulletin, db.getRecordCount());
+		assertEquals("after extra tick", 3, store.getBulletinCount());
 		assertEquals("extra tick got uids?", 0, realRetriever.uidsToRetrieve.size());
 		assertTrue("after extra tick shouldsleep false?", realRetriever.shouldSleepNextCycle);
 		realRetriever.retrieveNextBulletin();
-		assertEquals("after extra tick2", 3*databaseRecordsPerBulletin, db.getRecordCount());
+		assertEquals("after extra tick2", 3, store.getBulletinCount());
 		assertEquals("extra tick2 got uids?", 0, realRetriever.uidsToRetrieve.size());
 	}
 	
@@ -214,6 +216,7 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		UniversalId visibleUid = addNewUid(infos, accountId);
 		UniversalId hiddenUid2 = addNewUid(infos, accountId);
 		
+		Database db = server.getWriteableDatabase();
 		db.hide(hiddenUid1);
 		db.hide(hiddenUid2);
 		
@@ -243,8 +246,7 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 
 	final static int databaseRecordsPerBulletin = 4;
 
-	MockServerDatabase db;
-	MartusCrypto security;
+	MockMartusServer server;
 	FakeServerSupplier supplier;
 	SupplierSideMirroringHandler handler;
 	CallerSideMirroringGateway realGateway;
