@@ -63,10 +63,11 @@ import org.martus.server.forclients.AuthorizeLogEntry;
 import org.martus.server.forclients.ServerForClients;
 import org.martus.server.main.BulletinUploadRecord;
 import org.martus.server.main.MartusServer;
-import org.martus.util.FileInputStreamWithSeek;
 import org.martus.util.UnicodeReader;
 import org.martus.util.UnicodeWriter;
 import org.martus.util.Base64.InvalidBase64Exception;
+import org.martus.util.inputstreamwithseek.FileInputStreamWithSeek;
+
 
 
 public class CreateStatistics

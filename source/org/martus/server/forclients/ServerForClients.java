@@ -48,9 +48,10 @@ import org.martus.common.packet.UniversalId;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.server.main.MartusServer;
 import org.martus.server.main.ServerBulletinStore;
-import org.martus.util.InputStreamWithSeek;
 import org.martus.util.UnicodeWriter;
+import org.martus.util.inputstreamwithseek.InputStreamWithSeek;
 import org.martus.util.xmlrpc.WebServerWithClientId;
+
 
 public class ServerForClients implements ServerForNonSSLClientsInterface, ServerForClientsInterface
 {

@@ -45,8 +45,9 @@ import org.martus.common.database.FileDatabase;
 import org.martus.common.database.ServerFileDatabase;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.Packet;
-import org.martus.util.InputStreamWithSeek;
 import org.martus.util.UnicodeReader;
+import org.martus.util.inputstreamwithseek.InputStreamWithSeek;
+
 
 public class VerifyAllPackets
 {

@@ -50,8 +50,9 @@ import org.martus.server.forclients.MockMartusServer;
 import org.martus.server.main.BulletinUploadRecord;
 import org.martus.server.main.ServerBulletinStore;
 import org.martus.util.Base64;
-import org.martus.util.InputStreamWithSeek;
 import org.martus.util.TestCaseEnhanced;
+import org.martus.util.inputstreamwithseek.InputStreamWithSeek;
+
 
 public class TestMirroringRetriever extends TestCaseEnhanced
 {

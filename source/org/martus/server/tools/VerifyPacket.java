@@ -31,8 +31,9 @@ import java.io.File;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MartusSecurity;
 import org.martus.common.packet.Packet;
-import org.martus.util.FileInputStreamWithSeek;
-import org.martus.util.InputStreamWithSeek;
+import org.martus.util.inputstreamwithseek.FileInputStreamWithSeek;
+import org.martus.util.inputstreamwithseek.InputStreamWithSeek;
+
 
 public class VerifyPacket
 {

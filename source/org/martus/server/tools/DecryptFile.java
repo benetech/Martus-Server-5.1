@@ -39,9 +39,10 @@ import org.martus.common.crypto.MartusCrypto.DecryptionException;
 import org.martus.common.crypto.MartusCrypto.NoKeyPairException;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.util.Base64;
-import org.martus.util.ByteArrayInputStreamWithSeek;
 import org.martus.util.UnicodeReader;
 import org.martus.util.Base64.InvalidBase64Exception;
+import org.martus.util.inputstreamwithseek.ByteArrayInputStreamWithSeek;
+
 
 public class DecryptFile
 {
