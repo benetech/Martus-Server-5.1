@@ -30,7 +30,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Vector;
-import java.util.zip.ZipException;
 
 import org.martus.common.BulletinStore;
 import org.martus.common.ContactInfo;
@@ -44,11 +43,8 @@ import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
 import org.martus.common.packet.Packet.InvalidPacketException;
 import org.martus.common.packet.Packet.SignatureVerificationException;
-import org.martus.common.packet.Packet.WrongAccountException;
 import org.martus.common.packet.Packet.WrongPacketTypeException;
 import org.martus.common.utilities.MartusServerUtilities;
-import org.martus.common.utilities.MartusServerUtilities.DuplicatePacketException;
-import org.martus.common.utilities.MartusServerUtilities.SealedPacketExistsException;
 
 
 public class ServerBulletinStore extends BulletinStore
@@ -78,11 +74,6 @@ public class ServerBulletinStore extends BulletinStore
 	public File getOutgoingInterimPublicOnlyFile(UniversalId uid) throws IOException, RecordHiddenException
 	{
 		return getWriteableDatabase().getOutgoingInterimPublicOnlyFile(uid);
-	}
-	
-	public BulletinHeaderPacket saveZipFileToDatabase(String authorAccountId, File zipFile) throws ZipException, InvalidPacketException, SignatureVerificationException, DecryptionException, IOException, RecordHiddenException, SealedPacketExistsException, DuplicatePacketException, WrongAccountException
-	{
-		return MartusServerUtilities.saveZipFileToDatabase(getWriteableDatabase(), authorAccountId, zipFile, getSignatureGenerator());
 	}
 	
 	public void writeBur(BulletinHeaderPacket bhp) throws CreateDigestException, IOException, RecordHiddenException

@@ -1168,7 +1168,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		BulletinHeaderPacket bhp = null;
 		try
 		{
-			bhp = getStore().saveZipFileToDatabase(authorAccountId, zipFile);
+			bhp = getStore().saveZipFileToDatabase(zipFile, authorAccountId);
 		}
 		catch (DuplicatePacketException e)
 		{

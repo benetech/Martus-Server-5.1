@@ -80,7 +80,7 @@ public class MirroringRetriever
 			{
 				zip.deleteOnExit();
 				retrieveOneBulletin(zip, uid);
-				BulletinHeaderPacket bhp = store.saveZipFileToDatabase(uid.getAccountId(), zip);
+				BulletinHeaderPacket bhp = store.saveZipFileToDatabase(zip, uid.getAccountId());
 				store.writeBur(bhp, bur);
 			}
 			finally
