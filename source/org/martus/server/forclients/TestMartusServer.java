@@ -47,7 +47,6 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
-import org.martus.common.ConfigInfo;
 import org.martus.common.ContactInfo;
 import org.martus.common.LoggerForTesting;
 import org.martus.common.MartusUtilities;
@@ -584,13 +583,10 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		String invalidSig = testServer.putContactInfo(clientId, contactInfoManual);
 		assertEquals("Invalid Signature", SIG_ERROR, invalidSig);		
 
-		ConfigInfo configInfo = new ConfigInfo();
 		String author = "Author";
-		configInfo.setAuthor(author);
 		String phoneNumber = "Phone number";
-		configInfo.setPhone(phoneNumber);
+		ContactInfo contactInfo = new ContactInfo(author, "org", "email", "web", phoneNumber, "address");
 		MartusCrypto signer = clientSecurity;
-		ContactInfo contactInfo = new ContactInfo(configInfo);
 		Vector contactInfoEncoded = contactInfo.getSignedEncodedVector(signer);
 		
 		testServer.allowUploads("differentAccountID");
@@ -669,13 +665,10 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 	{
 		TRACE_BEGIN("testGetContactInfo");
 
-		ConfigInfo info = new ConfigInfo();
 		String author = "Author";
 		String phone = "Phone number";
-		info.setAuthor(author);
-		info.setPhone(phone);
 		MartusCrypto signer = clientSecurity;
-		ContactInfo contactInfo = new ContactInfo(info);
+		ContactInfo contactInfo = new ContactInfo(author, "org", "email", "web", phone, "address");
 		
 		Vector encodedContactInfo = contactInfo.getSignedEncodedVector(signer);
 		Vector decodedContactInfo = ContactInfo.decodeContactInfoVectorIfNecessary(encodedContactInfo);
