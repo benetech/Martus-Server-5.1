@@ -1847,9 +1847,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 				serverForMirroring.doBackgroundTick();
 			if(MartusServer.needsAmpSync)
 			{
-				amp.startSynch();
 				amp.pullNewDataFromServers();
-				amp.endSynch();
 				MartusServer.needsAmpSync = false;
 			}
 		}
