@@ -35,6 +35,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Vector;
 
+import org.martus.common.MagicWords;
 import org.martus.common.MartusUtilities;
 import org.martus.common.MartusUtilities.FileVerificationException;
 import org.martus.common.crypto.MartusCrypto;
@@ -50,7 +51,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	public ServerForClients(MartusServer coreServerToUse)
 	{
 		coreServer = coreServerToUse;
-		magicWords = new MagicWords(coreServer);
+		magicWords = new MagicWords(coreServer.getLogger());
 		clientsThatCanUpload = new Vector();
 		activeWebServers = new Vector();
 	}
