@@ -42,7 +42,6 @@ import org.martus.common.network.MartusXmlRpcServer;
 import org.martus.common.network.NetworkInterfaceXmlRpcConstants;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.server.main.MartusServer;
-import org.martus.util.UnicodeReader;
 import org.martus.util.UnicodeWriter;
 import org.martus.util.xmlrpc.WebServerWithClientId;
 
@@ -51,7 +50,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	public ServerForClients(MartusServer coreServerToUse)
 	{
 		coreServer = coreServerToUse;
-		magicWords = new Vector();
+		magicWords = new MagicWords(coreServer);
 		clientsThatCanUpload = new Vector();
 		activeWebServers = new Vector();
 	}
@@ -327,13 +326,12 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 
 	public boolean isValidMagicWord(String tryMagicWord)
 	{
-		return (magicWords.contains(normalizeMagicWord(tryMagicWord)));
+		return (magicWords.isValidMagicWord(tryMagicWord));
 	}
 	
-	public void addMagicWord(String newMagicWord)
+	public void addMagicWord(String newMagicWordInfo)
 	{
-		if( !magicWords.contains(newMagicWord) )
-			magicWords.add(newMagicWord);
+		magicWords.add(newMagicWordInfo);
 	}
 	
 	public File getMagicWordsFile()
@@ -343,22 +341,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 
 	void loadMagicWordsFile() throws IOException
 	{
-		try
-		{
-			UnicodeReader reader = new UnicodeReader(getMagicWordsFile());
-			String line = null;
-			while( (line = reader.readLine()) != null)
-			{
-				if(line.trim().length() == 0)
-					log("Warning: Found blank line in " + getMagicWordsFile().getPath());
-				else
-					addMagicWord(normalizeMagicWord(line));
-			}
-			reader.close();
-		}
-		catch(FileNotFoundException nothingToWorryAbout)
-		{
-		}
+		magicWords.loadMagicWords(getMagicWordsFile());
 	}
 
 	public void deleteMagicWordsFile()
@@ -368,11 +351,6 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			System.out.println("Unable to delete magicwords");
 			System.exit(4);
 		}
-	}
-
-	static String normalizeMagicWord(String original)
-	{
-		return original.toLowerCase().trim().replaceAll("\\s", "");
 	}
 
 	public synchronized void allowUploads(String clientId)
@@ -440,10 +418,10 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	}
 	
 
-
 	MartusServer coreServer;
 	private int activeClientsCounter;
-	Vector magicWords;
+	MagicWords magicWords;
+	
 	public Vector clientsThatCanUpload;
 	public Vector clientsBanned;
 	private Vector activeWebServers;
