@@ -72,7 +72,7 @@ public class AuthorizeLog
 		}
 		catch (FileNotFoundException e)
 		{
-			logger.logDebug("Warning: no authorizeLog.txt file found:" + authorizeLogFile.getPath());
+			logger.logWarning("No authorizeLog.txt file found:" + authorizeLogFile.getPath());
 			return;
 		}
 		File authorizeLogFileSignature = MartusServerUtilities.getLatestSignatureFileFromFile(authorizeLogFile);
