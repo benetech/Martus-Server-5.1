@@ -76,6 +76,12 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		
 	}
 	
+	public void tearDown() throws Exception
+	{
+		super.tearDown();
+		server.deleteAllFiles();
+	}
+	
 	public void testGetNextUidToRetrieve() throws Exception
 	{
 		assertNull("uid right after constructor?", realRetriever.getNextUidToRetrieve());
