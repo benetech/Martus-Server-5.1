@@ -42,6 +42,7 @@ public class TestServerSideNetworkHandler extends TestCaseEnhanced
 	
 	public void setUp() throws Exception
 	{
+		super.setUp();
 		mySecurity = new MartusSecurity();
 		mySecurity.createKeyPair(512);
 		
@@ -57,6 +58,7 @@ public class TestServerSideNetworkHandler extends TestCaseEnhanced
 	public void tearDown() throws Exception
 	{
 		mockServer.deleteAllFiles();
+		super.tearDown();
 	}
 
 	public void testSigs() throws Exception

@@ -50,6 +50,7 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 
 	protected void setUp() throws Exception
 	{
+		super.setUp();
 		supplier = new FakeServerSupplier();
 		supplierSecurity = supplier.getSecurity();
 		handler = new SupplierSideMirroringHandler(supplier, supplierSecurity);

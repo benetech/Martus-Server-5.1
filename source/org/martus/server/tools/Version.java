@@ -26,7 +26,7 @@ Boston, MA 02111-1307, USA.
 
 package org.martus.server.tools;
 
-import org.martus.server.core.MarketingVersionNumber;
+import org.martus.server.main.MarketingVersionNumber;
 
 public class Version
 {

@@ -24,7 +24,7 @@ Boston, MA 02111-1307, USA.
 
 */
 
-package org.martus.server.core;
+package org.martus.server.main;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;

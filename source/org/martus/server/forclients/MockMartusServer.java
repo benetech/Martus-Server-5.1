@@ -38,7 +38,7 @@ import org.martus.common.database.Database;
 import org.martus.common.database.MockServerDatabase;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.utilities.MartusServerUtilities;
-import org.martus.server.core.*;
+import org.martus.server.main.*;
 import org.martus.util.Base64;
 
 public class MockMartusServer extends MartusServer implements ServerForClientsInterface, ServerForNonSSLClientsInterface

@@ -43,7 +43,7 @@ import org.martus.common.network.MartusXmlRpcServer;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
 import org.martus.common.utilities.MartusServerUtilities;
-import org.martus.server.core.MartusServer;
+import org.martus.server.main.MartusServer;
 import org.martus.server.formirroring.CallerSideMirroringGatewayForXmlRpc.SSLSocketSetupException;
 import org.martus.util.Base64;
 import org.martus.util.InputStreamWithSeek;

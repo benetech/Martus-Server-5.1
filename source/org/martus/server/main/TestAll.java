@@ -24,36 +24,32 @@ Boston, MA 02111-1307, USA.
 
 */
 
-package org.martus.server.core;
+package org.martus.server.main;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
-import org.martus.server.foramplifiers.TestForAmplifiers;
-import org.martus.server.forclients.TestForClients;
-import org.martus.server.formirroring.TestForMirroring;
+import org.martus.common.test.TestCommon;
 
-public class TestServer 
+public class TestAll
 {
 	public static void main(String[] args) 
 	{
 		runTests();
 	}
 
-	public static void runTests () 
+	public static void runTests() 
 	{
-		junit.textui.TestRunner.run (suite());
+		junit.textui.TestRunner.run(suite());
 	}
 
-	public static Test suite ( ) 
+	public static Test suite() 
 	{
-		TestSuite suite= new TestSuite("All Server Martus Tests");
+		TestSuite suite = new TestSuite("All Server and Common Martus Tests");
 
-		suite.addTest(TestServerCore.suite());
-		suite.addTest(TestForClients.suite());
-		suite.addTest(TestForMirroring.suite());
-		suite.addTest(TestForAmplifiers.suite());
+		suite.addTest(TestCommon.suite());
+		suite.addTest(TestServer.suite());
 
-	    return suite;
+		return suite;
 	}
 }

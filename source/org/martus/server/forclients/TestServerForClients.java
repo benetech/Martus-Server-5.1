@@ -59,6 +59,7 @@ public class TestServerForClients extends TestCaseEnhanced
 
 	protected void setUp() throws Exception
 	{
+		super.setUp();
 		TRACE_BEGIN("setUp");
 
 		if(clientSecurity == null)
@@ -159,6 +160,7 @@ public class TestServerForClients extends TestCaseEnhanced
 		tempFile.delete();
 
 		TRACE_END();
+		super.tearDown();
 	}
 
 	public void testBannedClients()

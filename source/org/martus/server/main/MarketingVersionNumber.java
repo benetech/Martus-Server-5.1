@@ -24,32 +24,9 @@ Boston, MA 02111-1307, USA.
 
 */
 
-package org.martus.server.core;
+package org.martus.server.main;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
-
-import org.martus.common.test.TestCommon;
-
-public class TestAll
+public class MarketingVersionNumber
 {
-	public static void main(String[] args) 
-	{
-		runTests();
-	}
-
-	public static void runTests() 
-	{
-		junit.textui.TestRunner.run(suite());
-	}
-
-	public static Test suite() 
-	{
-		TestSuite suite = new TestSuite("All Server and Common Martus Tests");
-
-		suite.addTest(TestCommon.suite());
-		suite.addTest(TestServer.suite());
-
-		return suite;
-	}
+	public static final String marketingVersionNumber = "1.5";
 }

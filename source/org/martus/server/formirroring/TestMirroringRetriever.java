@@ -56,6 +56,7 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 	
 	public void setUp() throws Exception
 	{
+		super.setUp();
 		db = new MockServerDatabase();
 		security = MockMartusSecurity.createServer();
 		

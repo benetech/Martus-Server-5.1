@@ -56,6 +56,7 @@ public class TestServerForMirroring extends TestCaseEnhanced
 
 	protected void setUp() throws Exception
 	{
+		super.setUp();
 		logger = new LoggerForTesting();
 		MockMartusSecurity serverSecurity = MockMartusSecurity.createServer();
 		coreServer = new MockMartusServer();
@@ -100,6 +101,7 @@ public class TestServerForMirroring extends TestCaseEnhanced
 	protected void tearDown() throws Exception
 	{
 		coreServer.deleteAllFiles();
+		super.tearDown();
 	}
 	
 	public void testGetPublicInfo() throws Exception

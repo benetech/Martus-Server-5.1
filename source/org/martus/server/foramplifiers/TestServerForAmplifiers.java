@@ -55,6 +55,7 @@ public class TestServerForAmplifiers extends TestCaseEnhanced
 
 	protected void setUp() throws Exception
 	{
+		super.setUp();
 		if(logger == null)
 			logger = new LoggerForTesting();
 		if(clientSecurity == null)
@@ -133,6 +134,7 @@ public class TestServerForAmplifiers extends TestCaseEnhanced
 	{
 		coreServer.deleteAllFiles();
 		otherServer.deleteAllFiles();
+		super.tearDown();
 	}
 	
 	public void testAmplifierGetContactInfo() throws Exception

@@ -69,7 +69,7 @@ import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
 import org.martus.common.test.TestCaseEnhanced;
 import org.martus.common.utilities.MartusServerUtilities;
-import org.martus.server.core.*;
+import org.martus.server.main.*;
 import org.martus.util.Base64;
 import org.martus.util.UnicodeReader;
 import org.martus.util.UnicodeWriter;
@@ -96,6 +96,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 
 	public void setUp() throws Exception
 	{
+		super.setUp();
 		TRACE_BEGIN("setUp");
 
 		if(clientSecurity == null)
@@ -195,6 +196,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		tempFile.delete();
 
 		TRACE_END();
+		super.tearDown();
 	}
 	
 	public void testLoadHiddenPacketsList() throws Exception

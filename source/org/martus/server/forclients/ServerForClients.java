@@ -41,7 +41,7 @@ import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.network.MartusXmlRpcServer;
 import org.martus.common.network.NetworkInterfaceXmlRpcConstants;
 import org.martus.common.utilities.MartusServerUtilities;
-import org.martus.server.core.MartusServer;
+import org.martus.server.main.MartusServer;
 import org.martus.util.UnicodeReader;
 import org.martus.util.UnicodeWriter;
 import org.martus.util.WebServerWithClientId;
