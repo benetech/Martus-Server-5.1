@@ -497,7 +497,6 @@ public class CreateStatistics
 				{
 					bulletinSummary = ERROR_MSG + " " + e.getMessage();
 				}
-				
 			}
 
 			private void getBulletinHeaderInfo(DatabaseKey key)
