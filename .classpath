@@ -4,5 +4,9 @@
     <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
     <classpathentry kind="src" path="/martus-utils"/>
     <classpathentry kind="src" path="/martus-common"/>
+    <classpathentry kind="var" path="junit"/>
+    <classpathentry kind="var" path="jsse"/>
+    <classpathentry kind="var" path="javajce"/>
+    <classpathentry kind="var" path="xmlrpc"/>
     <classpathentry kind="output" path="bin"/>
 </classpath>
