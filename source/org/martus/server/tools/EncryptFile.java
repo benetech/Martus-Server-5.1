@@ -35,6 +35,7 @@ import java.security.PublicKey;
 import java.util.Vector;
 
 import org.martus.common.MartusUtilities;
+import org.martus.common.crypto.MartusKeyPair;
 import org.martus.common.crypto.MartusSecurity;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.util.Base64;
@@ -87,7 +88,7 @@ public class EncryptFile
 			
 			Vector publicInfo = MartusUtilities.importServerPublicKeyFromFile(publicKeyFile, security);
 			String publicKeyString = (String) publicInfo.get(0);
-			PublicKey publicKey = MartusSecurity.extractPublicKey(publicKeyString);
+			PublicKey publicKey = MartusKeyPair.extractPublicKey(publicKeyString);
 			
 			security.encrypt(plainStream, cipherByteArrayOutputStream, security.createSessionKey(), publicKey);
 			String encodedEncryptedFile = Base64.encode(cipherByteArrayOutputStream.toByteArray());
