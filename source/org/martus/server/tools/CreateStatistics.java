@@ -188,8 +188,6 @@ public class CreateStatistics
 						getNormalizedStringAndCheckForErrors(banned) + DELIMITER +
 						getNormalizedStringAndCheckForErrors(notToAmplify) + DELIMITER +
 						getNormalizedStringAndCheckForErrors(clientAuthorizedDate) + DELIMITER +
-						getNormalizedStringAndCheckForErrors(clientIPAddress) + DELIMITER +
-						getNormalizedStringAndCheckForErrors(clientMagicWord) + DELIMITER +
 						getNormalizedStringAndCheckForErrors(clientGroup) + DELIMITER +
 						getNormalizedStringAndCheckForErrors(author) + DELIMITER +
 						getNormalizedStringAndCheckForErrors(organization) + DELIMITER +
@@ -222,15 +220,12 @@ public class CreateStatistics
 			{
 				AuthorizeLogEntry clientEntry = authorizeLog.getAuthorizedClientEntry(publicCode);
 				clientAuthorizedDate = "";
-				clientIPAddress = "";
-				clientMagicWord = "";
 				clientGroup = "";
 				if(clientEntry != null)
 				{
 					clientAuthorizedDate = clientEntry.getDate();
-					clientIPAddress = clientEntry.getIp();
-					clientMagicWord = clientEntry.getMagicWord();
 					clientGroup = clientEntry.getGroupName();
+					//clientIPAddress = clientEntry.getIp();
 				}
 			}
 			class NoContactInfo extends IOException{};
@@ -336,8 +331,6 @@ public class CreateStatistics
 			private String address;
 			
 			private String clientAuthorizedDate = "";
-			private String clientIPAddress = "";
-			private String clientMagicWord = "";
 			private String clientGroup = ""; 
 		}
 
@@ -838,8 +831,6 @@ public class CreateStatistics
 	final String ACCOUNT_BANNED = "banned";
 	final String ACCOUNT_AMPLIFY = "can amplify";
 	final String ACCOUNT_DATE_AUTHORIZED = "date authorized";
-	final String ACCOUNT_IP = "ip address";
-	final String ACCOUNT_MAGICWORD = "magic word";
 	final String ACCOUNT_GROUP = "group";
 	final String ACCOUNT_AUTHOR = "author name";
 	final String ACCOUNT_ORGANIZATION = "organization";
@@ -865,8 +856,6 @@ public class CreateStatistics
 		getNormalizedStringAndCheckForErrors(ACCOUNT_BANNED) + DELIMITER + 
 		getNormalizedStringAndCheckForErrors(ACCOUNT_AMPLIFY) + DELIMITER + 
 		getNormalizedStringAndCheckForErrors(ACCOUNT_DATE_AUTHORIZED) + DELIMITER + 
-		getNormalizedStringAndCheckForErrors(ACCOUNT_IP) + DELIMITER + 
-		getNormalizedStringAndCheckForErrors(ACCOUNT_MAGICWORD) + DELIMITER + 
 		getNormalizedStringAndCheckForErrors(ACCOUNT_GROUP) + DELIMITER + 
 		getNormalizedStringAndCheckForErrors(ACCOUNT_AUTHOR) + DELIMITER + 
 		getNormalizedStringAndCheckForErrors(ACCOUNT_ORGANIZATION) + DELIMITER + 
