@@ -107,7 +107,7 @@ public class MartusServer implements NetworkInterfaceConstants
 				System.exit(2);
 			}
 
-			String passphrase = getPassphraseFromConsole(server);
+			char[] passphrase = getPassphraseFromConsole(server);
 			server.loadAccount(passphrase);
 			server.setDataDirectory(getDefaultDataDirectory());
 			server.verifyAndLoadConfigurationFiles();
@@ -261,7 +261,7 @@ public class MartusServer implements NetworkInterfaceConstants
 		return getKeyPairFile().exists();
 	}
 	
-	void loadAccount(String passphrase) throws AuthorizationFailedException, InvalidKeyPairFileVersionException, IOException
+	void loadAccount(char[] passphrase) throws AuthorizationFailedException, InvalidKeyPairFileVersionException, IOException
 	{
 		FileInputStream in = new FileInputStream(getKeyPairFile());
 		readKeyPair(in, passphrase);
@@ -1013,7 +1013,7 @@ public class MartusServer implements NetworkInterfaceConstants
 		return clientId.equals(key.getAccountId());
 	}
 
-	void readKeyPair(InputStream in, String passphrase) throws 
+	void readKeyPair(InputStream in, char[] passphrase) throws 
 		IOException,
 		MartusCrypto.AuthorizationFailedException,
 		MartusCrypto.InvalidKeyPairFileVersionException
@@ -1021,7 +1021,7 @@ public class MartusServer implements NetworkInterfaceConstants
 		security.readKeyPair(in, passphrase);
 	}
 	
-	void writeKeyPair(OutputStream out, String passphrase) throws 
+	void writeKeyPair(OutputStream out, char[] passphrase) throws 
 		IOException
 	{
 		security.writeKeyPair(out, passphrase);
@@ -1668,7 +1668,7 @@ public class MartusServer implements NetworkInterfaceConstants
 	}
 	
 
-	private static String getPassphraseFromConsole(MartusServer server)
+	private static char[] getPassphraseFromConsole(MartusServer server)
 	{
 		System.out.print("Enter passphrase: ");
 		System.out.flush();
@@ -1682,6 +1682,7 @@ public class MartusServer implements NetworkInterfaceConstants
 		String passphrase = null;
 		try
 		{
+			//TODO security issue here password is a string
 			passphrase = reader.readLine();
 		}
 		catch(Exception e)
@@ -1689,7 +1690,7 @@ public class MartusServer implements NetworkInterfaceConstants
 			System.out.println("MartusServer.main: " + e);
 			System.exit(3);
 		}
-		return passphrase;
+		return passphrase.toCharArray();
 	}
 
 

@@ -366,7 +366,7 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 		return clientId.equals(key.getAccountId());
 	}
 
-	void readKeyPair(InputStream in, String passphrase) throws 
+	void readKeyPair(InputStream in, char[] passphrase) throws 
 		IOException,
 		MartusCrypto.AuthorizationFailedException,
 		MartusCrypto.InvalidKeyPairFileVersionException

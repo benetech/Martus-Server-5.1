@@ -66,12 +66,14 @@ public class ChangeKeypairPassphrase
 			BufferedReader reader = new BufferedReader(rawReader);
 			try
 			{
+				//TODO security issue here password is a string
 				String oldPassphrase = reader.readLine();
 				
-				MartusCrypto security = MartusServerUtilities.loadCurrentMartusSecurity(keyPairFile, oldPassphrase);
+				MartusCrypto security = MartusServerUtilities.loadCurrentMartusSecurity(keyPairFile, oldPassphrase.toCharArray());
 				
 				System.out.print("Enter new passphrase:");
 				System.out.flush();
+				//TODO security issue here password is a string
 				String newPassphrase1 = reader.readLine();
 				System.out.print("Re-enter the new passphrase:");
 				System.out.flush();
@@ -81,7 +83,7 @@ public class ChangeKeypairPassphrase
 				{
 					System.out.println("Updating passphrase...");
 					System.out.flush();
-					updateKeypairPassphrase(keyPairFile, newPassphrase1, security);
+					updateKeypairPassphrase(keyPairFile, newPassphrase1.toCharArray(), security);
 				}
 				else
 				{
@@ -99,7 +101,7 @@ public class ChangeKeypairPassphrase
 			System.exit(0);
 	}
 	
-	private static void updateKeypairPassphrase(File keyPairFile, String newPassphrase, MartusCrypto security)
+	private static void updateKeypairPassphrase(File keyPairFile, char[] newPassphrase, MartusCrypto security)
 		throws FileNotFoundException, IOException
 	{
 		FileOutputStream out = new FileOutputStream(keyPairFile);

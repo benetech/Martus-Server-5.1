@@ -81,8 +81,9 @@ public class ExportPublicKey
 		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 		try
 		{
+			//TODO security issue password is a string
 			String passphrase = reader.readLine();
-			security = MartusServerUtilities.loadCurrentMartusSecurity(keypair, passphrase);
+			security = MartusServerUtilities.loadCurrentMartusSecurity(keypair, passphrase.toCharArray());
 		}
 		catch(Exception e)
 		{

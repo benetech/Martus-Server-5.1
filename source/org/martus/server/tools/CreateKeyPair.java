@@ -70,12 +70,13 @@ public class CreateKeyPair
 		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 		try
 		{
+			//TODO security issue password is in a string
 			String passphrase = reader.readLine();
 			
 			MartusSecurity security = new MartusSecurity();
 			security.createKeyPair();
 			FileOutputStream out = new FileOutputStream(keyPairFile);
-			security.writeKeyPair(out, passphrase);
+			security.writeKeyPair(out, passphrase.toCharArray());
 			out.close();
 			
 			String publicCode = MartusCrypto.computePublicCode(security.getPublicKeyString());

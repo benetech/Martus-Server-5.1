@@ -112,8 +112,9 @@ public class VerifyAllPackets
 		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 		try
 		{
+			//TODO security issue here password is a string.
 			String passphrase = reader.readLine();
-			security = loadCurrentMartusSecurity(keyPairFile, passphrase);
+			security = loadCurrentMartusSecurity(keyPairFile, passphrase.toCharArray());
 		}
 		catch(Exception e)
 		{
@@ -145,7 +146,7 @@ public class VerifyAllPackets
 		return verifier.getExitStatus();
 	}
 	
-	private static MartusCrypto loadCurrentMartusSecurity(File keyPairFile, String passphrase)
+	private static MartusCrypto loadCurrentMartusSecurity(File keyPairFile, char[] passphrase)
 		throws CryptoInitializationException, FileNotFoundException, IOException, InvalidKeyPairFileVersionException, AuthorizationFailedException
 	{
 		MartusCrypto security = new MartusSecurity();

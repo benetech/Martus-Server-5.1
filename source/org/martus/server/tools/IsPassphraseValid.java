@@ -80,6 +80,7 @@ public class IsPassphraseValid
 		String passphrase = null;
 		try
 		{
+//			TODO security issue password is a string
 			passphrase = stdin.readLine();
 		}
 		catch (IOException e)
@@ -91,7 +92,7 @@ public class IsPassphraseValid
 
 		try
 		{
-			MartusSecurity security = (MartusSecurity) MartusServerUtilities.loadCurrentMartusSecurity(keyPairFile, passphrase);
+			MartusSecurity security = (MartusSecurity) MartusServerUtilities.loadCurrentMartusSecurity(keyPairFile, passphrase.toCharArray());
 			String publicCode = MartusCrypto.computePublicCode(security.getPublicKeyString());
 			System.out.println("Public Code: " + MartusCrypto.formatPublicCode(publicCode));
 			System.exit(0);

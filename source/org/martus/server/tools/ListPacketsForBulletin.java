@@ -124,9 +124,9 @@ public class ListPacketsForBulletin
 				System.out.flush();
 			}
 			BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-			
+//			TODO security issue password is a string
 			String passphrase = reader.readLine();
-			security = (MartusSecurity) MartusServerUtilities.loadCurrentMartusSecurity(serverKeyPairFile, passphrase);			
+			security = (MartusSecurity) MartusServerUtilities.loadCurrentMartusSecurity(serverKeyPairFile, passphrase.toCharArray());			
 			
 			ServerFileDatabase db = new ServerFileDatabase(packetDir,security);
 			db.initialize();

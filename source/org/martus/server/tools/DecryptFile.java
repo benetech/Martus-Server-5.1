@@ -96,6 +96,7 @@ public class DecryptFile
 		String passphrase = null;
 		try
 		{
+//			TODO security issue password is a string
 			passphrase = stdin.readLine();
 		}
 		catch (IOException e)
@@ -109,7 +110,7 @@ public class DecryptFile
 		OutputStream plainTextOutput = null;
 		try
 		{
-			security = (MartusSecurity) MartusServerUtilities.loadCurrentMartusSecurity(keyPairFile, passphrase);
+			security = (MartusSecurity) MartusServerUtilities.loadCurrentMartusSecurity(keyPairFile, passphrase.toCharArray());
 			
 			encryptedFileReader = new UnicodeReader(cryptoFile);
 			String identifierBytesRetrieved = encryptedFileReader.readLine();
