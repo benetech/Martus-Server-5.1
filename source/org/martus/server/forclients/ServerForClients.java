@@ -54,6 +54,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		magicWords = new MagicWords(coreServer.getLogger());
 		clientsThatCanUpload = new Vector();
 		activeWebServers = new Vector();
+		loggedNumberOfActiveClients = 0;
 	}
 	
 	public Vector getDeleteOnStartupFiles()
@@ -171,7 +172,13 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 
 	public boolean canExitNow()
 	{
-		return (getNumberActiveClients() == 0);
+		int numberActiveClients = getNumberActiveClients();
+		if(numberActiveClients != 0 && loggedNumberOfActiveClients != numberActiveClients)
+		{	
+			log("Unable to exit, number of active clients =" + numberActiveClients);
+			loggedNumberOfActiveClients = numberActiveClients;
+		}
+		return (numberActiveClients == 0);
 	}
 	
 	synchronized int getNumberActiveClients()
@@ -413,6 +420,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 
 	MartusServer coreServer;
 	private int activeClientsCounter;
+	private int loggedNumberOfActiveClients;
 	MagicWords magicWords;
 	
 	public Vector clientsThatCanUpload;

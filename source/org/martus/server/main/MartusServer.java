@@ -1465,12 +1465,19 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 
 	public boolean isShutdownRequested()
 	{
-		return(getShutdownFile().exists());
+		boolean exitFile = getShutdownFile().exists();
+		if(exitFile && !loggedShutdownRequested)
+		{
+			loggedShutdownRequested = true;
+			log("Exit file found, attempting to shutdown.");
+		}
+		return(exitFile);
 	}
 	
 	public boolean canExitNow()
 	{
-		if( amp.isAmplifierSyncing())
+		
+		if(amp.canExitNow())
 			return false;
 		return serverForClients.canExitNow();
 	}
@@ -2137,7 +2144,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		{
 			if( isShutdownRequested() && canExitNow() )
 			{
-				log("Shutdown request received.");
+				log("Shutdown request acknowledged.");
 				
 				serverForClients.prepareToShutdown();				
 				getShutdownFile().delete();
@@ -2178,7 +2185,8 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	private static String listenersIpAddress; 
 	private String ampIpAddress;
 	public boolean simulateBadConnection;
-
+	private boolean loggedShutdownRequested;
+	
 	public char[] insecurePassword;
 	public long amplifierDataSynchIntervalMillis;
 	
