@@ -107,7 +107,7 @@ public class TestServerForClients extends TestCaseEnhanced
 			b1.addPrivateAttachment(new AttachmentProxy(attachment));
 			Vector keys = new Vector();
 			keys.add(hqSecurity.getPublicKeyString());
-			b1.setHQPublicKeys(keys);
+			b1.setAuthorizedToReadKeys(keys);
 			b1.setSealed();
 			BulletinSaver.saveToClientDatabase(b1, clientDatabase, true, clientSecurity);
 			b1 = BulletinLoader.loadFromDatabase(clientDatabase, DatabaseKey.createSealedKey(b1.getUniversalId()), clientSecurity);
