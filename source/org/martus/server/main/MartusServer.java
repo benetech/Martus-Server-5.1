@@ -48,7 +48,6 @@ import org.martus.common.BulletinStore;
 import org.martus.common.ContactInfo;
 import org.martus.common.LoggerInterface;
 import org.martus.common.LoggerToConsole;
-import org.martus.common.MartusConstants;
 import org.martus.common.MartusUtilities;
 import org.martus.common.Version;
 import org.martus.common.VersionBuildDate;
@@ -722,29 +721,6 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		return result;
 	}
 
-
-	public Vector listMyDraftBulletinIds(String authorAccountId, Vector retrieveTags)
-	{
-		log("listMyDraftBulletinIds " + getClientAliasForLogging(authorAccountId));
-			
-		if(isClientBanned(authorAccountId) )
-			return returnSingleResponseAndLog("  returning REJECTED", NetworkInterfaceConstants.REJECTED);
-		
-		if( isShutdownRequested() )
-			return returnSingleResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
-		
-		SummaryCollector summaryCollector = new MyDraftSummaryCollector(this, authorAccountId, retrieveTags);
-		Vector summaries = summaryCollector.getSummaries();
-
-		String resultCode = (String)summaries.get(0);
-		summaries.remove(0);
-		Vector result = new Vector();
-		result.add(resultCode);
-		result.add(summaries);
-
-		log("listMyDraftBulletinIds: Exit");
-		return result;
-	}
 
 	public Vector listFieldOfficeSealedBulletinIds(String hqAccountId, String authorAccountId, Vector retrieveTags)
 	{
@@ -1633,102 +1609,6 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	{
 		System.exit(exitCode);
 	}
-
-	public abstract static class SummaryCollector implements Database.PacketVisitor
-	{
-		protected SummaryCollector(MartusServer serverToUse, String authorAccountToUse, Vector retrieveTagsToUse)
-		{
-			server = serverToUse;
-			authorAccountId = authorAccountToUse;
-			retrieveTags = retrieveTagsToUse;
-		}
-		
-		public Database getDatabase()
-		{
-			return server.getDatabase();
-		}
-		
-		public void visit(DatabaseKey key)
-		{
-			if(!BulletinHeaderPacket.isValidLocalId(key.getLocalId()))
-				return;
-			
-			if(!keyBelongsToClient(key, authorAccountId))
-				return;
-
-			if(!isWanted(key))
-				return;
-			
-			try
-			{
-				BulletinHeaderPacket bhp = server.loadBulletinHeaderPacket(getDatabase(), key);
-				if(!isAuthorized(bhp))
-					return;
-				
-				addSummary(bhp);
-			}
-			catch (Exception e)
-			{
-				server.log("Error in summary collector: " + getClass().getName());
-				e.printStackTrace();
-			}
-		}
-		
-		abstract public boolean isWanted(DatabaseKey key);
-		abstract public boolean isAuthorized(BulletinHeaderPacket bhp);
-
-		public Vector getSummaries()
-		{
-			if(summaries == null)
-			{
-				summaries = new Vector();
-				summaries.add(NetworkInterfaceConstants.OK);
-				getDatabase().visitAllRecords(this);
-			}
-			return summaries;	
-		}
-		
-		private void addSummary(BulletinHeaderPacket bhp) 
-		{
-			String summary = bhp.getLocalId() + MartusConstants.regexEqualsDelimeter;
-			summary  += bhp.getFieldDataPacketId();
-			if(retrieveTags.contains(NetworkInterfaceConstants.TAG_BULLETIN_SIZE))
-			{
-				int size = MartusUtilities.getBulletinSize(getDatabase(), bhp);
-				summary += MartusConstants.regexEqualsDelimeter + size;
-			}
-			if(retrieveTags.contains(NetworkInterfaceConstants.TAG_BULLETIN_DATE_SAVED))
-			{
-				summary += MartusConstants.regexEqualsDelimeter + bhp.getLastSavedTime();
-			}
-			
-			summaries.add(summary);
-		}
-
-		private MartusServer server;
-		private String authorAccountId;
-		private Vector summaries;
-		private Vector retrieveTags;
-	}
-	
-	class MyDraftSummaryCollector extends SummaryCollector
-	{
-		public MyDraftSummaryCollector(MartusServer serverToUse, String accountIdToUse, Vector retrieveTagsToUse) 
-		{
-			super(serverToUse, accountIdToUse, retrieveTagsToUse);
-		}
-
-		public boolean isWanted(DatabaseKey key)
-		{
-			return(key.isDraft());
-		}
-
-		public boolean isAuthorized(BulletinHeaderPacket bhp)
-		{
-			return true;
-		}
-	}
-
 
 	class FieldOfficeSealedSummaryCollector extends SummaryCollector
 	{

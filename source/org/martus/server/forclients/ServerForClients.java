@@ -48,6 +48,7 @@ import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.server.main.MartusServer;
+import org.martus.server.main.SummaryCollector;
 import org.martus.util.InputStreamWithSeek;
 import org.martus.util.UnicodeWriter;
 import org.martus.util.xmlrpc.WebServerWithClientId;
@@ -298,6 +299,91 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 
 
 	// BEGIN SSL interface
+	public Vector getBulletinChunk(String myAccountId, String authorAccountId, String bulletinLocalId, int chunkOffset, int maxChunkSize)
+	{
+		return coreServer.getBulletinChunk(myAccountId, authorAccountId, bulletinLocalId, chunkOffset, maxChunkSize);
+	}
+
+	public Vector getNews(String myAccountId, String versionLabel, String versionBuildDate)
+	{
+		return coreServer.getNews(myAccountId, versionLabel, versionBuildDate);
+	}
+
+	public Vector getPacket(String myAccountId, String authorAccountId, String bulletinLocalId, String packetLocalId)
+	{
+		return coreServer.getPacket(myAccountId, authorAccountId, bulletinLocalId, packetLocalId);
+	}
+
+	public Vector getServerCompliance()
+	{
+		return coreServer.getServerCompliance();
+	}
+
+	public Vector listMySealedBulletinIds(String authorAccountId, Vector retrieveTags)
+	{
+		log("listMySealedBulletinIds " + coreServer.getClientAliasForLogging(authorAccountId));
+		
+		if(isClientBanned(authorAccountId) )
+			return coreServer.returnSingleResponseAndLog("  returning REJECTED", NetworkInterfaceConstants.REJECTED);
+		
+		if( coreServer.isShutdownRequested() )
+			return coreServer.returnSingleResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
+		
+		MySealedSummaryCollector summaryCollector = new MySealedSummaryCollector(coreServer, authorAccountId, retrieveTags);
+		Vector summaries = summaryCollector.getSummaries();
+		String resultCode = (String)summaries.get(0);
+		summaries.remove(0);
+		
+		Vector result = new Vector();
+		result.add(resultCode);
+		result.add(summaries);
+		log("listMySealedBulletinIds: Exit");
+		return result;
+	}
+
+	public String putBulletinChunk(String myAccountId, String authorAccountId, String bulletinLocalId, int totalSize, int chunkOffset, int chunkSize, String data)
+	{
+		return coreServer.putBulletinChunk(myAccountId, authorAccountId, bulletinLocalId, totalSize, chunkOffset, chunkSize, data);
+	}
+
+	public String putContactInfo(String myAccountId, Vector parameters)
+	{
+		return coreServer.putContactInfo(myAccountId, parameters);
+	}
+
+	public Vector listFieldOfficeDraftBulletinIds(String hqAccountId, String authorAccountId, Vector retrieveTags)
+	{
+		return coreServer.listFieldOfficeDraftBulletinIds(hqAccountId, authorAccountId, retrieveTags);
+	}
+
+	public Vector listFieldOfficeSealedBulletinIds(String hqAccountId, String authorAccountId, Vector retrieveTags)
+	{
+		return coreServer.listFieldOfficeSealedBulletinIds(hqAccountId, authorAccountId, retrieveTags);
+	}
+
+	public Vector listMyDraftBulletinIds(String authorAccountId, Vector retrieveTags)
+	{
+		log("listMyDraftBulletinIds " + coreServer.getClientAliasForLogging(authorAccountId));
+			
+		if(isClientBanned(authorAccountId) )
+			return coreServer.returnSingleResponseAndLog("  returning REJECTED", NetworkInterfaceConstants.REJECTED);
+		
+		if( coreServer.isShutdownRequested() )
+			return coreServer.returnSingleResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
+		
+		SummaryCollector summaryCollector = new MyDraftSummaryCollector(coreServer, authorAccountId, retrieveTags);
+		Vector summaries = summaryCollector.getSummaries();
+		
+		String resultCode = (String)summaries.get(0);
+		summaries.remove(0);
+		Vector result = new Vector();
+		result.add(resultCode);
+		result.add(summaries);
+		
+		log("listMyDraftBulletinIds: Exit");
+		return result;
+	}
+
 	public String deleteDraftBulletins(String accountId, String[] localIds)
 	{
 		if(isClientBanned(accountId) )
@@ -324,78 +410,11 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			}
 			catch (Exception e)
 			{
-				coreServer.log("deleteDraftBulletins: " + e);
+				log("deleteDraftBulletins: " + e);
 				result = NetworkInterfaceConstants.INCOMPLETE;
 			}
 		}
 		return result;
-	}
-
-	public Vector getBulletinChunk(String myAccountId, String authorAccountId, String bulletinLocalId, int chunkOffset, int maxChunkSize)
-	{
-		return coreServer.getBulletinChunk(myAccountId, authorAccountId, bulletinLocalId, chunkOffset, maxChunkSize);
-	}
-
-	public Vector getNews(String myAccountId, String versionLabel, String versionBuildDate)
-	{
-		return coreServer.getNews(myAccountId, versionLabel, versionBuildDate);
-	}
-
-	public Vector getPacket(String myAccountId, String authorAccountId, String bulletinLocalId, String packetLocalId)
-	{
-		return coreServer.getPacket(myAccountId, authorAccountId, bulletinLocalId, packetLocalId);
-	}
-
-	public Vector getServerCompliance()
-	{
-		return coreServer.getServerCompliance();
-	}
-
-	public Vector listMySealedBulletinIds(String authorAccountId, Vector retrieveTags)
-	{
-		coreServer.log("listMySealedBulletinIds " + coreServer.getClientAliasForLogging(authorAccountId));
-		
-		if(coreServer.isClientBanned(authorAccountId) )
-			return coreServer.returnSingleResponseAndLog("  returning REJECTED", NetworkInterfaceConstants.REJECTED);
-		
-		if( coreServer.isShutdownRequested() )
-			return coreServer.returnSingleResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
-		
-		MySealedSummaryCollector summaryCollector = new MySealedSummaryCollector(coreServer, authorAccountId, retrieveTags);
-		Vector summaries = summaryCollector.getSummaries();
-		String resultCode = (String)summaries.get(0);
-		summaries.remove(0);
-		
-		Vector result = new Vector();
-		result.add(resultCode);
-		result.add(summaries);
-		coreServer.log("listMySealedBulletinIds: Exit");
-		return result;
-	}
-
-	public String putBulletinChunk(String myAccountId, String authorAccountId, String bulletinLocalId, int totalSize, int chunkOffset, int chunkSize, String data)
-	{
-		return coreServer.putBulletinChunk(myAccountId, authorAccountId, bulletinLocalId, totalSize, chunkOffset, chunkSize, data);
-	}
-
-	public String putContactInfo(String myAccountId, Vector parameters)
-	{
-		return coreServer.putContactInfo(myAccountId, parameters);
-	}
-
-	public Vector listFieldOfficeDraftBulletinIds(String hqAccountId, String authorAccountId, Vector retrieveTags)
-	{
-		return coreServer.listFieldOfficeDraftBulletinIds(hqAccountId, authorAccountId, retrieveTags);
-	}
-
-	public Vector listFieldOfficeSealedBulletinIds(String hqAccountId, String authorAccountId, Vector retrieveTags)
-	{
-		return coreServer.listFieldOfficeSealedBulletinIds(hqAccountId, authorAccountId, retrieveTags);
-	}
-
-	public Vector listMyDraftBulletinIds(String authorAccountId, Vector retrieveTags)
-	{
-		return coreServer.listMyDraftBulletinIds(authorAccountId, retrieveTags);
 	}
 
 	// begin NON-SSL interface (sort of)
@@ -585,11 +604,11 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	}
 	
 
-	class MySealedSummaryCollector extends MartusServer.SummaryCollector
+	class MySealedSummaryCollector extends SummaryCollector
 	{
-		public MySealedSummaryCollector(MartusServer serverToUse, String accountIdToUse, Vector retrieveTags) 
+		public MySealedSummaryCollector(MartusServer serverToUse, String authorAccount, Vector retrieveTags) 
 		{
-			super(serverToUse, accountIdToUse, retrieveTags);
+			super(serverToUse, authorAccount, retrieveTags);
 		}
 
 		public boolean isWanted(DatabaseKey key)
@@ -602,6 +621,25 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			return true;
 		}
 	}
+
+	class MyDraftSummaryCollector extends SummaryCollector
+	{
+		public MyDraftSummaryCollector(MartusServer serverToUse, String authorAccount, Vector retrieveTagsToUse) 
+		{
+			super(serverToUse, authorAccount, retrieveTagsToUse);
+		}
+
+		public boolean isWanted(DatabaseKey key)
+		{
+			return(key.isDraft());
+		}
+
+		public boolean isAuthorized(BulletinHeaderPacket bhp)
+		{
+			return true;
+		}
+	}
+
 
 	MartusServer coreServer;
 	private int activeClientsCounter;
