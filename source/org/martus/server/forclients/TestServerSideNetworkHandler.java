@@ -75,10 +75,11 @@ public class TestServerSideNetworkHandler extends TestCaseEnhanced
 			Vector badSigResult = handler.getUploadRights(myAccountId, parameters, badSig);
 			assertEquals("getUploadRights badSig length", 1, badSigResult.size());
 			assertEquals("getUploadRights badSig error", NetworkInterfaceConstants.SIG_ERROR, badSigResult.get(0));
-
+			
 			Vector wrongSigResult = handler.getUploadRights(myAccountId, parameters, wrongSig);
 			assertEquals("getUploadRights wrongSig length", 1, wrongSigResult.size());
 			assertEquals("getUploadRights wrongSig error", NetworkInterfaceConstants.SIG_ERROR, wrongSigResult.get(0));
+			
 		}
 
 		{

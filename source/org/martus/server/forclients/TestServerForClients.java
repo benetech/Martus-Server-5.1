@@ -95,6 +95,7 @@ public class TestServerForClients extends TestCaseEnhanced
 		{
 			clientDatabase = new MockClientDatabase();
 			b1 = new Bulletin(clientSecurity);
+			b1.setAllPrivate(false);
 			b1.set(Bulletin.TAGTITLE, "Title1");
 			b1.set(Bulletin.TAGPUBLICINFO, "Details1");
 			b1.set(Bulletin.TAGPRIVATEINFO, "PrivateDetails1");

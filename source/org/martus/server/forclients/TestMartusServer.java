@@ -569,13 +569,13 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		String resultIncomplete = testServer.putContactInfo(clientId, contactInfoManual);
 		assertEquals("Empty ok?", INVALID_DATA, resultIncomplete);
 
-		contactInfoManual.add(ContactInfo.BASE_64_ENCODED);
+		contactInfoManual.add(NetworkInterfaceConstants.BASE_64_ENCODED);
 		contactInfoManual.add("bogus data");
 		resultIncomplete = testServer.putContactInfo(clientId, contactInfoManual);
 		assertEquals("Incorrect not Incomplete?", INVALID_DATA, resultIncomplete);
 		
 		contactInfoManual.clear();
-		contactInfoManual.add(ContactInfo.BASE_64_ENCODED);
+		contactInfoManual.add(NetworkInterfaceConstants.BASE_64_ENCODED);
 		contactInfoManual.add(clientId);
 		contactInfoManual.add(new Integer(1));
 		contactInfoManual.add("Data");

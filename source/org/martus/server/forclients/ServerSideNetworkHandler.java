@@ -26,11 +26,13 @@ Boston, MA 02111-1307, USA.
 
 package org.martus.server.forclients;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Vector;
 
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.network.NetworkInterface;
 import org.martus.common.network.NetworkInterfaceConstants;
+import org.martus.util.Base64;
 
 
 public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterfaceConstants
@@ -280,16 +282,35 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 			String authorAccountId = (String)parameters.get(index++);
 			String bulletinLocalId= (String)parameters.get(index++);
 			String packetLocalId= (String)parameters.get(index++);
-
+			boolean base64EncodeData = false;
+			if(parameters.size() > 3 && parameters.get(index++).equals(NetworkInterfaceConstants.BASE_64_ENCODED))
+				base64EncodeData = true;
+			
 			log("getPacketId " + packetLocalId + " for bulletinId " + bulletinLocalId);
 
 			Vector legacyResult = server.getPacket(myAccountId, authorAccountId, bulletinLocalId, packetLocalId);
-			String resultCode = (String)legacyResult.get(0);
-			legacyResult.remove(0);
-					
+			String resultCode = (String)legacyResult.remove(0);
+			if(legacyResult.size() == 1)
+			{	
+				String packet = (String)legacyResult.get(0);
+				if(base64EncodeData)
+					packet = Base64.encode(packet);
+			
+				Vector newResult = new Vector();
+				newResult.add(packet);
+				legacyResult = newResult;
+			}
+			
 			result.add(resultCode);
 			result.add(legacyResult);
 			return result;
+		}
+		catch (UnsupportedEncodingException e)
+		{
+			log("Error UnsupportedEncodingException:" +e.getMessage());
+			Vector errorResult = new Vector();
+			errorResult.add(INVALID_DATA);
+			return errorResult;
 		}
 		finally
 		{
