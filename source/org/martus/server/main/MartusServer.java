@@ -919,7 +919,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		
 		try
 		{
-			Vector decodedContactInfo = MartusServerUtilities.getContactInfo(contactFile);
+			Vector decodedContactInfo = ContactInfo.loadFromFile(contactFile);
 			if(!security.verifySignatureOfVectorOfStrings(decodedContactInfo, accountId))
 			{
 				String accountInfo = MartusSecurity.formatAccountIdForLog(accountId);

@@ -584,14 +584,14 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		String invalidSig = testServer.putContactInfo(clientId, contactInfoManual);
 		assertEquals("Invalid Signature", SIG_ERROR, invalidSig);		
 
-		ConfigInfo contactInfo = new ConfigInfo();
+		ConfigInfo configInfo = new ConfigInfo();
 		String author = "Author";
-		contactInfo.setAuthor(author);
+		configInfo.setAuthor(author);
 		String phoneNumber = "Phone number";
-		contactInfo.setPhone(phoneNumber);
+		configInfo.setPhone(phoneNumber);
 		MartusCrypto signer = clientSecurity;
-		Vector contactInfo1 = contactInfo.getRawContactInfo(signer);
-		Vector contactInfoEncoded = ContactInfo.encodeContactInfoVector(contactInfo1);
+		ContactInfo contactInfo = new ContactInfo(configInfo);
+		Vector contactInfoEncoded = contactInfo.getSignedEncodedVector(signer);
 		
 		testServer.allowUploads("differentAccountID");
 		String incorrectAccoutResult = testServer.putContactInfo("differentAccountID", contactInfoEncoded);
@@ -675,9 +675,9 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		info.setAuthor(author);
 		info.setPhone(phone);
 		MartusCrypto signer = clientSecurity;
-		Vector contactInfo = info.getRawContactInfo(signer);
+		ContactInfo contactInfo = new ContactInfo(info);
 		
-		Vector encodedContactInfo = ContactInfo.encodeContactInfoVector(contactInfo);
+		Vector encodedContactInfo = contactInfo.getSignedEncodedVector(signer);
 		Vector decodedContactInfo = ContactInfo.decodeContactInfoVectorIfNecessary(encodedContactInfo);
 		String clientId = clientSecurity.getPublicKeyString();
 		String signature = (String)encodedContactInfo.get(encodedContactInfo.size()-1);
