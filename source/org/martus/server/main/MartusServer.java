@@ -44,6 +44,7 @@ import java.util.zip.ZipFile;
 
 import org.martus.amplifier.ServerCallbackInterface;
 import org.martus.amplifier.main.MartusAmplifier;
+import org.martus.common.BulletinStore;
 import org.martus.common.ContactInfo;
 import org.martus.common.LoggerInterface;
 import org.martus.common.LoggerToConsole;
@@ -920,7 +921,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 				bhp.loadFromXml(in, null, security);
 				in.close();
 
-				MartusUtilities.deleteBulletinFromDatabase(bhp, getDatabase(), security);
+				BulletinStore.deleteBulletinRevisionFromDatabase(bhp, getDatabase(), security);
 				DatabaseKey burKey = MartusServerUtilities.getBurKey(key);
 				getDatabase().discardRecord(burKey);			
 			}
