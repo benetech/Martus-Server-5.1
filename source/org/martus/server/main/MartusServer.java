@@ -1764,6 +1764,18 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		return dataDirectory;
 	}
 
+	public boolean wantsDevelopmentMode()
+	{
+		if(MartusServer.class.getResource("ForceListenOnNonPrivilegedPorts.txt") == null)
+			return false;
+		
+		log("*********************************************");
+		log("WARNING: Development mode selected;");
+		log("         Using non-privileged ports!");
+		log("*********************************************");
+		return true;
+	}
+
 	private class UploadRequestsMonitor extends TimerTask
 	{
 		public void run()

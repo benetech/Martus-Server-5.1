@@ -33,6 +33,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Vector;
 
+import org.martus.amplifier.ServerCallbackInterface;
 import org.martus.common.MagicWordEntry;
 import org.martus.common.MagicWords;
 import org.martus.common.MartusUtilities;
@@ -123,26 +124,14 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		if(isRunningUnderWindows())
 			return defaultPorts;
 		
-		if(!wantsDevelopmentMode())
+		if(!coreServer.wantsDevelopmentMode())
 			return defaultPorts;
 		
 		int[] developmentPorts = new int[defaultPorts.length];
 		for(int p = 0; p < developmentPorts.length; ++p)
-			developmentPorts[p] = defaultPorts[p] + 9000;
+			developmentPorts[p] = defaultPorts[p] + ServerCallbackInterface.DEVELOPMENT_MODE_PORT_DELTA;
 		
 		return developmentPorts;
-	}
-
-	boolean wantsDevelopmentMode()
-	{
-		if(MartusServer.class.getResource("ForceListenOnNonPrivilegedPorts.txt") == null)
-			return false;
-		
-		log("*********************************************");
-		log("WARNING: Development mode selected;");
-		log("         Using non-privileged ports!");
-		log("*********************************************");
-		return true;
 	}
 
 	boolean isRunningUnderWindows()
