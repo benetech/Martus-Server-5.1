@@ -35,6 +35,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Vector;
 
+import org.martus.amplifier.ServerCallbackInterface;
 import org.martus.common.AmplifierNetworkInterface;
 import org.martus.common.LoggerInterface;
 import org.martus.common.MartusUtilities;
@@ -175,6 +176,8 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 	public void createAmplifierXmlRpcServer() throws UnknownHostException
 	{
 		int port = AmplifierInterfaceXmlRpcConstants.MARTUS_PORT_FOR_AMPLIFIER;
+		if(coreServer.wantsDevelopmentMode())
+			port += ServerCallbackInterface.DEVELOPMENT_MODE_PORT_DELTA;
 		createAmplifierXmlRpcServerOnPort(port);
 	}
 

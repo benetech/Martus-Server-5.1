@@ -20,5 +20,7 @@
 
 ssh -f -N -L 988:localhost:9988 root@localhost
 ssh -f -N -L 987:localhost:9987 root@localhost
+ssh -f -N -L 986:localhost:9986 root@localhost
+ssh -f -N -L 985:localhost:9985 root@localhost
 ssh -f -N -L 443:localhost:9443 root@localhost
 ssh -f -N -L  80:localhost:9080 root@localhost

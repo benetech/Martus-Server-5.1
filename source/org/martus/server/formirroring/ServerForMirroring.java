@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Vector;
 
+import org.martus.amplifier.ServerCallbackInterface;
 import org.martus.common.LoggerInterface;
 import org.martus.common.MartusUtilities;
 import org.martus.common.MartusUtilities.InvalidPublicKeyFileException;
@@ -127,6 +128,9 @@ public class ServerForMirroring implements ServerSupplierInterface
 		
 		InetAddress mainIpAddress = MartusServer.getMainIpAddress();
 		int port = MirroringInterface.MARTUS_PORT_FOR_MIRRORING;
+		if(coreServer.wantsDevelopmentMode())
+			port += 
+				ServerCallbackInterface.DEVELOPMENT_MODE_PORT_DELTA;
 		log("Opening port " + mainIpAddress +":" + port + " for mirroring...");
 		SupplierSideMirroringHandler supplierHandler = new SupplierSideMirroringHandler(this, getSecurity());
 		MartusXmlRpcServer.createSSLXmlRpcServer(supplierHandler, MirroringInterface.DEST_OBJECT_NAME, port, mainIpAddress);
