@@ -71,6 +71,7 @@ import org.martus.common.network.NetworkInterface;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
+import org.martus.common.test.MockBulletinStore;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.server.main.BulletinUploadRecord;
 import org.martus.server.main.MartusServer;
@@ -129,9 +130,9 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 			tempFile = createTempFileFromName("$$$MartusTestMartusServer");
 			tempFile.delete();
 		}
-		if(clientDatabase == null)
+		if(store == null)
 		{
-			clientDatabase = new MockClientDatabase();
+			store = new MockBulletinStore(this);
 			b1 = new Bulletin(clientSecurity);
 			b1.set(Bulletin.TAGTITLE, "Title1");
 			b1.set(Bulletin.TAGPUBLICINFO, "Details1");
@@ -147,20 +148,20 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 			keys.add(key1);
 			b1.setAuthorizedToReadKeys(keys);
 			b1.setSealed();
-			BulletinStore.saveToClientDatabase(b1, clientDatabase, true, clientSecurity);
-			b1 = BulletinLoader.loadFromDatabase(clientDatabase, DatabaseKey.createSealedKey(b1.getUniversalId()), clientSecurity);
+			store.saveEncryptedBulletinForTesting(b1);
+			b1 = BulletinLoader.loadFromDatabase(getClientDatabase(), DatabaseKey.createSealedKey(b1.getUniversalId()), clientSecurity);
 	
 			b2 = new Bulletin(clientSecurity);
 			b2.set(Bulletin.TAGTITLE, "Title2");
 			b2.set(Bulletin.TAGPUBLICINFO, "Details2");
 			b2.set(Bulletin.TAGPRIVATEINFO, "PrivateDetails2");
 			b2.setSealed();
-			BulletinStore.saveToClientDatabase(b2, clientDatabase, true, clientSecurity);
+			store.saveEncryptedBulletinForTesting(b2);
 			
 			draft = new Bulletin(clientSecurity);
 			draft.set(Bulletin.TAGPUBLICINFO, "draft public");
 			draft.setDraft();
-			BulletinStore.saveToClientDatabase(draft, clientDatabase, true, clientSecurity);
+			store.saveEncryptedBulletinForTesting(draft);
 
 
 			privateBulletin = new Bulletin(clientSecurity);
@@ -169,9 +170,9 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 			privateBulletin.set(Bulletin.TAGPUBLICINFO, "DetailsPrivate");
 			privateBulletin.set(Bulletin.TAGPRIVATEINFO, "PrivateDetailsPrivate");
 			privateBulletin.setSealed();
-			BulletinStore.saveToClientDatabase(privateBulletin, clientDatabase, true, clientSecurity);
+			store.saveEncryptedBulletinForTesting(privateBulletin);
 
-			b1ZipString = BulletinForTesting.saveToZipString(clientDatabase, b1, clientSecurity);
+			b1ZipString = BulletinForTesting.saveToZipString(getClientDatabase(), b1, clientSecurity);
 			b1ZipBytes = Base64.decode(b1ZipString);
 			b1ChunkBytes0 = new byte[100];
 			b1ChunkBytes1 = new byte[b1ZipBytes.length - b1ChunkBytes0.length];
@@ -242,12 +243,12 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		keys.add(key);
 		bulletin.setAuthorizedToReadKeys(keys);
 		bulletin.setSealed();
-		BulletinStore.saveToClientDatabase(bulletin, clientDatabase, true, clientSecurity);
-		testServer.uploadBulletin(bulletin.getAccount(), bulletin.getLocalId(), BulletinForTesting.saveToZipString(clientDatabase, bulletin, clientSecurity));
+		BulletinStore.saveToClientDatabase(bulletin, getClientDatabase(), true, clientSecurity);
+		testServer.uploadBulletin(bulletin.getAccount(), bulletin.getLocalId(), BulletinForTesting.saveToZipString(getClientDatabase(), bulletin, clientSecurity));
 
 		privateBulletin.setAuthorizedToReadKeys(keys);
-		BulletinStore.saveToClientDatabase(privateBulletin, clientDatabase, true, clientSecurity);
-		testServer.uploadBulletin(privateBulletin.getAccount(), privateBulletin.getLocalId(), BulletinForTesting.saveToZipString(clientDatabase, privateBulletin, clientSecurity));
+		BulletinStore.saveToClientDatabase(privateBulletin, getClientDatabase(), true, clientSecurity);
+		testServer.uploadBulletin(privateBulletin.getAccount(), privateBulletin.getLocalId(), BulletinForTesting.saveToZipString(getClientDatabase(), privateBulletin, clientSecurity));
 
 		testServer.setSecurity(myMock);
 		myMock.shouldFailNext = true;
@@ -279,10 +280,10 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		hqKey.add(key1);
 		b.setAuthorizedToReadKeys(hqKey);
 		b.setSealed();
-		BulletinStore.saveToClientDatabase(b, clientDatabase, true, clientSecurity);
-		b = BulletinLoader.loadFromDatabase(clientDatabase, DatabaseKey.createSealedKey(b.getUniversalId()), clientSecurity);
+		BulletinStore.saveToClientDatabase(b, getClientDatabase(), true, clientSecurity);
+		b = BulletinLoader.loadFromDatabase(getClientDatabase(), DatabaseKey.createSealedKey(b.getUniversalId()), clientSecurity);
 		
-		String draft1ZipString = BulletinForTesting.saveToZipString(clientDatabase, b, clientSecurity);
+		String draft1ZipString = BulletinForTesting.saveToZipString(getClientDatabase(), b, clientSecurity);
 		byte[] draft1ZipBytes = Base64.decode(draft1ZipString);
 
 		String result = testServer.putBulletinChunk(hqAccountId, clientAccountId, b.getLocalId(), draft1ZipBytes.length, 0, 
@@ -310,10 +311,10 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		b.set(Bulletin.TAGPUBLICINFO, "Details1");
 		b.set(Bulletin.TAGPRIVATEINFO, "PrivateDetails1");
 		b.setSealed();
-		BulletinStore.saveToClientDatabase(b, clientDatabase, true, clientSecurity);
-		b = BulletinLoader.loadFromDatabase(clientDatabase, DatabaseKey.createSealedKey(b.getUniversalId()), clientSecurity);
+		BulletinStore.saveToClientDatabase(b, getClientDatabase(), true, clientSecurity);
+		b = BulletinLoader.loadFromDatabase(getClientDatabase(), DatabaseKey.createSealedKey(b.getUniversalId()), clientSecurity);
 		
-		String draft1ZipString = BulletinForTesting.saveToZipString(clientDatabase, b, clientSecurity);
+		String draft1ZipString = BulletinForTesting.saveToZipString(getClientDatabase(), b, clientSecurity);
 		byte[] draft1ZipBytes = Base64.decode(draft1ZipString);
 
 		String result = testServer.putBulletinChunk(authorAccountId, authorAccountId, b.getLocalId(), draft1ZipBytes.length, 0, 
@@ -889,7 +890,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 	{
 		TRACE_BEGIN("testUploadTwoBulletinsByChunks");
 
-		String b2ZipString = BulletinForTesting.saveToZipString(clientDatabase, b2, clientSecurity);
+		String b2ZipString = BulletinForTesting.saveToZipString(getClientDatabase(), b2, clientSecurity);
 
 		byte[] b2ZipBytes = Base64.decode(b2ZipString);
 		byte[] b2ChunkBytes0 = new byte[100];
@@ -1031,9 +1032,9 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		HQKey key1 = new HQKey(hqSecurity.getPublicKeyString());
 		keys.add(key1);
 		draft.setAuthorizedToReadKeys(keys);
-		BulletinStore.saveToClientDatabase(draft, clientDatabase, true, clientSecurity);
-		draft = BulletinLoader.loadFromDatabase(clientDatabase, DatabaseKey.createDraftKey(draft.getUniversalId()), clientSecurity);
-		String draftZipString = BulletinForTesting.saveToZipString(clientDatabase, draft, clientSecurity);
+		BulletinStore.saveToClientDatabase(draft, getClientDatabase(), true, clientSecurity);
+		draft = BulletinLoader.loadFromDatabase(getClientDatabase(), DatabaseKey.createDraftKey(draft.getUniversalId()), clientSecurity);
+		String draftZipString = BulletinForTesting.saveToZipString(getClientDatabase(), draft, clientSecurity);
 		byte[] draftZipBytes = Base64.decode(draftZipString);
 
 		MockMartusServer tempServer = new MockMartusServer(new MockDraftDatabase());
@@ -1090,12 +1091,12 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		keys.add(key1);
 		b.setAuthorizedToReadKeys(keys);
 		b.setDraft();
-		BulletinStore.saveToClientDatabase(b, clientDatabase, true, clientSecurity);
-		b = BulletinLoader.loadFromDatabase(clientDatabase, DatabaseKey.createDraftKey(b.getUniversalId()), clientSecurity);
+		BulletinStore.saveToClientDatabase(b, getClientDatabase(), true, clientSecurity);
+		b = BulletinLoader.loadFromDatabase(getClientDatabase(), DatabaseKey.createDraftKey(b.getUniversalId()), clientSecurity);
 		UniversalId attachmentUid1 = b.getPublicAttachments()[0].getUniversalId();
 		DatabaseKey draftHeader1 = DatabaseKey.createDraftKey(b.getUniversalId());
 		DatabaseKey attachmentKey1 = DatabaseKey.createDraftKey(attachmentUid1);
-		String draft1ZipString = BulletinForTesting.saveToZipString(clientDatabase, b, clientSecurity);
+		String draft1ZipString = BulletinForTesting.saveToZipString(getClientDatabase(), b, clientSecurity);
 		byte[] draft1ZipBytes = Base64.decode(draft1ZipString);
 
 		b.clearPublicAttachments();
@@ -1103,14 +1104,14 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		out2.write(b1AttachmentBytes);
 		out2.close();
 		b.addPublicAttachment(new AttachmentProxy(attachment));
-		BulletinStore.saveToClientDatabase(b, clientDatabase, true, clientSecurity);
-		b = BulletinLoader.loadFromDatabase(clientDatabase, DatabaseKey.createDraftKey(b.getUniversalId()), clientSecurity);
+		BulletinStore.saveToClientDatabase(b, getClientDatabase(), true, clientSecurity);
+		b = BulletinLoader.loadFromDatabase(getClientDatabase(), DatabaseKey.createDraftKey(b.getUniversalId()), clientSecurity);
 		UniversalId attachmentUid2 = b.getPublicAttachments()[0].getUniversalId();
 		DatabaseKey attachmentKey2 = DatabaseKey.createDraftKey(attachmentUid2);
 		DatabaseKey draftHeader2 = DatabaseKey.createDraftKey(b.getUniversalId());
 		draftHeader2.setDraft();
 		attachmentKey2.setDraft();
-		String draft2ZipString = BulletinForTesting.saveToZipString(clientDatabase,b, clientSecurity);
+		String draft2ZipString = BulletinForTesting.saveToZipString(getClientDatabase(),b, clientSecurity);
 		byte[] draft2ZipBytes = Base64.decode(draft2ZipString);
 
 		b.clearPublicAttachments();
@@ -1119,14 +1120,14 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		out3.close();
 		b.addPublicAttachment(new AttachmentProxy(attachment));
 		b.setSealed();
-		BulletinStore.saveToClientDatabase(b, clientDatabase, true, clientSecurity);
-		b = BulletinLoader.loadFromDatabase(clientDatabase, DatabaseKey.createSealedKey(b.getUniversalId()), clientSecurity);
+		BulletinStore.saveToClientDatabase(b, getClientDatabase(), true, clientSecurity);
+		b = BulletinLoader.loadFromDatabase(getClientDatabase(), DatabaseKey.createSealedKey(b.getUniversalId()), clientSecurity);
 		UniversalId attachmentUid3 = b.getPublicAttachments()[0].getUniversalId();
 		DatabaseKey attachmentKey3 = DatabaseKey.createSealedKey(attachmentUid3);
 		DatabaseKey sealedHeader3 = DatabaseKey.createSealedKey(b.getUniversalId());
 		sealedHeader3.setSealed();
 		attachmentKey3.setSealed();
-		String sealedZipString = BulletinForTesting.saveToZipString(clientDatabase, b, clientSecurity);
+		String sealedZipString = BulletinForTesting.saveToZipString(getClientDatabase(), b, clientSecurity);
 		byte[] sealedZipBytes = Base64.decode(sealedZipString);
 
 		testServer.serverForClients.clearCanUploadList();
@@ -1298,7 +1299,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		b.set(Bulletin.TAGPUBLICINFO, "Detasdfsdfils1");
 		b.set(Bulletin.TAGPRIVATEINFO, "PrivasdfsdfteDetails1");
 		BulletinStore.saveToClientDatabase(b, nonFieldDatabase, true, nonFieldSecurity);
-		testServer.uploadBulletin(nonFieldSecurity.getPublicKeyString(), b.getLocalId(), BulletinForTesting.saveToZipString(clientDatabase, b, clientSecurity));
+		testServer.uploadBulletin(nonFieldSecurity.getPublicKeyString(), b.getLocalId(), BulletinForTesting.saveToZipString(getClientDatabase(), b, clientSecurity));
 
 		Vector list1 = testServer.listFieldOfficeAccounts(hqSecurity.getPublicKeyString());
 		assertNotNull("listFieldOfficeAccounts returned null", list1);
@@ -1315,12 +1316,12 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		keys.add(key1);
 		keys.add(key2);
 		bulletin.setAuthorizedToReadKeys(keys);
-		BulletinStore.saveToClientDatabase(bulletin, clientDatabase, true, clientSecurity);
-		testServer.uploadBulletin(fieldSecurity1.getPublicKeyString(), bulletin.getLocalId(), BulletinForTesting.saveToZipString(clientDatabase, bulletin, clientSecurity));
+		BulletinStore.saveToClientDatabase(bulletin, getClientDatabase(), true, clientSecurity);
+		testServer.uploadBulletin(fieldSecurity1.getPublicKeyString(), bulletin.getLocalId(), BulletinForTesting.saveToZipString(getClientDatabase(), bulletin, clientSecurity));
 
 		privateBulletin.setAuthorizedToReadKeys(keys);
-		BulletinStore.saveToClientDatabase(privateBulletin, clientDatabase, true, clientSecurity);
-		testServer.uploadBulletin(fieldSecurity1.getPublicKeyString(), privateBulletin.getLocalId(), BulletinForTesting.saveToZipString(clientDatabase, privateBulletin, clientSecurity));
+		BulletinStore.saveToClientDatabase(privateBulletin, getClientDatabase(), true, clientSecurity);
+		testServer.uploadBulletin(fieldSecurity1.getPublicKeyString(), privateBulletin.getLocalId(), BulletinForTesting.saveToZipString(getClientDatabase(), privateBulletin, clientSecurity));
 				
 		Vector list2 = testServer.listFieldOfficeAccounts(hqSecurity.getPublicKeyString());
 		assertEquals("wrong length", 2, list2.size());
@@ -1756,7 +1757,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		testServer.serverForClients.clearCanUploadList();
 		testServer.allowUploads(clientSecurity.getPublicKeyString());
 		
-		String draftZipString = BulletinForTesting.saveToZipString(clientDatabase, draft, clientSecurity);
+		String draftZipString = BulletinForTesting.saveToZipString(getClientDatabase(), draft, clientSecurity);
 		String result = testServer.uploadBulletin(clientSecurity.getPublicKeyString(), draft.getLocalId(), draftZipString);
 		assertEquals("upload failed?", OK, result);
 		return draftZipString;
@@ -1772,6 +1773,11 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		return server.uploadBulletinChunk(authorId, localId, totalLength, offset, chunkLength, data, signature);
 	}
 	
+	static MockClientDatabase getClientDatabase()
+	{
+		return (MockClientDatabase)store.getDatabase();
+	}
+
 	class MockDraftDatabase extends MockServerDatabase
 	{
 		
@@ -1815,7 +1821,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 	static MartusCrypto serverSecurity;
 	static MartusCrypto otherServerSecurity;
 	static MartusCrypto hqSecurity;
-	static MockClientDatabase clientDatabase;
+	private static BulletinStore store;
 
 	final static byte[] b1AttachmentBytes = {1,2,3,4,4,3,2,1};
 	final static byte[] file1Bytes = {1,2,3,4,4,3,2,1};

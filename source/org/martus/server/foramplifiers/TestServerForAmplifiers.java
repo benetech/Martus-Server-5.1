@@ -30,7 +30,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Vector;
 
-import org.martus.common.BulletinStore;
 import org.martus.common.ContactInfo;
 import org.martus.common.LoggerForTesting;
 import org.martus.common.MartusUtilities;
@@ -43,6 +42,7 @@ import org.martus.common.crypto.MockMartusSecurity;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.MockClientDatabase;
 import org.martus.common.network.NetworkInterfaceConstants;
+import org.martus.common.test.MockBulletinStore;
 import org.martus.server.forclients.MockMartusServer;
 import org.martus.server.main.BulletinUploadRecord;
 import org.martus.util.TestCaseEnhanced;
@@ -84,9 +84,9 @@ public class TestServerForAmplifiers extends TestCaseEnhanced
 			otherServer.allowUploads(clientSecurity.getPublicKeyString());
 		}
 
-		if(clientDatabase == null)
+		if(store == null)
 		{
-			clientDatabase = new MockClientDatabase();
+			store = new MockBulletinStore(this);
 			b1 = new Bulletin(clientSecurity);
 			b1.setAllPrivate(false);
 			b1.set(Bulletin.TAGTITLE, "Title1");
@@ -99,9 +99,9 @@ public class TestServerForAmplifiers extends TestCaseEnhanced
 			b1.addPublicAttachment(new AttachmentProxy(attachment));
 			b1.addPrivateAttachment(new AttachmentProxy(attachment));
 			b1.setSealed();
-			BulletinStore.saveToClientDatabase(b1, clientDatabase, true, clientSecurity);
-			b1 = BulletinLoader.loadFromDatabase(clientDatabase, DatabaseKey.createSealedKey(b1.getUniversalId()), clientSecurity);
-			b1ZipString = BulletinForTesting.saveToZipString(clientDatabase, b1, clientSecurity);
+			store.saveEncryptedBulletinForTesting(b1);
+			b1 = BulletinLoader.loadFromDatabase(getClientDatabase(), DatabaseKey.createSealedKey(b1.getUniversalId()), clientSecurity);
+			b1ZipString = BulletinForTesting.saveToZipString(getClientDatabase(), b1, clientSecurity);
 	
 			b2 = new Bulletin(clientSecurity);
 			b2.setAllPrivate(true);
@@ -109,26 +109,26 @@ public class TestServerForAmplifiers extends TestCaseEnhanced
 			b2.set(Bulletin.TAGPUBLICINFO, "Details2");
 			b2.set(Bulletin.TAGPRIVATEINFO, "PrivateDetails2");
 			b2.setSealed();
-			BulletinStore.saveToClientDatabase(b2, clientDatabase, true, clientSecurity);
-			b2ZipString = BulletinForTesting.saveToZipString(clientDatabase, b2, clientSecurity);
+			store.saveEncryptedBulletinForTesting(b2);
+			b2ZipString = BulletinForTesting.saveToZipString(getClientDatabase(), b2, clientSecurity);
 
 			b3 = new Bulletin(clientSecurity);
 			b3.setAllPrivate(false);
 			b3.set(Bulletin.TAGTITLE, "Title1");
 			b3.set(Bulletin.TAGPUBLICINFO, "Details1");
 			b3.setSealed();
-			BulletinStore.saveToClientDatabase(b3, clientDatabase, true, clientSecurity);
-			b3 = BulletinLoader.loadFromDatabase(clientDatabase, DatabaseKey.createSealedKey(b3.getUniversalId()), clientSecurity);
-			b3ZipString = BulletinForTesting.saveToZipString(clientDatabase, b3, clientSecurity);
+			store.saveEncryptedBulletinForTesting(b3);
+			b3 = BulletinLoader.loadFromDatabase(getClientDatabase(), DatabaseKey.createSealedKey(b3.getUniversalId()), clientSecurity);
+			b3ZipString = BulletinForTesting.saveToZipString(getClientDatabase(), b3, clientSecurity);
 
 			b4 = new Bulletin(clientSecurity);
 			b4.setAllPrivate(false);
 			b4.set(Bulletin.TAGTITLE, "Title4");
 			b4.set(Bulletin.TAGPUBLICINFO, "Details4");
 			b4.setDraft();
-			BulletinStore.saveToClientDatabase(b4, clientDatabase, true, clientSecurity);
-			b4 = BulletinLoader.loadFromDatabase(clientDatabase, DatabaseKey.createDraftKey(b4.getUniversalId()), clientSecurity);
-			b4ZipString = BulletinForTesting.saveToZipString(clientDatabase, b4, clientSecurity);
+			store.saveEncryptedBulletinForTesting(b4);
+			b4 = BulletinLoader.loadFromDatabase(getClientDatabase(), DatabaseKey.createDraftKey(b4.getUniversalId()), clientSecurity);
+			b4ZipString = BulletinForTesting.saveToZipString(getClientDatabase(), b4, clientSecurity);
 		}
 	}
 
@@ -344,6 +344,11 @@ public class TestServerForAmplifiers extends TestCaseEnhanced
 		serverToUse.uploadBulletin(clientSecurity.getPublicKeyString(), bulletinLocalId, bulletinZip);
 	}
 	
+	private static MockClientDatabase getClientDatabase()
+	{
+		return (MockClientDatabase)store.getDatabase();
+	}
+
 	MockMartusServer coreServer;
 	MockMartusServer otherServer;
 	LoggerForTesting logger;
@@ -360,7 +365,7 @@ public class TestServerForAmplifiers extends TestCaseEnhanced
 	private static String b4ZipString;
 
 	private static MartusCrypto clientSecurity;
-	private static MockClientDatabase clientDatabase;
+	private static MockBulletinStore store;
 
 	final static byte[] b1AttachmentBytes = {1,2,3,4,4,3,2,1};
 	final static byte[] file1Bytes = {1,2,3,4,4,3,2,1};
