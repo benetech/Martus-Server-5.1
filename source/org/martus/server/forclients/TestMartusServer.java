@@ -589,7 +589,9 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		contactInfo.setAuthor(author);
 		String phoneNumber = "Phone number";
 		contactInfo.setPhone(phoneNumber);
-		Vector contactInfoEncoded = contactInfo.getEncodedContactInfo(clientSecurity);
+		MartusCrypto signer = clientSecurity;
+		Vector contactInfo1 = contactInfo.getRawContactInfo(signer);
+		Vector contactInfoEncoded = ContactInfo.encodeContactInfoVector(contactInfo1);
 		
 		testServer.allowUploads("differentAccountID");
 		String incorrectAccoutResult = testServer.putContactInfo("differentAccountID", contactInfoEncoded);
@@ -672,8 +674,10 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		String phone = "Phone number";
 		info.setAuthor(author);
 		info.setPhone(phone);
+		MartusCrypto signer = clientSecurity;
+		Vector contactInfo = info.getRawContactInfo(signer);
 		
-		Vector encodedContactInfo = info.getEncodedContactInfo(clientSecurity);
+		Vector encodedContactInfo = ContactInfo.encodeContactInfoVector(contactInfo);
 		Vector decodedContactInfo = ContactInfo.decodeContactInfoVectorIfNecessary(encodedContactInfo);
 		String clientId = clientSecurity.getPublicKeyString();
 		String signature = (String)encodedContactInfo.get(encodedContactInfo.size()-1);
