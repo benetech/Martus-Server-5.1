@@ -44,7 +44,7 @@ class FakeServerSupplier implements ServerSupplierInterface
 		bulletinsToMirror = new Vector();
 		security = MockMartusSecurity.createServer();
 		
-		returnZipData = Base64.encode("zip data".getBytes("UTF-8"));
+		returnZipData = Base64.encode("zip data");
 	}
 
 	void addAccountToMirror(String accountId)
