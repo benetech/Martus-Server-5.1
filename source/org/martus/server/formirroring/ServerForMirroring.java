@@ -196,7 +196,7 @@ public class ServerForMirroring implements ServerSupplierInterface
 		}
 
 		Collector collector = new Collector();		
-		getDatabase().visitAllNonHiddenRecordsForAccount(collector, authorAccountId);
+		getDatabase().visitAllRecordsForAccount(collector, authorAccountId);
 		return collector.infos;
 	}
 	
