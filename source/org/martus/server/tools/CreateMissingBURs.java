@@ -71,8 +71,7 @@ public class CreateMissingBURs
 		{
 			if(ignoreExisting)
 				return;
-			else
-				throw new BurAlreadyExistedException();
+			throw new BurAlreadyExistedException();
 		}
 		db.writeRecord(burKey, bur);
 	}
