@@ -4,5 +4,6 @@
     <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
     <classpathentry kind="src" path="/martus-utils"/>
     <classpathentry kind="src" path="/martus-common"/>
+    <classpathentry kind="src" path="/martus-amplifier"/>
     <classpathentry kind="output" path="bin"/>
 </classpath>

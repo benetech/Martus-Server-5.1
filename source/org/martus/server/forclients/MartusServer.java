@@ -26,6 +26,8 @@ Boston, MA 02111-1307, USA.
 
 package org.martus.server.forclients;
 
+import org.martus.amplifier.main.*;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -172,6 +174,7 @@ public class MartusServer implements NetworkInterfaceConstants
 		serverForClients = new ServerForClients(this);
 		serverForMirroring = new ServerForMirroring(this, logger);
 		serverForAmplifiers = new ServerForAmplifiers(this, logger);
+		amp = new MartusAmplifier(this);
 		failedUploadRequestsPerIp = new Hashtable();
 	}
 
@@ -1939,6 +1942,7 @@ public class MartusServer implements NetworkInterfaceConstants
 	ServerForMirroring serverForMirroring;
 	public ServerForClients serverForClients;
 	public ServerForAmplifiers serverForAmplifiers;
+	public MartusAmplifier amp;
 	
 	private File dataDirectory;
 	Database database;
@@ -1948,8 +1952,10 @@ public class MartusServer implements NetworkInterfaceConstants
 	
 	public LoggerInterface logger;
 	String serverName;
+	
 	private boolean secureMode;
 	private static String mainIpAddress; 
+	public String ampIpAddress;
 
 	private static final String KEYPAIRFILENAME = "keypair.dat";
 	private static final String HIDDENPACKETSFILENAME = "isHidden.txt";
