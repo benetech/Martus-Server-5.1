@@ -31,6 +31,7 @@ import java.io.FileOutputStream;
 import java.util.Vector;
 
 import org.martus.common.HQKey;
+import org.martus.common.HQKeys;
 import org.martus.common.bulletin.AttachmentProxy;
 import org.martus.common.bulletin.Bulletin;
 import org.martus.common.bulletin.BulletinLoader;
@@ -106,8 +107,8 @@ public class TestServerForClients extends TestCaseEnhanced
 			out.close();
 			b1.addPublicAttachment(new AttachmentProxy(attachment));
 			b1.addPrivateAttachment(new AttachmentProxy(attachment));
-			Vector keys = new Vector();
-			HQKey key1 = new HQKey(hqSecurity.getPublicKeyString(), "");
+			HQKeys keys = new HQKeys();
+			HQKey key1 = new HQKey(hqSecurity.getPublicKeyString());
 			keys.add(key1);
 			b1.setAuthorizedToReadKeys(keys);
 			b1.setSealed();

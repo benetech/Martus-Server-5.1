@@ -49,6 +49,7 @@ import java.util.zip.ZipOutputStream;
 
 import org.martus.common.ContactInfo;
 import org.martus.common.HQKey;
+import org.martus.common.HQKeys;
 import org.martus.common.LoggerForTesting;
 import org.martus.common.MartusUtilities;
 import org.martus.common.bulletin.AttachmentProxy;
@@ -143,8 +144,8 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 			out.close();
 			b1.addPublicAttachment(new AttachmentProxy(attachment));
 			b1.addPrivateAttachment(new AttachmentProxy(attachment));
-			Vector keys = new Vector();
-			HQKey key1 = new HQKey(hqSecurity.getPublicKeyString(),"");
+			HQKeys keys = new HQKeys();
+			HQKey key1 = new HQKey(hqSecurity.getPublicKeyString());
 			keys.add(key1);
 			b1.setAuthorizedToReadKeys(keys);
 			b1.setSealed();
@@ -219,8 +220,8 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		b.set(Bulletin.TAGTITLE, "Title1");
 		b.set(Bulletin.TAGPUBLICINFO, "Details1");
 		b.set(Bulletin.TAGPRIVATEINFO, "PrivateDetails1");
-		Vector hqKey = new Vector();
-		HQKey key1 = new HQKey(hqAccountId,"");
+		HQKeys hqKey = new HQKeys();
+		HQKey key1 = new HQKey(hqAccountId);
 		hqKey.add(key1);
 		b.setAuthorizedToReadKeys(hqKey);
 		b.setSealed();
@@ -1059,8 +1060,8 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		draft.set(Bulletin.TAGTITLE, "Title1");
 		draft.set(Bulletin.TAGPUBLICINFO, "Details1");
 		draft.set(Bulletin.TAGPRIVATEINFO, "PrivateDetails1");
-		Vector keys = new Vector();
-		HQKey key1 = new HQKey(hqSecurity.getPublicKeyString(), "");
+		HQKeys keys = new HQKeys();
+		HQKey key1 = new HQKey(hqSecurity.getPublicKeyString());
 		keys.add(key1);
 		draft.setAuthorizedToReadKeys(keys);
 		BulletinSaver.saveToClientDatabase(draft, clientDatabase, true, clientSecurity);
@@ -1093,8 +1094,8 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		out.write(b1AttachmentBytes);
 		out.close();
 		b.addPublicAttachment(new AttachmentProxy(attachment));
-		Vector keys = new Vector();
-		HQKey key1 = new HQKey(hqSecurity.getPublicKeyString(), "");
+		HQKeys keys = new HQKeys();
+		HQKey key1 = new HQKey(hqSecurity.getPublicKeyString());
 		keys.add(key1);
 		b.setAuthorizedToReadKeys(keys);
 		b.setDraft();
@@ -1339,9 +1340,9 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		assertEquals(NetworkInterfaceConstants.OK, list1.get(0));
 
 		Bulletin bulletinSealed = new Bulletin(clientSecurity);
-		Vector keys = new Vector();
-		HQKey key1 = new HQKey(hqSecurity.getPublicKeyString(),"");
-		HQKey key2 = new HQKey(otherServerSecurity.getPublicKeyString(), "");
+		HQKeys keys = new HQKeys();
+		HQKey key1 = new HQKey(hqSecurity.getPublicKeyString());
+		HQKey key2 = new HQKey(otherServerSecurity.getPublicKeyString());
 		keys.add(key1);
 		keys.add(key2);
 		bulletinSealed.setAuthorizedToReadKeys(keys);
@@ -1409,8 +1410,8 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		MartusSecurity fieldSecurity1 = clientSecurity;
 		testServer.allowUploads(fieldSecurity1.getPublicKeyString());
 		Bulletin bulletin = new Bulletin(clientSecurity);
-		Vector keys = new Vector();
-		HQKey key = new HQKey(hqSecurity.getPublicKeyString(), "");
+		HQKeys keys = new HQKeys();
+		HQKey key = new HQKey(hqSecurity.getPublicKeyString());
 		keys.add(key);
 		bulletin.setAuthorizedToReadKeys(keys);
 		bulletin.setSealed();
@@ -1457,9 +1458,9 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		MartusSecurity fieldSecurity1 = clientSecurity;
 		testServer.allowUploads(fieldSecurity1.getPublicKeyString());
 		Bulletin bulletin = new Bulletin(clientSecurity);
-		Vector keys = new Vector();
-		HQKey key1 = new HQKey(hqSecurity.getPublicKeyString(), "");
-		HQKey key2 = new HQKey(otherServerSecurity.getPublicKeyString(), "");
+		HQKeys keys = new HQKeys();
+		HQKey key1 = new HQKey(hqSecurity.getPublicKeyString());
+		HQKey key2 = new HQKey(otherServerSecurity.getPublicKeyString());
 		keys.add(key1);
 		keys.add(key2);
 		bulletin.setAuthorizedToReadKeys(keys);
