@@ -63,7 +63,7 @@ public class AuthorizeLog
 			while( (line = reader.readLine()) != null)
 			{
 				if(line.trim().length() == 0)
-					logger.log("Warning: Found blank line in " + authorizeLogFile.getPath());
+					logger.logDebug("Warning: Found blank line in " + authorizeLogFile.getPath());
 				else
 					add(new AuthorizeLogEntry(line));
 			}
@@ -72,7 +72,7 @@ public class AuthorizeLog
 		}
 		catch (FileNotFoundException e)
 		{
-			logger.log("Warning: no authorizeLog.txt file found:" + authorizeLogFile.getPath());
+			logger.logDebug("Warning: no authorizeLog.txt file found:" + authorizeLogFile.getPath());
 			return;
 		}
 		File authorizeLogFileSignature = MartusServerUtilities.getLatestSignatureFileFromFile(authorizeLogFile);

@@ -230,30 +230,30 @@ public class SupplierSideMirroringHandler implements MirroringInterface, Network
 	{
 		return supplier.isAuthorizedForMirroring(callerAccountId);
 	}
-	
-	public void log(String message)
+
+	private String createLogString(String message)
 	{
-		supplier.log("Mirror handler: " + message);
+		return "Mirror handler: " + message;
 	}
 
 	public void logError(String message)
 	{
-		log("ERROR: " + message);
+		supplier.logError(createLogString(message));
 	}
 	
 	public void logInfo(String message)
 	{
-		log("Info: " + message);
-		
+		supplier.logInfo(createLogString(message));
 	}
+
 	public void logNotice(String message)
 	{
-		log("Notice: " + message);
-		
+		supplier.logNotice(createLogString(message));
 	}
+	
 	public void logDebug(String message)
 	{
-		log("Debug: " + message);
+		supplier.logDebug(createLogString(message));
 	}
 
 	public static class UnknownCommandException extends Exception {}

@@ -257,7 +257,7 @@ public class MockServerForClients extends ServerForClients implements ServerForN
 	{
 		if(!canClientUpload(authorAccountId))
 		{
-			log("uploadBulletin REJECTED (!canClientUpload)");
+			logError("uploadBulletin REJECTED (!canClientUpload)");
 			return NetworkInterfaceConstants.REJECTED;
 		}
 		
@@ -269,7 +269,7 @@ public class MockServerForClients extends ServerForClients implements ServerForN
 		catch(Exception e)
 		{
 			//System.out.println("MartusServer.uploadBulletin: " + e);
-			log("uploadBulletin INVALID_DATA " + e);
+			logError("uploadBulletin INVALID_DATA " + e);
 			return NetworkInterfaceConstants.INVALID_DATA;
 		}
 		String result = coreServer.saveUploadedBulletinZipFile(authorAccountId, bulletinLocalId, tempFile);

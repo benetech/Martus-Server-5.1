@@ -212,8 +212,8 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface, Lo
 			{
 				logError("checking bulletin status");
 				String accountInfo = MartusCrypto.formatAccountIdForLog(key.getAccountId());
-				log(accountInfo);
-				log(key.getLocalId());
+				logError(accountInfo);
+				logError(key.getLocalId());
 				e.printStackTrace();
 			}
 		}
@@ -241,29 +241,29 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface, Lo
 		return null;
 	}
 	
-	public void log(String message)
+	private String createLogString(String message)
 	{
-		server.log("Amp handler: " + message);
+		return "Amp handler: " + message;
 	}
 
 	public void logError(String message)
 	{
-		log("ERROR: " + message);
+		server.logError(createLogString(message));
 	}
 	
 	public void logInfo(String message)
 	{
-		log("Info: " + message);
-		
+		server.logInfo(createLogString(message));
 	}
+
 	public void logNotice(String message)
 	{
-		log("Notice: " + message);
-		
+		server.logNotice(createLogString(message));
 	}
+	
 	public void logDebug(String message)
 	{
-		log("Debug: " + message);
+		server.logDebug(createLogString(message));
 	}
 	
 

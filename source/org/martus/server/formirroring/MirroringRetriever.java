@@ -239,29 +239,29 @@ public class MirroringRetriever implements LoggerInterface
 		return store.getSignatureGenerator();
 	}
 
-	public void log(String message)
+	private String createLogString(String message)
 	{
-		logger.log("Mirror calling " + ip + ": " + message);
+		return "Mirror calling " + ip + ": " + message;
 	}
 
 	public void logError(String message)
 	{
-		log("ERROR: " + message);
+		logger.logError(createLogString(message));
 	}
 	
 	public void logInfo(String message)
 	{
-		log("Info: " + message);
-		
+		logger.logInfo(createLogString(message));
 	}
+
 	public void logNotice(String message)
 	{
-		log("Notice: " + message);
-		
+		logger.logNotice(createLogString(message));
 	}
+	
 	public void logDebug(String message)
 	{
-		log("Debug: " + message);
+		logger.logDebug(createLogString(message));
 	}
 	
 	ServerBulletinStore store;	

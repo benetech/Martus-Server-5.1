@@ -77,7 +77,7 @@ public abstract class SummaryCollector implements Database.PacketVisitor
 		}
 		catch (Exception e)
 		{
-			server.log("Error in summary collector: " + getClass().getName());
+			server.logError("in summary collector: " + getClass().getName());
 			e.printStackTrace();
 		}
 	}

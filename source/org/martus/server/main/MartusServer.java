@@ -1525,29 +1525,29 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		return ip;
 	}
 
-	public synchronized void log(String message)
+	private String createLogString(String message)
 	{
-		getLogger().log(message);
+		return message;
+	}
+
+	public synchronized void logError(String message)
+	{
+		getLogger().logError(createLogString(message));
 	}
 	
-	public void logError(String message)
+	public synchronized void logInfo(String message)
 	{
-		log("ERROR: " + message);
+		getLogger().logInfo(createLogString(message));
+	}
+
+	public synchronized void logNotice(String message)
+	{
+		getLogger().logNotice(createLogString(message));
 	}
 	
-	public void logInfo(String message)
+	public synchronized void logDebug(String message)
 	{
-		log("Info: " + message);
-		
-	}
-	public void logNotice(String message)
-	{
-		log("Notice: " + message);
-		
-	}
-	public void logDebug(String message)
-	{
-		log("Debug: " + message);
+		getLogger().logDebug(createLogString(message));
 	}
 	
 	
@@ -1577,7 +1577,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 				if(thisFile.exists())
 					throw new IOException("delete failed: " + thisFile);
 			}
-			log(label + " authorized to call us: " + thisFile.getName());
+			logNotice(label + " authorized to call us: " + thisFile.getName());
 		}
 		
 		return servers;

@@ -145,30 +145,31 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		return coreServer.wantsDevelopmentMode();
 	}
 
-	public synchronized void log(String message)
+	private String createLogString(String message)
 	{
-		coreServer.log(message);
+		return message;
+	}
+
+	public synchronized void logError(String message)
+	{
+		coreServer.logError(createLogString(message));
 	}
 	
-	public void logError(String message)
+	public synchronized void logInfo(String message)
 	{
-		log("ERROR: " + message);
+		coreServer.logInfo(createLogString(message));
+	}
+
+	public synchronized void logNotice(String message)
+	{
+		coreServer.logNotice(createLogString(message));
 	}
 	
-	public void logInfo(String message)
+	public synchronized void logDebug(String message)
 	{
-		log("Info: " + message);
-		
+		coreServer.logDebug(createLogString(message));
 	}
-	public void logNotice(String message)
-	{
-		log("Notice: " + message);
-		
-	}
-	public void logDebug(String message)
-	{
-		log("Debug: " + message);
-	}
+
 	
 	
 	public void displayClientStatistics()

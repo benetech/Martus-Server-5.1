@@ -335,7 +335,7 @@ public class MockMartusServer extends MartusServer
 	{
 		if(!canClientUpload(authorAccountId))
 		{
-			log("uploadBulletin REJECTED (!canClientUpload)");
+			logNotice("uploadBulletin REJECTED (!canClientUpload)");
 			return NetworkInterfaceConstants.REJECTED;
 		}
 		
@@ -347,7 +347,7 @@ public class MockMartusServer extends MartusServer
 		catch(Exception e)
 		{
 			//System.out.println("MartusServer.uploadBulletin: " + e);
-			log("uploadBulletin INVALID_DATA " + e);
+			logError("uploadBulletin INVALID_DATA " + e);
 			return NetworkInterfaceConstants.INVALID_DATA;
 		}
 		String result = saveUploadedBulletinZipFile(authorAccountId, bulletinLocalId, tempFile);

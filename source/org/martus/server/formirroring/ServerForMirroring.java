@@ -89,29 +89,29 @@ public class ServerForMirroring implements ServerSupplierInterface
 		MartusUtilities.deleteAllFiles(getDeleteOnStartupFiles());
 	}
 	
-	public void log(String message)
+	private String createLogString(String message)
 	{
-		logger.log(message);
+		return message;
 	}
-	
+
 	public void logError(String message)
 	{
-		log("ERROR: " + message);
+		logger.logError(createLogString(message));
 	}
 	
 	public void logInfo(String message)
 	{
-		log("Info: " + message);
-		
+		logger.logInfo(createLogString(message));
 	}
+
 	public void logNotice(String message)
 	{
-		log("Notice: " + message);
-		
+		logger.logNotice(createLogString(message));
 	}
+	
 	public void logDebug(String message)
 	{
-		log("Debug: " + message);
+		logger.logDebug(createLogString(message));
 	}
 	
 	
