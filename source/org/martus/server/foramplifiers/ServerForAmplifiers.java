@@ -54,7 +54,6 @@ import org.martus.common.database.Database.RecordHiddenException;
 import org.martus.common.network.MartusSecureWebServer;
 import org.martus.common.network.MartusXmlRpcServer;
 import org.martus.common.network.NetworkInterfaceConstants;
-import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
 import org.martus.common.packet.Packet.InvalidPacketException;
 import org.martus.common.packet.Packet.SignatureVerificationException;
@@ -62,7 +61,6 @@ import org.martus.common.packet.Packet.WrongPacketTypeException;
 import org.martus.server.main.MartusServer;
 import org.martus.util.Base64;
 import org.martus.util.DirectoryUtils;
-import org.martus.util.InputStreamWithSeek;
 import org.martus.util.Base64.InvalidBase64Exception;
 import org.martus.util.xmlrpc.XmlRpcThread;
 
@@ -458,22 +456,6 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 		}
 
 		return ip;
-	}
-
-	BulletinHeaderPacket loadBulletinHeaderPacket(Database db, DatabaseKey key)
-		throws
-			IOException,
-			CryptoException,
-			InvalidPacketException,
-			WrongPacketTypeException,
-			SignatureVerificationException,
-			DecryptionException
-	{
-		BulletinHeaderPacket bhp = new BulletinHeaderPacket();
-		InputStreamWithSeek in = db.openInputStream(key, getSecurity());
-		bhp.loadFromXml(in, getSecurity());
-		in.close();
-		return bhp;
 	}
 
 	public MartusCrypto getSecurity()

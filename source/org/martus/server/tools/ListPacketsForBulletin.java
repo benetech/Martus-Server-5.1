@@ -29,6 +29,7 @@ package org.martus.server.tools;
 import java.io.BufferedReader;
 import java.io.File;
 
+import org.martus.common.BulletinStore;
 import org.martus.common.bulletin.BulletinZipUtilities;
 import org.martus.common.crypto.MartusSecurity;
 import org.martus.common.database.DatabaseKey;
@@ -37,7 +38,6 @@ import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.server.main.MartusServer;
-import org.martus.util.InputStreamWithSeek;
 import org.martus.util.UnicodeReader;
 
 public class ListPacketsForBulletin
@@ -134,11 +134,10 @@ public class ListPacketsForBulletin
 			UniversalId uId = UniversalId.createFromAccountAndLocalId(accountPublicKey, bulletinLocalId);
 			DatabaseKey dbKey = new DatabaseKey(uId);
 			
-			InputStreamWithSeek inForLoad = db.openInputStream(dbKey, security);
 			BulletinHeaderPacket bhp = new BulletinHeaderPacket(uId);
 			try
 			{
-				bhp.loadFromXml(inForLoad, security);
+				bhp = BulletinStore.loadBulletinHeaderPacket(db, dbKey, security);
 			}
 			catch(Exception e)
 			{
@@ -148,7 +147,6 @@ public class ListPacketsForBulletin
 					System.exit(3);
 				}
 			}
-			inForLoad.close();
 
 			DatabaseKey[] keys = BulletinZipUtilities.getAllPacketKeys(bhp);
 			

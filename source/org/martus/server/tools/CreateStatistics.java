@@ -32,6 +32,8 @@ import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Vector;
+
+import org.martus.common.BulletinStore;
 import org.martus.common.ContactInfo;
 import org.martus.common.CustomFields;
 import org.martus.common.FieldSpec;
@@ -434,7 +436,7 @@ public class CreateStatistics
 				
 				try
 				{
-					BulletinHeaderPacket bhp = MartusServer.loadBulletinHeaderPacket(fileDatabase, key, security);
+					BulletinHeaderPacket bhp = BulletinStore.loadBulletinHeaderPacket(fileDatabase, key, security);
 					if(key.isDraft() || bhp.isAllPrivate())
 					{
 						bulletinTitle = "";
@@ -515,7 +517,7 @@ public class CreateStatistics
 
 				try
 				{
-					BulletinHeaderPacket bhp = MartusServer.loadBulletinHeaderPacket(fileDatabase, key, security);
+					BulletinHeaderPacket bhp = BulletinStore.loadBulletinHeaderPacket(fileDatabase, key, security);
 					Calendar cal = new GregorianCalendar();
 					cal.setTimeInMillis(bhp.getLastSavedTime());		
 					dateBulletinLastSaved = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(cal.getTime());

@@ -29,13 +29,13 @@ package org.martus.server.foramplifiers;
 import java.util.Vector;
 
 import org.martus.common.AmplifierNetworkInterface;
+import org.martus.common.BulletinStore;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.utilities.MartusServerUtilities;
-import org.martus.util.ByteArrayInputStreamWithSeek;
 
 public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 {
@@ -179,22 +179,19 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 					return;
 				
 				DatabaseKey burKey = MartusServerUtilities.getBurKey(key);
-				String burInDatabase = server.getDatabase().readRecord(burKey, server.getSecurity());
+				MartusCrypto security = server.getSecurity();
+				Database db = server.getDatabase();
+				String burInDatabase = db.readRecord(burKey, security);
 				if(burInDatabase == null)
 				{	
 					log("Error: Missing BUR packet for bulletin:" +key.getUniversalId());
 					return;
 				}
 				
-				if(!MartusServerUtilities.wasBurCreatedByThisCrypto(burInDatabase, server.getSecurity()))
+				if(!MartusServerUtilities.wasBurCreatedByThisCrypto(burInDatabase, security))
 					return;				
 							
-				String headerXml = server.getDatabase().readRecord(key, server.getSecurity());
-				byte[] headerBytes = headerXml.getBytes("UTF-8");
-				
-				ByteArrayInputStreamWithSeek headerIn = new ByteArrayInputStreamWithSeek(headerBytes);
-				BulletinHeaderPacket bhp = new BulletinHeaderPacket();
-				bhp.loadFromXml(headerIn, null);
+				BulletinHeaderPacket bhp = BulletinStore.loadBulletinHeaderPacket(db, key, security);
 				if(! bhp.isAllPrivate())
 				{
 					infos.add(key.getLocalId());

@@ -31,6 +31,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+
+import org.martus.common.BulletinStore;
 import org.martus.common.bulletin.BulletinZipUtilities;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MartusSecurity;
@@ -179,10 +181,7 @@ public class VerifyAllPackets
 				
 				if(BulletinHeaderPacket.isValidLocalId(visitingLocalId))
 				{
-					InputStreamWithSeek inForLoad = db.openInputStream(visitingKey, security);
-					BulletinHeaderPacket bhp = new BulletinHeaderPacket();
-					bhp.loadFromXml(inForLoad, security);
-					inForLoad.close();
+					BulletinHeaderPacket bhp = BulletinStore.loadBulletinHeaderPacket(db, visitingKey, security);
 					
 					DatabaseKey[] keys = BulletinZipUtilities.getAllPacketKeys(bhp);
 					for (int i = 0; i < keys.length; i++)

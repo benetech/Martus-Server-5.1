@@ -29,13 +29,13 @@ package org.martus.server.tools;
 import java.io.File;
 import java.util.Vector;
 
+import org.martus.common.BulletinStore;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.ServerFileDatabase;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.utilities.MartusServerUtilities;
-import org.martus.util.InputStreamWithSeek;
 
 public class ListSealedBulletins
 {
@@ -135,11 +135,8 @@ public class ListSealedBulletins
 		private void processBulletin(DatabaseKey key)
 			throws Exception
 		{
-			BulletinHeaderPacket bhp = new BulletinHeaderPacket(key.getUniversalId());
-			InputStreamWithSeek in = db.openInputStream(key, security);
-			bhp.loadFromXml(in, security);
+			BulletinHeaderPacket bhp = BulletinStore.loadBulletinHeaderPacket(db, key, security);
 			displayBulletinDetails(bhp);
-			in.close();
 		}
 		
 		private void displayBulletinDetails(BulletinHeaderPacket bhp) throws Exception
