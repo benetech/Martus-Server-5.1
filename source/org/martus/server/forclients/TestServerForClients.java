@@ -429,7 +429,8 @@ public class TestServerForClients extends TestCaseEnhanced
 
 		String clientId = clientSecurity.getPublicKeyString();
 		String hqId = hqSecurity.getPublicKeyString();
-		testServer.loadBannedClients(new File("test"));
+		File testFile = createTempFileFromName("test");
+		testServer.loadBannedClients(testFile);
 		
 		File clientBanned = createTempFile();
 		
