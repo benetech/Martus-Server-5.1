@@ -45,7 +45,7 @@ import java.util.Vector;
 
 import org.martus.amplifier.ServerCallbackInterface;
 import org.martus.amplifier.main.MartusAmplifier;
-import org.martus.common.ConfigInfo;
+import org.martus.common.ContactInfo;
 import org.martus.common.LoggerInterface;
 import org.martus.common.LoggerToConsole;
 import org.martus.common.MartusUtilities;
@@ -869,7 +869,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			return result;
 		try
 		{
-			contactInfo = ConfigInfo.decodeContactInfoVectorIfNecessary(contactInfo);
+			contactInfo = ContactInfo.decodeContactInfoVectorIfNecessary(contactInfo);
 		}
 		catch (InvalidBase64Exception e1)
 		{
@@ -929,7 +929,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 				results.add(NetworkInterfaceConstants.SIG_ERROR);
 				return results;
 			}
-			Vector encodedContactInfo = ConfigInfo.encodeContactInfoVector(decodedContactInfo);
+			Vector encodedContactInfo = ContactInfo.encodeContactInfoVector(decodedContactInfo);
 			
 			results.add(NetworkInterfaceConstants.OK);
 			results.add(encodedContactInfo);

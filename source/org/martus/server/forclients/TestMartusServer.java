@@ -47,7 +47,7 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
-import org.martus.common.ConfigInfo;
+import org.martus.common.ContactInfo;
 import org.martus.common.LoggerForTesting;
 import org.martus.common.MartusUtilities;
 import org.martus.common.bulletin.AttachmentProxy;
@@ -510,35 +510,35 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 	{
 		TRACE_BEGIN("testPutContactInfoEncoded");
 
-		Vector contactInfo = new Vector();
+		Vector contactInfoManual = new Vector();
 		String clientId = clientSecurity.getPublicKeyString();
-		String clientNotAuthorized = testServer.putContactInfo(clientId, contactInfo);
+		String clientNotAuthorized = testServer.putContactInfo(clientId, contactInfoManual);
 		assertEquals("Client has not been authorized should not accept contact info", REJECTED, clientNotAuthorized);
 
 		testServer.serverForClients.allowUploads(clientId);
-		String resultIncomplete = testServer.putContactInfo(clientId, contactInfo);
+		String resultIncomplete = testServer.putContactInfo(clientId, contactInfoManual);
 		assertEquals("Empty ok?", INVALID_DATA, resultIncomplete);
 
-		contactInfo.add(ConfigInfo.BASE_64_ENCODED);
-		contactInfo.add("bogus data");
-		resultIncomplete = testServer.putContactInfo(clientId, contactInfo);
+		contactInfoManual.add(ContactInfo.BASE_64_ENCODED);
+		contactInfoManual.add("bogus data");
+		resultIncomplete = testServer.putContactInfo(clientId, contactInfoManual);
 		assertEquals("Incorrect not Incomplete?", INVALID_DATA, resultIncomplete);
 		
-		contactInfo.clear();
-		contactInfo.add(ConfigInfo.BASE_64_ENCODED);
-		contactInfo.add(clientId);
-		contactInfo.add(new Integer(1));
-		contactInfo.add("Data");
-		contactInfo.add("invalid Signature");
-		String invalidSig = testServer.putContactInfo(clientId, contactInfo);
+		contactInfoManual.clear();
+		contactInfoManual.add(ContactInfo.BASE_64_ENCODED);
+		contactInfoManual.add(clientId);
+		contactInfoManual.add(new Integer(1));
+		contactInfoManual.add("Data");
+		contactInfoManual.add("invalid Signature");
+		String invalidSig = testServer.putContactInfo(clientId, contactInfoManual);
 		assertEquals("Invalid Signature", SIG_ERROR, invalidSig);		
 
-		ConfigInfo configInfo = new ConfigInfo();
+		ContactInfo contactInfo = new ContactInfo();
 		String author = "Author";
-		configInfo.setAuthor(author);
+		contactInfo.setAuthor(author);
 		String phoneNumber = "Phone number";
-		configInfo.setPhone(phoneNumber);
-		Vector contactInfoEncoded = configInfo.getEncodedContactInfo(clientSecurity);
+		contactInfo.setPhone(phoneNumber);
+		Vector contactInfoEncoded = contactInfo.getEncodedContactInfo(clientSecurity);
 		
 		testServer.allowUploads("differentAccountID");
 		String incorrectAccoutResult = testServer.putContactInfo("differentAccountID", contactInfoEncoded);
@@ -547,7 +547,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		File contactFile = testServer.getContactInfoFileForAccount(clientId);
 		assertFalse("Contact File already exists?", contactFile.exists());		
 
-		Vector decodedContactInfo = ConfigInfo.decodeContactInfoVectorIfNecessary(contactInfoEncoded);
+		Vector decodedContactInfo = ContactInfo.decodeContactInfoVectorIfNecessary(contactInfoEncoded);
 		String correctResultWithDecodedContactInfoSent = testServer.putContactInfo(clientId, decodedContactInfo);
 		assertEquals("Encoded Config Info Correct Signature", OK, correctResultWithDecodedContactInfoSent);		
 		
@@ -616,14 +616,14 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 	{
 		TRACE_BEGIN("testGetContactInfo");
 
-		ConfigInfo info = new ConfigInfo();
+		ContactInfo info = new ContactInfo();
 		String author = "Author";
 		String phone = "Phone number";
 		info.setAuthor(author);
 		info.setPhone(phone);
 		
 		Vector encodedContactInfo = info.getEncodedContactInfo(clientSecurity);
-		Vector decodedContactInfo = ConfigInfo.decodeContactInfoVectorIfNecessary(encodedContactInfo);
+		Vector decodedContactInfo = ContactInfo.decodeContactInfoVectorIfNecessary(encodedContactInfo);
 		String clientId = clientSecurity.getPublicKeyString();
 		String signature = (String)encodedContactInfo.get(encodedContactInfo.size()-1);
 
@@ -634,7 +634,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		Vector infoReturned = testServer.getContactInfo(clientId);
 		assertEquals("Should be ok", NetworkInterfaceConstants.OK, infoReturned.get(0));	
 		Vector contactInfoReturnedEncoded = (Vector)infoReturned.get(1);
-		Vector contactInfoReturnedDecoded = ConfigInfo.decodeContactInfoVectorIfNecessary(contactInfoReturnedEncoded);
+		Vector contactInfoReturnedDecoded = ContactInfo.decodeContactInfoVectorIfNecessary(contactInfoReturnedEncoded);
 			
 		assertEquals("Incorrect size Encoded",encodedContactInfo.size(), contactInfoReturnedEncoded.size());
 		assertEquals("Incorrect size Decoded",decodedContactInfo.size(), contactInfoReturnedDecoded.size());
