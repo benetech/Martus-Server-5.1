@@ -43,6 +43,8 @@ public abstract class SummaryCollector implements Database.PacketVisitor
 		server = serverToUse;
 		authorAccountId = authorAccountToUse;
 		retrieveTags = retrieveTagsToUse;
+		
+		summaries = new Vector();
 	}
 	
 	public Database getDatabase()
@@ -78,15 +80,10 @@ public abstract class SummaryCollector implements Database.PacketVisitor
 	
 	abstract public boolean isWanted(DatabaseKey key);
 	abstract public boolean isAuthorized(BulletinHeaderPacket bhp);
-
-	public Vector getSummaries()
+	
+	public Vector collectSummaries()
 	{
-		if(summaries == null)
-		{
-			summaries = new Vector();
-			summaries.add(NetworkInterfaceConstants.OK);
-			getDatabase().visitAllRecords(this);
-		}
+		getDatabase().visitAllRecords(this);
 		return summaries;	
 	}
 	

@@ -319,28 +319,6 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		return coreServer.getServerCompliance();
 	}
 
-	public Vector listMySealedBulletinIds(String authorAccountId, Vector retrieveTags)
-	{
-		log("listMySealedBulletinIds " + coreServer.getClientAliasForLogging(authorAccountId));
-		
-		if(isClientBanned(authorAccountId) )
-			return coreServer.returnSingleResponseAndLog("  returning REJECTED", NetworkInterfaceConstants.REJECTED);
-		
-		if( coreServer.isShutdownRequested() )
-			return coreServer.returnSingleResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
-		
-		MySealedSummaryCollector summaryCollector = new MySealedSummaryCollector(coreServer, authorAccountId, retrieveTags);
-		Vector summaries = summaryCollector.getSummaries();
-		String resultCode = (String)summaries.get(0);
-		summaries.remove(0);
-		
-		Vector result = new Vector();
-		result.add(resultCode);
-		result.add(summaries);
-		log("listMySealedBulletinIds: Exit");
-		return result;
-	}
-
 	public String putBulletinChunk(String myAccountId, String authorAccountId, String bulletinLocalId, int totalSize, int chunkOffset, int chunkSize, String data)
 	{
 		return coreServer.putBulletinChunk(myAccountId, authorAccountId, bulletinLocalId, totalSize, chunkOffset, chunkSize, data);
@@ -351,23 +329,42 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		return coreServer.putContactInfo(myAccountId, parameters);
 	}
 
+	public Vector listMySealedBulletinIds(String authorAccountId, Vector retrieveTags)
+	{
+		log("listMySealedBulletinIds " + coreServer.getClientAliasForLogging(authorAccountId));
+		
+		MySealedSummaryCollector summaryCollector = new MySealedSummaryCollector(coreServer, authorAccountId, retrieveTags);
+
+		if(isClientBanned(authorAccountId) )
+			return coreServer.returnSingleResponseAndLog("  returning REJECTED", NetworkInterfaceConstants.REJECTED);
+		
+		if( coreServer.isShutdownRequested() )
+			return coreServer.returnSingleResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
+		
+		Vector summaries = summaryCollector.collectSummaries();
+		Vector result = new Vector();
+		result.add(NetworkInterfaceConstants.OK);
+		result.add(summaries);
+		
+		log("listMySealedBulletinIds: Exit");
+		return result;
+	}
+
 	public Vector listFieldOfficeDraftBulletinIds(String hqAccountId, String authorAccountId, Vector retrieveTags)
 	{
 		log("listFieldOfficeDraftBulletinIds " + coreServer.getClientAliasForLogging(hqAccountId));
 		
+		SummaryCollector summaryCollector = new FieldOfficeDraftSummaryCollector(coreServer, hqAccountId, authorAccountId, retrieveTags);
+
 		if(isClientBanned(hqAccountId) )
 			return coreServer.returnSingleResponseAndLog( " returning REJECTED", NetworkInterfaceConstants.REJECTED );
 		
 		if( coreServer.isShutdownRequested() )
 			return coreServer.returnSingleResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
 			
-		SummaryCollector summaryCollector = new FieldOfficeDraftSummaryCollector(coreServer, hqAccountId, authorAccountId, retrieveTags);
-		Vector summaries = summaryCollector.getSummaries();
-		
-		String resultCode = (String)summaries.get(0);
-		summaries.remove(0);
+		Vector summaries = summaryCollector.collectSummaries();
 		Vector result = new Vector();
-		result.add(resultCode);
+		result.add(NetworkInterfaceConstants.OK);
 		result.add(summaries);
 		
 		log("listFieldOfficeDraftBulletinIds: Exit");
@@ -376,30 +373,29 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 
 	public Vector listFieldOfficeSealedBulletinIds(String hqAccountId, String authorAccountId, Vector retrieveTags)
 	{
-		coreServer.log("listFieldOfficeSealedBulletinIds " + coreServer.getClientAliasForLogging(hqAccountId));
+		log("listFieldOfficeSealedBulletinIds " + coreServer.getClientAliasForLogging(hqAccountId));
 			
-		if(coreServer.isClientBanned(hqAccountId) )
+		SummaryCollector summaryCollector = new FieldOfficeSealedSummaryCollector(coreServer, hqAccountId, authorAccountId, retrieveTags);
+
+		if(isClientBanned(hqAccountId) )
 			return coreServer.returnSingleResponseAndLog("  returning REJECTED", NetworkInterfaceConstants.REJECTED);
 		
 		if( coreServer.isShutdownRequested() )
 			return coreServer.returnSingleResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
 		
-		SummaryCollector summaryCollector = new FieldOfficeSealedSummaryCollector(coreServer, hqAccountId, authorAccountId, retrieveTags);
-		Vector summaries = summaryCollector.getSummaries();
-		
-		String resultCode = (String)summaries.get(0);
-		summaries.remove(0);
-		
+		Vector summaries = summaryCollector.collectSummaries();
 		Vector result = new Vector();
-		result.add(resultCode);
+		result.add(NetworkInterfaceConstants.OK);
 		result.add(summaries);
 		
-		coreServer.log("listFieldOfficeSealedBulletinIds: Exit");
+		log("listFieldOfficeSealedBulletinIds: Exit");
 		return result;
 	}
 
 	public Vector listMyDraftBulletinIds(String authorAccountId, Vector retrieveTags)
 	{
+		SummaryCollector summaryCollector = new MyDraftSummaryCollector(coreServer, authorAccountId, retrieveTags);
+
 		log("listMyDraftBulletinIds " + coreServer.getClientAliasForLogging(authorAccountId));
 			
 		if(isClientBanned(authorAccountId) )
@@ -408,13 +404,9 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		if( coreServer.isShutdownRequested() )
 			return coreServer.returnSingleResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
 		
-		SummaryCollector summaryCollector = new MyDraftSummaryCollector(coreServer, authorAccountId, retrieveTags);
-		Vector summaries = summaryCollector.getSummaries();
-		
-		String resultCode = (String)summaries.get(0);
-		summaries.remove(0);
+		Vector summaries = summaryCollector.collectSummaries();
 		Vector result = new Vector();
-		result.add(resultCode);
+		result.add(NetworkInterfaceConstants.OK);
 		result.add(summaries);
 		
 		log("listMyDraftBulletinIds: Exit");
