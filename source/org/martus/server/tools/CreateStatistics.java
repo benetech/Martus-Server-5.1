@@ -139,8 +139,9 @@ public class CreateStatistics
 		adminStartupDir = adminStartupDirToUse;
 		fileDatabase = new ServerFileDatabase(dataDirToUse, security);
 		fileDatabase.initialize();
-		clientsThatCanUpload = MartusUtilities.loadClientList(new File(packetsDir.getParentFile(), ServerForClients.UPLOADSOKFILENAME));
+		clientsThatCanUpload = MartusUtilities.loadClientListAndExitOnError(new File(packetsDir.getParentFile(), ServerForClients.UPLOADSOKFILENAME));
 		bannedClients = MartusUtilities.loadClientListAndExitOnError(new File(adminStartupDir, ServerForClients.BANNEDCLIENTSFILENAME));
+		testClients = MartusUtilities.loadClientListAndExitOnError(new File(adminStartupDir, ServerForClients.TESTACCOUNTSFILENAME));
 
 		UnicodeReader reader = new UnicodeReader(new File(adminStartupDir, MartusServer.HIDDENPACKETSFILENAME));
 		hiddenBulletinIds = MartusServerUtilities.getHiddenPacketsList(reader);
@@ -175,10 +176,12 @@ public class CreateStatistics
 					getAuthorizedInfo(publicCode);
 					String uploadOk = isAllowedToUpload(accountId);
 					String banned = isBanned(accountId);
+					String testAccount = isTestAccount(accountId);
 					String notToAmplify = canAmplify(accountId);
 					
 					String accountInfo = 
 						getNormalizedStringAndCheckForErrors(publicCode) + DELIMITER +
+						getNormalizedStringAndCheckForErrors(testAccount) + DELIMITER +						
 						getNormalizedStringAndCheckForErrors(uploadOk) + DELIMITER +
 						getNormalizedStringAndCheckForErrors(banned) + DELIMITER +
 						getNormalizedStringAndCheckForErrors(notToAmplify) + DELIMITER +
@@ -306,6 +309,12 @@ public class CreateStatistics
 					return ACCOUNT_BANNED_TRUE;
 				return ACCOUNT_BANNED_FALSE;
 			}
+			private String isTestAccount(String accountId)
+			{
+				if(testClients.contains(accountId))
+					return ACCOUNT_TESTER_TRUE;
+				return ACCOUNT_TESTER_FALSE;
+			}
 			private String canAmplify(String accountId)
 			{
 				if(clientsNotToAmplify.contains(accountId))
@@ -370,6 +379,7 @@ public class CreateStatistics
 						return;
 
 					String martusVersionBulletionWasCreatedWith = getMartusBuildDateForBulletin(key);
+					String testBulletin = isTestBulletin(key.getAccountId());
 					String bulletinType = getBulletinType(key);
 					String isBulletinHidden = getIsBulletinHidden(key.getUniversalId());
 					getPublicCode(key.getAccountId());
@@ -381,6 +391,7 @@ public class CreateStatistics
 					
 					String bulletinInfo =  getNormalizedStringAndCheckForErrors(key.getLocalId()) + DELIMITER +
 					getNormalizedStringAndCheckForErrors(martusVersionBulletionWasCreatedWith) + DELIMITER + 
+					getNormalizedStringAndCheckForErrors(testBulletin) + DELIMITER +
 					getNormalizedStringAndCheckForErrors(bulletinType) + DELIMITER +
 					getNormalizedStringAndCheckForErrors(Integer.toString(bulletinSizeInKBytes)) + DELIMITER + 
 					getNormalizedStringAndCheckForErrors(allPrivate) + DELIMITER +
@@ -582,6 +593,12 @@ public class CreateStatistics
 				}
 				return keyList;
 			}
+			private String isTestBulletin(String accountId)
+			{
+				if(testClients.contains(accountId))
+					return BULLETIN_TEST_TRUE;
+				return BULLETIN_TEST_FALSE;
+			}
 			private String getBulletinType(DatabaseKey key)
 			{
 				String bulletinType = ERROR_MSG + " not draft or sealed?";
@@ -754,6 +771,7 @@ public class CreateStatistics
 	FileDatabase fileDatabase;
 	Vector clientsThatCanUpload;
 	Vector bannedClients;
+	Vector testClients;
 	Vector clientsNotToAmplify;
 	Vector hiddenBulletinIds;
 	AuthorizeLog authorizeLog;
@@ -765,6 +783,7 @@ public class CreateStatistics
 	final String ACCOUNT_STATS_FILE_NAME = "accounts";
 	final String ACCOUNT_PUBLIC_CODE = "public code";
 	final String ACCOUNT_UPLOAD_OK = "can upload";
+	final String ACCOUNT_TESTER = "tester";
 	final String ACCOUNT_BANNED = "banned";
 	final String ACCOUNT_AMPLIFY = "can amplify";
 	final String ACCOUNT_DATE_AUTHORIZED = "date authorized";
@@ -784,9 +803,12 @@ public class CreateStatistics
 	final String ACCOUNT_BANNED_FALSE = "0"; 
 	final String ACCOUNT_AMPLIFY_TRUE = "1";
 	final String ACCOUNT_AMPLIFY_FALSE = "0";
+	final String ACCOUNT_TESTER_TRUE = "1";
+	final String ACCOUNT_TESTER_FALSE = "0";
 
 	final String ACCOUNT_STATISTICS_HEADER = 
 		getNormalizedStringAndCheckForErrors(ACCOUNT_PUBLIC_CODE) + DELIMITER + 
+		getNormalizedStringAndCheckForErrors(ACCOUNT_TESTER) + DELIMITER + 
 		getNormalizedStringAndCheckForErrors(ACCOUNT_UPLOAD_OK) + DELIMITER + 
 		getNormalizedStringAndCheckForErrors(ACCOUNT_BANNED) + DELIMITER + 
 		getNormalizedStringAndCheckForErrors(ACCOUNT_AMPLIFY) + DELIMITER + 
@@ -806,6 +828,7 @@ public class CreateStatistics
 	
 	final String BULLETIN_HEADER_PACKET = "bulletin id";
 	final String BULLETIN_MARTUS_VERSION = "martus build date";
+	final String BULLETIN_TESTER = "test bulletin";
 	final String BULLETIN_TYPE = "type";
 	final String BULLETIN_SIZE = "size (Kb)";
 	final String BULLETIN_ALL_PRIVATE = "all private";
@@ -841,10 +864,13 @@ public class CreateStatistics
 	final String BULLETIN_HAS_CUSTOM_FIELDS_FALSE = "0";
 	final String BULLETIN_HIDDEN_TRUE = "1"; 
 	final String BULLETIN_HIDDEN_FALSE = "0"; 
+	final String BULLETIN_TEST_TRUE = "1"; 
+	final String BULLETIN_TEST_FALSE = "0"; 
 	
 	final String BULLETIN_STATISTICS_HEADER = 
 		getNormalizedStringAndCheckForErrors(BULLETIN_HEADER_PACKET) + DELIMITER +
 		getNormalizedStringAndCheckForErrors(BULLETIN_MARTUS_VERSION) + DELIMITER +
+		getNormalizedStringAndCheckForErrors(BULLETIN_TESTER) + DELIMITER +
 		getNormalizedStringAndCheckForErrors(BULLETIN_TYPE) + DELIMITER +
 		getNormalizedStringAndCheckForErrors(BULLETIN_SIZE) + DELIMITER +
 		getNormalizedStringAndCheckForErrors(BULLETIN_ALL_PRIVATE) + DELIMITER +
