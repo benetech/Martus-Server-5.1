@@ -38,7 +38,6 @@ import java.util.Vector;
 import org.martus.common.AmplifierNetworkInterface;
 import org.martus.common.LoggerInterface;
 import org.martus.common.MartusUtilities;
-import org.martus.common.XmlRpcThread;
 import org.martus.common.MartusUtilities.FileTooLargeException;
 import org.martus.common.MartusUtilities.FileVerificationException;
 import org.martus.common.MartusUtilities.InvalidPublicKeyFileException;
@@ -52,17 +51,18 @@ import org.martus.common.crypto.MartusCrypto.NoKeyPairException;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.Database.RecordHiddenException;
+import org.martus.common.network.MartusSecureWebServer;
+import org.martus.common.network.MartusXmlRpcServer;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
 import org.martus.common.packet.Packet.InvalidPacketException;
 import org.martus.common.packet.Packet.SignatureVerificationException;
 import org.martus.common.packet.Packet.WrongPacketTypeException;
-import org.martus.server.core.MartusSecureWebServer;
-import org.martus.server.core.MartusXmlRpcServer;
 import org.martus.server.forclients.MartusServer;
 import org.martus.util.Base64;
 import org.martus.util.InputStreamWithSeek;
+import org.martus.util.XmlRpcThread;
 import org.martus.util.Base64.InvalidBase64Exception;
 
 public class ServerForAmplifiers implements NetworkInterfaceConstants

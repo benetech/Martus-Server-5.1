@@ -48,7 +48,6 @@ import org.martus.common.LoggerInterface;
 import org.martus.common.LoggerToConsole;
 import org.martus.common.MartusUtilities;
 import org.martus.common.VersionBuildDate;
-import org.martus.common.XmlRpcThread;
 import org.martus.common.MartusUtilities.FileTooLargeException;
 import org.martus.common.MartusUtilities.FileVerificationException;
 import org.martus.common.MartusUtilities.InvalidPublicKeyFileException;
@@ -86,6 +85,7 @@ import org.martus.server.formirroring.ServerForMirroring;
 import org.martus.util.Base64;
 import org.martus.util.InputStreamWithSeek;
 import org.martus.util.UnicodeReader;
+import org.martus.util.XmlRpcThread;
 import org.martus.util.Base64.InvalidBase64Exception;
 
 public class MartusServer implements NetworkInterfaceConstants
