@@ -11,7 +11,12 @@
 # it's list of authorized keys.
 # note that the ssh protocol 1 and 2 use different filenames.
 
-# TODO: [[Put in step-by-step setup instructions here]]
+# On my system (Kevin speaking), I must:
+#   ssh-add
+#   cd ~/work/eclipse/workspace/martus-server/source/org/martus/server/main
+#   su 
+#   ./create-tunnels.bash
+#   exit
 
 ssh -f -N -L 988:localhost:9988 root@localhost
 ssh -f -N -L 987:localhost:9987 root@localhost
