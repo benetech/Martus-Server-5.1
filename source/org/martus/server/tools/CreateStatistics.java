@@ -391,9 +391,11 @@ public class CreateStatistics
 					String allPrivate = "";
 					int publicAttachmentCount = 0;
 					int privateAttachmentCount = 0;
+					int bulletinSizeInKBytes = 0;
 					try
 					{
 						BulletinHeaderPacket bhp = MartusServer.loadBulletinHeaderPacket(fileDatabase, key, security);
+						bulletinSizeInKBytes = MartusUtilities.getBulletinSize(fileDatabase, bhp) / 1000;
 						String[] publicAttachments = bhp.getPublicAttachmentIds();
 						String[] privateAttachments = bhp.getPrivateAttachmentIds();
 
@@ -422,7 +424,8 @@ public class CreateStatistics
 					
 					String bulletinInfo =  getNormalizedString(localId) + DELIMITER +
 					getNormalizedString(martusVersionBulletionWasCreatedWith) + DELIMITER + 
-					getNormalizedString(bulletinType) + DELIMITER + 
+					getNormalizedString(bulletinType) + DELIMITER +
+					getNormalizedString(Integer.toString(bulletinSizeInKBytes)) + DELIMITER + 
 					getNormalizedString(allPrivate) + DELIMITER + 
 					getNormalizedString(Integer.toString(publicAttachmentCount)) + DELIMITER + 
 					getNormalizedString(Integer.toString(privateAttachmentCount)) + DELIMITER + 
@@ -625,7 +628,8 @@ public class CreateStatistics
 	
 	final String BULLETIN_HEADER_PACKET = "bulletin id";
 	final String BULLETIN_MARTUS_VERSION = "martus build date";
-	final String BULLETIN_TYPE = "bulletin type";
+	final String BULLETIN_TYPE = "type";
+	final String BULLETIN_SIZE = "size (Kb)";
 	final String BULLETIN_ALL_PRIVATE = "all private";
 	final String BULLETIN_PUBLIC_ATTACHMENT_COUNT = "public attachments";
 	final String BULLETIN_PRIVATE_ATTACHMENT_COUNT = "private attachments";
@@ -643,6 +647,7 @@ public class CreateStatistics
 		getNormalizedString(BULLETIN_HEADER_PACKET) + DELIMITER +
 		getNormalizedString(BULLETIN_MARTUS_VERSION) + DELIMITER +
 		getNormalizedString(BULLETIN_TYPE) + DELIMITER +
+		getNormalizedString(BULLETIN_SIZE) + DELIMITER +
 		getNormalizedString(BULLETIN_ALL_PRIVATE) + DELIMITER +
 		getNormalizedString(BULLETIN_PUBLIC_ATTACHMENT_COUNT) + DELIMITER +
 		getNormalizedString(BULLETIN_PRIVATE_ATTACHMENT_COUNT) + DELIMITER +
