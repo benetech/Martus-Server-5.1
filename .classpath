@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-    <classpathentry kind="src" path="source"/>
-    <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-    <classpathentry kind="src" path="/martus-utils"/>
-    <classpathentry kind="src" path="/martus-common"/>
-    <classpathentry kind="src" path="/martus-amplifier"/>
-    <classpathentry kind="output" path="bin"/>
+	<classpathentry kind="src" path="source"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="/martus-utils"/>
+	<classpathentry kind="src" path="/martus-common"/>
+	<classpathentry kind="src" path="/martus-amplifier"/>
+	<classpathentry kind="lib" path="/martus-common/source/ThirdPartyJars/xmlrpc-1.1.jar"/>
+	<classpathentry kind="output" path="bin"/>
 </classpath>
