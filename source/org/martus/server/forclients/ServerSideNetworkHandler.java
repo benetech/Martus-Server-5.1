@@ -310,6 +310,11 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 		return result;
 	}
 	
+	// TODO: The following is for diagnostics only! 
+	// as soon as we resolve the contact info signature problem,
+	// this member variable should be removed 
+	static Vector badContactInfoAccounts = new Vector();
+	
 	public Vector putContactInfo(String myAccountId, Vector parameters, String signature) 
 	{
 		server.clientConnectionStart();
@@ -317,6 +322,12 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 		if(!isSignatureOk(myAccountId, parameters, signature, server.getSecurity()))
 		{
 			log("putContactInfo:Signature Error");
+			if(!badContactInfoAccounts.contains(myAccountId))
+			{
+				badContactInfoAccounts.add(myAccountId);
+				log("parameters: " + parameters.toString());
+				log("signature: " + signature);
+			}
 			result.add(SIG_ERROR);
 			server.clientConnectionExit();
 			return result;
