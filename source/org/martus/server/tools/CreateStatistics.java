@@ -383,6 +383,7 @@ public class CreateStatistics
 					getNormalizedStringAndCheckForErrors(Integer.toString(bulletinSizeInKBytes)) + DELIMITER + 
 					getNormalizedStringAndCheckForErrors(allPrivate) + DELIMITER +
 					getNormalizedStringAndCheckForErrors(bulletinHasCustomFields) + DELIMITER +
+					getNormalizedStringAndCheckForErrors(bulletinCustomFieldTypes) + DELIMITER +
 					getNormalizedStringAndCheckForErrors(bulletinSummary) + DELIMITER +
 					getNormalizedStringAndCheckForErrors(bulletinLanguage) + DELIMITER +
 					getNormalizedStringAndCheckForErrors(bulletinLocation) + DELIMITER +
@@ -427,6 +428,8 @@ public class CreateStatistics
 				bulletinDateCreated = ERROR_MSG;
 				bulletinDateEvent = ERROR_MSG;
 				bulletinHasCustomFields = ERROR_MSG;
+				bulletinCustomFieldTypes = ERROR_MSG;
+				
 				try
 				{
 					BulletinHeaderPacket bhp = MartusServer.loadBulletinHeaderPacket(fileDatabase, key, security);
@@ -439,6 +442,7 @@ public class CreateStatistics
 						bulletinDateCreated = "";
 						bulletinDateEvent = "";
 						bulletinHasCustomFields = "";
+						bulletinCustomFieldTypes = "";
 						return;
 					}
 					String fieldDataPacketId = bhp.getFieldDataPacketId();
@@ -469,11 +473,25 @@ public class CreateStatistics
 						bulletinDateEvent = rawBeginDate;
 					}
 					
-					CustomFields customFields = new CustomFields(fdp.getFieldSpecs());
-					if(FieldDataPacket.isCustomFieldSpecs(customFields))
-						bulletinHasCustomFields = BULLETIN_HAS_CUSTOM_FIELDS_TRUE;
-					else
+					FieldSpec[] fieldSpecs = fdp.getFieldSpecs();
+					CustomFields customFields = new CustomFields(fieldSpecs);
+					if(FieldDataPacket.isNonCustomFieldSpecs(customFields))
 						bulletinHasCustomFields = BULLETIN_HAS_CUSTOM_FIELDS_FALSE;
+					else
+						bulletinHasCustomFields = BULLETIN_HAS_CUSTOM_FIELDS_TRUE;
+					
+					bulletinCustomFieldTypes = "";
+					for(int i = 0 ; i < fieldSpecs.length; ++i)
+					{
+						FieldSpec fieldSpec = fieldSpecs[i];
+						if(!StandardFieldSpecs.isStandardFieldTag(fieldSpec.getTag()))
+						{
+							if(bulletinCustomFieldTypes.length()>0)
+								bulletinCustomFieldTypes += ", ";
+							bulletinCustomFieldTypes += FieldSpec.getTypeString(fieldSpec.getType()); 
+						}
+					}
+
 				}
 				catch(Exception e)
 				{
@@ -653,6 +671,7 @@ public class CreateStatistics
 			String bulletinLocation;
 			String bulletinKeywords;
 			String bulletinHasCustomFields;
+			String bulletinCustomFieldTypes;
 			String bulletinDateCreated;
 			String bulletinDateEvent;
 			int publicAttachmentCount;
@@ -798,6 +817,7 @@ public class CreateStatistics
 	final String BULLETIN_DATE_UPLOADED = "date uploaded";
 	final String BULLETIN_DATE_LAST_SAVED = "date last saved";
 	final String BULLETIN_HAS_CUSTOM_FIELDS = "has custom fields";
+	final String BULLETIN_CUSTOM_FIELD_TYPES = "custom field types";
 	final String BULLETIN_HIDDEN = "hidden on server";
 	final String BULLETIN_ALL_HQS_PROXY_UPLOAD = "all HQs proxy upload";
 	final String BULLETIN_AUTHORIZED_TO_READ = "HQs authorized to read";
@@ -823,6 +843,7 @@ public class CreateStatistics
 		getNormalizedStringAndCheckForErrors(BULLETIN_SIZE) + DELIMITER +
 		getNormalizedStringAndCheckForErrors(BULLETIN_ALL_PRIVATE) + DELIMITER +
 		getNormalizedStringAndCheckForErrors(BULLETIN_HAS_CUSTOM_FIELDS) + DELIMITER +
+		getNormalizedStringAndCheckForErrors(BULLETIN_CUSTOM_FIELD_TYPES) + DELIMITER +
 		getNormalizedStringAndCheckForErrors(BULLETIN_SUMMARY) + DELIMITER +
 		getNormalizedStringAndCheckForErrors(BULLETIN_LANGUAGE) + DELIMITER +
 		getNormalizedStringAndCheckForErrors(BULLETIN_LOCATION) + DELIMITER +
