@@ -34,6 +34,7 @@ import org.martus.common.crypto.MockMartusSecurity;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.MockServerDatabase;
+import org.martus.common.database.ReadableDatabase;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.server.main.MartusServer;
@@ -52,7 +53,7 @@ public class TestSummaryCollector extends TestCaseEnhanced
 		server = new MockMartusServer();
 		server.initializeBulletinStore(new MockServerDatabase());
 		authorSecurity = MockMartusSecurity.createClient();
-		Database db = server.getDatabase();
+		Database db = server.getWriteableDatabase();
 
 		original = new Bulletin(authorSecurity);
 		original.setSealed();
@@ -108,7 +109,7 @@ public class TestSummaryCollector extends TestCaseEnhanced
 	
 	public void testTags() throws Exception
 	{
-		Database db = server.getDatabase();
+		ReadableDatabase db = server.getDatabase();
 		BulletinHeaderPacket bhp = clone.getBulletinHeaderPacket();
 		String fdpLocalId = bhp.getFieldDataPacketId();
 		Vector tags = new Vector();

@@ -307,7 +307,7 @@ public class TestServerForAmplifiers extends TestCaseEnhanced
 		
 		String bulletin3LocalId = b3.getLocalId();
 		String burFromOtherDatabase = MartusServerUtilities.createBulletinUploadRecord(bulletin3LocalId, otherServer.getSecurity());
-		MartusServerUtilities.writeSpecificBurToDatabase(coreServer.getDatabase(), b3.getBulletinHeaderPacket(), burFromOtherDatabase);
+		MartusServerUtilities.writeSpecificBurToDatabase(coreServer.getWriteableDatabase(), b3.getBulletinHeaderPacket(), burFromOtherDatabase);
 		response = coreServer.serverForAmplifiers.getAmplifierHandler().getPublicBulletinLocalIds(ampAccountId, parameters, signature);
 		uIds = (Vector)response.get(1);
 		assertEquals("incorect # of bulletins found after mirroring, should only amplify own bulletins?", 1, uIds.size());

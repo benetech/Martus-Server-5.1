@@ -41,6 +41,7 @@ import org.martus.common.crypto.MockMartusSecurity;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.MockServerDatabase;
+import org.martus.common.database.ReadableDatabase;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.FieldDataPacket;
 import org.martus.common.packet.UniversalId;
@@ -68,7 +69,7 @@ public class TestServerForMirroring extends TestCaseEnhanced
 		clientSecurity1 = MockMartusSecurity.createClient();
 		clientSecurity2 = MockMartusSecurity.createOtherClient();
 
-		Database db = server.getDatabase();
+		Database db = coreServer.getWriteableDatabase();
 
 		bhp1 = new BulletinHeaderPacket(clientSecurity1);
 		bhp1.setStatus(BulletinConstants.STATUSSEALED);
@@ -177,7 +178,7 @@ public class TestServerForMirroring extends TestCaseEnhanced
 	
 	public void testListBulletins() throws Exception
 	{
-		Database db = coreServer.getDatabase();
+		ReadableDatabase db = coreServer.getDatabase();
 		MockServerDatabase mdb = (MockServerDatabase)db;
 		assertEquals(6, mdb.getRecordCount());
 		Set allKeys = mdb.getAllKeys();
@@ -218,7 +219,7 @@ public class TestServerForMirroring extends TestCaseEnhanced
 		String expectedBur = MartusServerUtilities.createBulletinUploadRecord(bhp1.getLocalId(), server.getSecurity());
 		DatabaseKey headerKey = bhp1.createKeyWithHeaderStatus(bhp1.getUniversalId());
 		String bulletinLocalId = headerKey.getLocalId();
-		MartusServerUtilities.writeSpecificBurToDatabase(coreServer.getDatabase(), bhp1, expectedBur);
+		MartusServerUtilities.writeSpecificBurToDatabase(coreServer.getWriteableDatabase(), bhp1, expectedBur);
 		String bur1 = server.getBulletinUploadRecord(bhp1.getAccountId(), bulletinLocalId);
 		assertNotNull("didn't find bur1?", bur1);
 		assertEquals("wrong bur?", expectedBur, bur1);

@@ -68,6 +68,7 @@ import org.martus.common.crypto.MartusCrypto.NoKeyPairException;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.FileDatabase;
+import org.martus.common.database.ReadableDatabase;
 import org.martus.common.database.ServerFileDatabase;
 import org.martus.common.database.Database.RecordHiddenException;
 import org.martus.common.network.MartusSecureWebServer;
@@ -198,7 +199,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		serverForAmplifiers = new ServerForAmplifiers(this, getLogger());
 		amp = new MartusAmplifier(this);
 		failedUploadRequestsPerIp = new Hashtable();
-		store = new BulletinStore();
+		store = new ServerBulletinStore();
 	}
 	
 	public ServerForClients createServerForClients()
@@ -291,7 +292,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		loadComplianceStatementFile();
 	}
 	
-	public BulletinStore getStore()
+	public ServerBulletinStore getStore()
 	{
 		return store;
 	}
@@ -963,7 +964,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		if(!isAllowed)
 			return returnSingleResponseAndLog( "  attempt to download disallowed packet type: " + packetLocalId, NetworkInterfaceConstants.INVALID_DATA );
 		
-		Database db = getDatabase();
+		ReadableDatabase db = getDatabase();
 		
 		UniversalId headerUid = UniversalId.createFromAccountAndLocalId(authorAccountId, bulletinLocalId);
 		DatabaseKey headerKey = DatabaseKey.createSealedKey(headerUid);
@@ -1546,7 +1547,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		return servers;
 	}
 
-	public BulletinHeaderPacket loadBulletinHeaderPacket(Database db, DatabaseKey key)
+	public BulletinHeaderPacket loadBulletinHeaderPacket(ReadableDatabase db, DatabaseKey key)
 	throws
 		IOException,
 		CryptoException,
@@ -1859,7 +1860,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	private boolean amplifierListenerEnabled;
 	
 	private File dataDirectory;
-	private BulletinStore store;
+	private ServerBulletinStore store;
 	private String complianceStatement; 
 	
 	Hashtable failedUploadRequestsPerIp;

@@ -50,7 +50,7 @@ public abstract class SummaryCollector implements Database.PacketVisitor
 		summaries = new Vector();
 	}
 	
-	public Database getDatabase()
+	public ReadableDatabase getDatabase()
 	{
 		return server.getDatabase();
 	}

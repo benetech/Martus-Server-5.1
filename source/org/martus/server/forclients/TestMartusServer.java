@@ -66,6 +66,7 @@ import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.MockClientDatabase;
 import org.martus.common.database.MockServerDatabase;
+import org.martus.common.database.ReadableDatabase;
 import org.martus.common.network.NetworkInterface;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.packet.BulletinHeaderPacket;
@@ -849,7 +850,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		testServer.allowUploads(clientSecurity.getPublicKeyString());
 		assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(testServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ZipBytes.length, b1ZipString, clientSecurity));
 
-		Database db = testServer.getDatabase();
+		ReadableDatabase db = testServer.getDatabase();
 		assertNotNull("no database?", db);
 		DatabaseKey key = DatabaseKey.createSealedKey(b1.getUniversalId());
 		Bulletin got = BulletinLoader.loadFromDatabase(db, key, clientSecurity);
@@ -864,7 +865,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 	{
 		TRACE_BEGIN("testUploadBulletinChunks");
 
-		Database serverDatabase = testServer.getDatabase();
+		ReadableDatabase serverDatabase = testServer.getDatabase();
 		
 		DatabaseKey headerKey = new DatabaseKey(b1.getUniversalId());
 		DatabaseKey burKey = MartusServerUtilities.getBurKey(headerKey);
@@ -1133,7 +1134,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 
 		testServer.serverForClients.clearCanUploadList();
 		testServer.allowUploads(clientSecurity.getPublicKeyString());
-		Database serverDatabase = testServer.getDatabase();
+		ReadableDatabase serverDatabase = testServer.getDatabase();
 
 		assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(testServer, 
 			clientSecurity.getPublicKeyString(), b.getLocalId(), draft1ZipBytes.length, 0, 

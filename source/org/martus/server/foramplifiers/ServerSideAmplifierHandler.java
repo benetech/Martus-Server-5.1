@@ -33,6 +33,7 @@ import org.martus.common.BulletinStore;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
+import org.martus.common.database.ReadableDatabase;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.utilities.MartusServerUtilities;
@@ -65,7 +66,7 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 					return;
 
 				LocallIdOfPublicBulletinsCollector collector = new LocallIdOfPublicBulletinsCollector();
-				Database db = server.getDatabase();
+				ReadableDatabase db = server.getDatabase();
 				db.visitAllRecordsForAccount(collector, accountString);
 				if(collector.infos.size() > 0 && ! accounts.contains(accountString))
 					accounts.add(accountString);
@@ -128,7 +129,7 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 		String accountString = (String) parameters.get(0);
 
 		LocallIdOfPublicBulletinsCollector collector = new LocallIdOfPublicBulletinsCollector();
-		Database db = server.getDatabase();
+		ReadableDatabase db = server.getDatabase();
 		db.visitAllRecordsForAccount(collector, accountString);
 		
 		result.add(NetworkInterfaceConstants.OK);
@@ -180,7 +181,7 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 				
 				DatabaseKey burKey = MartusServerUtilities.getBurKey(key);
 				MartusCrypto security = server.getSecurity();
-				Database db = server.getDatabase();
+				ReadableDatabase db = server.getDatabase();
 				String burInDatabase = db.readRecord(burKey, security);
 				if(burInDatabase == null)
 				{	
