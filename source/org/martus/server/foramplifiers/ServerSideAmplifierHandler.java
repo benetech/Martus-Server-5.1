@@ -62,10 +62,12 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 	
 			public void visit(String accountString)
 			{
+				if(!server.canAccountBeAmplified(accountString))
+					return;
+
 				LocallIdOfPublicBulletinsCollector collector = new LocallIdOfPublicBulletinsCollector();
 				Database db = server.getDatabase();
 				db.visitAllRecordsForAccount(collector, accountString);
-				
 				if(collector.infos.size() > 0 && ! accounts.contains(accountString))
 					accounts.add(accountString);
 			}
@@ -226,6 +228,9 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 			}
 			catch (Exception e)
 			{
+				log("Error checking bulletin status.");
+				log(key.getAccountId());
+				log(key.getLocalId());
 				e.printStackTrace();
 			}
 		}
