@@ -38,7 +38,6 @@ import java.util.Vector;
 import org.martus.common.MartusUtilities;
 import org.martus.common.MartusUtilities.FileVerificationException;
 import org.martus.common.crypto.MartusCrypto;
-import org.martus.common.network.MartusSecureWebServer;
 import org.martus.common.network.MartusXmlRpcServer;
 import org.martus.common.network.NetworkInterfaceXmlRpcConstants;
 import org.martus.common.utilities.MartusServerUtilities;
