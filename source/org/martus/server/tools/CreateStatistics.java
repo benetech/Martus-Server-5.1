@@ -34,6 +34,7 @@ import org.martus.common.LoggerInterface;
 import org.martus.common.MartusUtilities;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.database.Database;
+import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.FileDatabase;
 import org.martus.common.database.ServerFileDatabase;
 import org.martus.common.utilities.MartusServerUtilities;
@@ -125,8 +126,9 @@ public class CreateStatistics
 		clientsNotToAmplify = MartusUtilities.loadClientsNotAmplified(new File(adminStartupDir, ServerForAmplifiers.CLIENTS_NOT_TO_AMPLIFY_FILENAME));
 		authorizeLog = new AuthorizeLog(security, new NullLogger(), new File(packetsDir.getParentFile(), ServerForClients.AUTHORIZELOGFILENAME));  		
 		authorizeLog.loadFile();
+
 		CreateAccountStatistics();
-//		CreateBulletinStatistics();
+		CreateBulletinStatistics();
 //		CreatePacketStatistics();
 	}
 	public class NullLogger implements LoggerInterface
@@ -269,7 +271,6 @@ public class CreateStatistics
 		fileDatabase.visitAllAccounts(new AccountVisitor(writer));
 		writer.close();
 	}
-
 	
 	String isAllowedToUpload(String accountId)
 	{
@@ -292,18 +293,128 @@ public class CreateStatistics
 		return ACCOUNT_AMPLIFY_TRUE;
 	}
 	
-/*	private void CreateBulletinStatistics()
+	private void CreateBulletinStatistics() throws Exception
 	{
-		System.out.println("Creating Bulletin Statistics");
+		class BulletinVisitor implements Database.PacketVisitor
+		{
+			public BulletinVisitor(UnicodeWriter writerToUse)
+			{
+				writer = writerToUse;
+			}
+			
+			public void visit(DatabaseKey key)
+			{
+				try
+				{
+					if(!key.getLocalId().startsWith("B-"))
+						return;
+					
+					String localId = key.getLocalId();
+					String publicCode = "";
 
+					try
+					{
+						String accountId = key.getAccountId();
+						publicCode = MartusCrypto.computeFormattedPublicCode(accountId);
+					}
+					catch(Exception e)
+					{
+						publicCode = "ERROR: " + e;
+					}
+
+					String bulletinType = "unknown?";
+					if(key.isSealed())
+						bulletinType = BULLETIN_SEALED;
+					else if(key.isDraft())
+						bulletinType = BULLETIN_DRAFT;
+					
+					DatabaseKey burKey = MartusServerUtilities.getBurKey(key);
+					String wasBurCreatedByThisServer = wasOriginalServer(burKey);
+					String dateBulletinWasCreated = getOriginalUploadDate(burKey);
+					
+					String bulletinInfo =  getNormalizedString(localId) + DELIMITER +
+					getNormalizedString(bulletinType) + DELIMITER + 
+					getNormalizedString(wasBurCreatedByThisServer) + DELIMITER + 
+					getNormalizedString(dateBulletinWasCreated) + DELIMITER + 
+					getNormalizedString(publicCode);
+					
+					writer.writeln(bulletinInfo);
+				}
+				catch(IOException e)
+				{
+					e.printStackTrace();
+				}
+			}
+			
+			UnicodeWriter writer;
+		}
+		
+		System.out.println("Creating Bulletin Statistics");
+		File bulletinStats = new File(destinationDir,BULLETIN_STATS_FILE_NAME);
+		if(deletePrevious)
+			bulletinStats.delete();
+		if(bulletinStats.exists())
+			throw new Exception("File Exists.  Please delete before running: "+bulletinStats.getAbsolutePath());
+		
+		UnicodeWriter writer = new UnicodeWriter(bulletinStats);
+		writer.writeln(BULLETIN_STATISTICS_HEADER);
+		fileDatabase.visitAllRecords(new BulletinVisitor(writer));
+		writer.close();
 	}
 
-	private void CreatePacketStatistics()
+	String wasOriginalServer(DatabaseKey burKey)
+	{
+		String wasBurCreatedByThisServer = BULLETIN_ORIGINALLY_UPLOADED_TO_THIS_SERVER_FALSE;
+		try
+		{
+			if(!fileDatabase.getFileForRecord(burKey).exists())
+			{
+				wasBurCreatedByThisServer ="Error: missing BUR";
+			}
+			else
+			{
+				String burString = fileDatabase.readRecord(burKey, security);
+				if(burString.length()==0)
+					wasBurCreatedByThisServer = "Error: record empty?";
+				else if(MartusServerUtilities.wasBurCreatedByThisCrypto(burString, security))
+					wasBurCreatedByThisServer = BULLETIN_ORIGINALLY_UPLOADED_TO_THIS_SERVER_TRUE;
+			}
+		}
+		catch(Exception e1)
+		{
+			wasBurCreatedByThisServer = "ERROR: " + e1;
+		}
+		return wasBurCreatedByThisServer;
+	}
+	String getOriginalUploadDate(DatabaseKey burKey)
+	{
+		String uploadDate = "unknown";
+		try
+		{
+			if(!fileDatabase.getFileForRecord(burKey).exists())
+				return uploadDate;
+			String burString = fileDatabase.readRecord(burKey, security);
+			if(burString.length()!=0)
+			{
+				String[] burData = burString.split("\n");
+				String rawDate = burData[2];
+				return rawDate;
+			}
+		}
+		catch(Exception e1)
+		{
+			uploadDate = "ERROR: " + e1;
+		}
+		return uploadDate;
+	}
+
+
+	
+	/*	private void CreatePacketStatistics()
 	{
 		System.out.println("Creating Packet Statistics");
 
 	}
-
 */
 
 	
@@ -349,8 +460,7 @@ public class CreateStatistics
 	final String ACCOUNT_BANNED_FALSE = "0"; 
 	final String ACCOUNT_AMPLIFY_TRUE = "1";
 	final String ACCOUNT_AMPLIFY_FALSE = "0";
-	
-	
+
 	final String ACCOUNT_STATISTICS_HEADER = 
 		getNormalizedString(ACCOUNT_PUBLIC_CODE) + DELIMITER + 
 		getNormalizedString(ACCOUNT_UPLOAD_OK) + DELIMITER + 
@@ -367,4 +477,25 @@ public class CreateStatistics
 		getNormalizedString(ACCOUNT_ADDRESS) + DELIMITER + 
 		getNormalizedString(ACCOUNT_BUCKET) + DELIMITER + 
 		getNormalizedString(ACCOUNT_PUBLIC_KEY);
+
+	final String BULLETIN_STATS_FILE_NAME = "bulletin.csv";
+	
+	final String BULLETIN_HEADER_PACKET = "bulletin id";
+	final String BULLETIN_TYPE = "bulletin type";
+	final String BULLETIN_ORIGINALLY_UPLOADED_TO_THIS_SERVER = "original server";
+	final String BULLETIN_DATE_UPLOADED = "date uploaded";
+	
+	final String BULLETIN_ORIGINALLY_UPLOADED_TO_THIS_SERVER_TRUE = "1";
+	final String BULLETIN_ORIGINALLY_UPLOADED_TO_THIS_SERVER_FALSE = "0";
+	final String BULLETIN_DRAFT = "draft";
+	final String BULLETIN_SEALED = "sealed";
+	
+	
+	final String BULLETIN_STATISTICS_HEADER = 
+		getNormalizedString(BULLETIN_HEADER_PACKET) + DELIMITER +
+		getNormalizedString(BULLETIN_TYPE) + DELIMITER +
+		getNormalizedString(BULLETIN_ORIGINALLY_UPLOADED_TO_THIS_SERVER) + DELIMITER +
+		getNormalizedString(BULLETIN_DATE_UPLOADED) + DELIMITER +
+		getNormalizedString(ACCOUNT_PUBLIC_CODE);
+	
 }
