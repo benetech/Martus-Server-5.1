@@ -52,7 +52,7 @@ public class TestAuthorizeLog extends TestCaseEnhanced
 			security.createKeyPair(512);
 		}
 		tempDir = createTempDirectory();
-		File authorizeLogFile = new File(tempDir, AuthorizeLog.AUTHORIZE_LOG_FILENAME);
+		File authorizeLogFile = new File(tempDir, "$$AuthorizeLog.txt");
 		authorizeLogFile.deleteOnExit();
 		authorized = new AuthorizeLog(security, new LoggerForTesting(), authorizeLogFile);
 	}

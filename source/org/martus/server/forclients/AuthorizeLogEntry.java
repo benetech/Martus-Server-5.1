@@ -105,7 +105,7 @@ public class AuthorizeLogEntry
 	{
 		GregorianCalendar today = new GregorianCalendar();
 		String year = new Integer(today.get(GregorianCalendar.YEAR)).toString();
-		String month = new Integer(today.get(GregorianCalendar.MONTH)).toString();
+		String month = new Integer(today.get(GregorianCalendar.MONTH)+1).toString();
 		String day = new Integer(today.get(GregorianCalendar.DAY_OF_MONTH)).toString();
 		if(month.length()==1)
 			month = "0" + month;

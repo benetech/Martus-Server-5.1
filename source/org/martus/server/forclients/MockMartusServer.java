@@ -294,8 +294,13 @@ public class MockMartusServer extends MartusServer implements ServerForClientsIn
 		allowUploadFile.delete();
 		if(allowUploadFile.exists())
 			throw new IOException("allowUploadFile");
-			
 		MartusServerUtilities.deleteSignaturesForFile(allowUploadFile);
+		
+		File authorizeLogFile = serverForClients.getAuthorizeLogFile();
+		authorizeLogFile.delete();
+		if(authorizeLogFile.exists())
+			throw new IOException("authorizeLogFile");
+		MartusServerUtilities.deleteSignaturesForFile(authorizeLogFile);
 			
 		File magicWordsFile = serverForClients.getMagicWordsFile();
 		magicWordsFile.delete();

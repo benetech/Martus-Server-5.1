@@ -103,8 +103,6 @@ public class AuthorizeLog
 		return clientStrings;
 	}
 	
-	public static final String AUTHORIZE_LOG_FILENAME = "authorizeLog.txt";
-	
 	private File authorizeLogFile;
 	private LoggerInterface logger;
 	private Vector authorizedClients;

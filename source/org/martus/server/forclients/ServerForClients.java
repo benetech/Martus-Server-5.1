@@ -99,7 +99,8 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		System.out.println();
 		System.out.println(clientsThatCanUpload.size() + " client(s) currently allowed to upload");
 		System.out.println(clientsBanned.size() + " client(s) are currently banned");
-		System.out.println(magicWords.size() + " active magic word(s)");
+		System.out.println(magicWords.getNumberOfActiveWords() + " active magic word(s)");
+		System.out.println(magicWords.getNumberOfInactiveWords() + " inactive magic word(s)");
 	}
 
 	public void verifyConfigurationFiles()
@@ -376,7 +377,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		String groupName = getGroupNameForMagicWord(magicWordUsed);
 		String publicCode = getPublicCode(clientId);
 		
-		log("allowUploads granted to" + coreServer.getClientAliasForLogging(clientId) + " : " + publicCode + " groupName= " + groupName + " with magicword=" + magicWord);
+		log("allowUploads granted to:" + coreServer.getClientAliasForLogging(clientId) + " : " + publicCode + " groupName= " + groupName + " with magicword=" + magicWord);
 		clientsThatCanUpload.add(clientId);
 		
 		try
@@ -386,6 +387,10 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			writer.close();
 			MartusCrypto security = getSecurity();
 			MartusServerUtilities.createSignatureFileFromFileOnServer(getAllowUploadFile(), security);
+			
+			AuthorizeLog authorizeLog = new AuthorizeLog(security, coreServer.getLogger(), getAuthorizeLogFile());
+			authorizeLog.appendToFile(new AuthorizeLogEntry(publicCode, groupName));
+
 			log("allowUploads : Exit OK");
 		}
 		catch(Exception e)
@@ -401,6 +406,11 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	public File getAllowUploadFile()
 	{
 		return new File(coreServer.getDataDirectory(), UPLOADSOKFILENAME);
+	}
+	
+	public File getAuthorizeLogFile()
+	{
+		return new File(coreServer.getDataDirectory(), AUTHORIZELOGFILENAME);
 	}
 
 	void loadCanUploadFile()
@@ -451,4 +461,5 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	private static final String BANNEDCLIENTSFILENAME = "banned.txt";
 	private static final String MAGICWORDSFILENAME = "magicwords.txt";
 	private static final String UPLOADSOKFILENAME = "uploadsok.txt";
+	private static final String AUTHORIZELOGFILENAME = "authorizelog.txt";
 }
