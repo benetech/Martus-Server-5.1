@@ -28,5 +28,5 @@ package org.martus.server.main;
 
 public class MarketingVersionNumber
 {
-	public static String marketingVersionNumber = "2.3.0";
+	public static String marketingVersionNumber = "2.4.0 Internal";
 }
