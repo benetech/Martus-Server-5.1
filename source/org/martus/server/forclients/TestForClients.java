@@ -47,6 +47,8 @@ public class TestForClients
 	{
 		TestSuite suite = new TestSuite("All Server ForClient Tests");
 
+		suite.addTest(new TestSuite(TestAuthorizeLog.class));
+		suite.addTest(new TestSuite(TestAuthorizeLogEntry.class));
 		suite.addTest(new TestSuite(TestMartusServer.class));
 		suite.addTest(new TestSuite(TestMartusServerUtilities.class));
 		suite.addTest(new TestSuite(TestServerForClients.class));
