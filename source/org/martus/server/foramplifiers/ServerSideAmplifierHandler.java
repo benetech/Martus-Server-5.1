@@ -89,13 +89,13 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 		
 		result.add(NetworkInterfaceConstants.OK);
 		result.add(visitor.getAccounts());
-		log("getAccountIds: exit OK : # accounts=" + visitor.getAccounts().size());
+		log("getAccountIds: returned " + visitor.getAccounts().size() + " accounts");
 		return result;
 	}
 
 	public Vector getContactInfo(String myAccountId, Vector parameters, String signature)
 	{
-		log("getContactInfo: " + MartusCrypto.formatAccountIdForLog(myAccountId));
+		log("getContactInfo: amp: " + MartusCrypto.formatAccountIdForLog(myAccountId));
 		if(!server.isAuthorizedAmp(myAccountId))
 			return server.returnSingleResponseAndLog(" returning NOT_AUTHORIZED", NetworkInterfaceConstants.NOT_AUTHORIZED);
 
@@ -112,14 +112,20 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 		}
 		
 		String accountIdToRetrieve = (String)parameters.get(0);
-		log("getAccountContactInfo exit OK: for account:" + MartusCrypto.formatAccountIdForLog(accountIdToRetrieve));
 		result = server.getContactInfo(accountIdToRetrieve);
+		String resultString = ""; 
+		if(((String)result.get(0)).equals(NetworkInterfaceConstants.OK))
+			resultString = "some";
+		else
+			resultString = "none";
+		
+		log("getContactInfo: account: " + MartusCrypto.formatAccountIdForLog(accountIdToRetrieve) + " had " + resultString);
 		return result;
 	}
 	
 	public Vector getPublicBulletinLocalIds(String myAccountId, Vector parameters, String signature)
 	{
-		log("getPublicBulletinLocalIds: " + MartusCrypto.formatAccountIdForLog(myAccountId));
+		log("getPublicBulletinLocalIds: amp: " + MartusCrypto.formatAccountIdForLog(myAccountId));
 		if(!server.isAuthorizedAmp(myAccountId))
 			return server.returnSingleResponseAndLog(" returning NOT_AUTHORIZED", NetworkInterfaceConstants.NOT_AUTHORIZED);
 
@@ -136,7 +142,7 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 		
 		result.add(NetworkInterfaceConstants.OK);
 		result.add(collector.infos);
-		log("getPublicBulletinLocalIds exit OK: for account:"+	 MartusCrypto.formatAccountIdForLog(accountString) + " ="+collector.infos.size());
+		log("getPublicBulletinLocalIds: account:"+ MartusCrypto.formatAccountIdForLog(accountString) + " = "+collector.infos.size());
 		
 		return result;
 	}

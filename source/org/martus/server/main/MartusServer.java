@@ -139,6 +139,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			server.startBackgroundTimers();
 			
 			ServerSideUtilities.writeSyncFile(server.getRunningFile(), "MartusServer.main");
+			server. getLogger().log("Server is running");
 			if(!server.isAmplifierEnabled() && !server.isAmplifierListenerEnabled() &&
 			   !server.isClientListenerEnabled() && !server.isMirrorListenerEnabled())
 			{				
