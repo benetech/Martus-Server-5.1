@@ -30,7 +30,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Vector;
 
-import org.martus.common.ConfigInfo;
+import org.martus.common.ContactInfo;
 import org.martus.common.LoggerForTesting;
 import org.martus.common.MartusUtilities;
 import org.martus.common.bulletin.AttachmentProxy;
@@ -197,7 +197,7 @@ public class TestServerForAmplifiers extends TestCaseEnhanced
 		response = coreServer.serverForAmplifiers.getAmplifierHandler().getContactInfo(amplifier.getPublicKeyString(), parameters, signature);
 		assertEquals("Should have found contact info since it has been uploaded", ServerForAmplifiers.OK, response.get(0));
 		Vector encodedInfoReturned = (Vector)response.get(1);
-		Vector decodedInfoReturned = ConfigInfo.decodeContactInfoVectorIfNecessary(encodedInfoReturned); 
+		Vector decodedInfoReturned = ContactInfo.decodeContactInfoVectorIfNecessary(encodedInfoReturned); 
 		assertEquals("Should be same size as was put in", contactInfo.size(), decodedInfoReturned.size());
 		assertEquals("Public key doesn't match", clientId, decodedInfoReturned.get(0));
 		assertEquals("data size not two?", 2, ((Integer)decodedInfoReturned.get(1)).intValue());
