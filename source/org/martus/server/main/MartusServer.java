@@ -764,7 +764,8 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			Vector accounts;
 		}	
 
-		logInfo("listFieldOfficeAccounts " + getClientAliasForLogging(hqAccountIdToUse));
+		String clientAliasForLogging = getClientAliasForLogging(hqAccountIdToUse);
+		logInfo("listFieldOfficeAccounts " + clientAliasForLogging);
 			
 		if(isClientBanned(hqAccountIdToUse) )
 			return returnSingleErrorResponseAndLog("  returning REJECTED", NetworkInterfaceConstants.REJECTED);
@@ -780,7 +781,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		getStore().visitAllBulletinRevisions(visitor);
 	
 		Vector accountsWithResultCode = visitor.getAccountsWithResultCode();
-		logNotice("listFieldOfficeAccounts: Exit accounts=" + (accountsWithResultCode.size()-1));
+		logNotice("listFieldOfficeAccounts: "+clientAliasForLogging+" Exit accounts=" + (accountsWithResultCode.size()-1));
 		return accountsWithResultCode;	
 	}
 	

@@ -478,7 +478,8 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	private Vector collectBulletinSummaries(SummaryCollector summaryCollector, String methodName)
 	{
 		String myAccountId = summaryCollector.callerAccountId();
-		logInfo(methodName + coreServer.getClientAliasForLogging(myAccountId));
+		String clientAliasForLogging = coreServer.getClientAliasForLogging(myAccountId);
+		logInfo(methodName + clientAliasForLogging);
 		
 		if(isClientBanned(myAccountId) )
 			return coreServer.returnSingleErrorResponseAndLog("  returning REJECTED", NetworkInterfaceConstants.REJECTED);
@@ -491,7 +492,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		result.add(NetworkInterfaceConstants.OK);
 		result.add(summaries);
 		
-		logNotice(methodName + "Exit: Ids="+summaries.size());
+		logNotice(methodName +clientAliasForLogging+ " Exit: Ids="+summaries.size());
 		return result;
 	}
 
