@@ -31,7 +31,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
 
 import org.martus.common.bulletin.BulletinZipUtilities;
 import org.martus.common.crypto.MartusCrypto;
@@ -46,6 +45,7 @@ import org.martus.common.database.ServerFileDatabase;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.Packet;
 import org.martus.util.InputStreamWithSeek;
+import org.martus.util.UnicodeReader;
 
 public class VerifyAllPackets
 {
@@ -109,9 +109,9 @@ public class VerifyAllPackets
 			System.out.flush();
 		}
 		
-		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 		try
 		{
+			BufferedReader reader = new BufferedReader(new UnicodeReader(System.in));
 			//TODO security issue here password is a string.
 			String passphrase = reader.readLine();
 			security = loadCurrentMartusSecurity(keyPairFile, passphrase.toCharArray());

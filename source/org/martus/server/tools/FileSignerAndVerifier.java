@@ -28,12 +28,12 @@ package org.martus.server.tools;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.InputStreamReader;
 
 import org.martus.common.MartusUtilities;
 import org.martus.common.MartusUtilities.FileVerificationException;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.utilities.MartusServerUtilities;
+import org.martus.util.UnicodeReader;
 
 public class FileSignerAndVerifier
 {
@@ -81,9 +81,9 @@ public class FileSignerAndVerifier
 			System.out.flush();
 			
 			MartusCrypto security = null;
-			BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 			try
 			{
+				BufferedReader reader = new BufferedReader(new UnicodeReader(System.in));
 				//TODO security issue password is a string
 				String passphrase = reader.readLine();
 				security = MartusServerUtilities.loadCurrentMartusSecurity(keyPairFile, passphrase.toCharArray());

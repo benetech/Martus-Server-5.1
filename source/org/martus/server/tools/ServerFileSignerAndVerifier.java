@@ -29,7 +29,6 @@ package org.martus.server.tools;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.text.ParseException;
 
 import org.martus.common.MartusUtilities.FileVerificationException;
@@ -38,6 +37,7 @@ import org.martus.common.crypto.MartusCrypto.MartusSignatureException;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.common.utilities.MartusServerUtilities.MartusSignatureFileAlreadyExistsException;
 import org.martus.common.utilities.MartusServerUtilities.MartusSignatureFileDoesntExistsException;
+import org.martus.util.UnicodeReader;
 
 public class ServerFileSignerAndVerifier
 {
@@ -97,7 +97,7 @@ public class ServerFileSignerAndVerifier
 			System.out.flush();
 			
 			MartusCrypto security = null;
-			BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+			BufferedReader reader = new BufferedReader(new UnicodeReader(System.in));
 			try
 			{
 				//TODO security issue password is a string

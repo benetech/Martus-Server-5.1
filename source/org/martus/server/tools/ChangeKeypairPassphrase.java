@@ -31,10 +31,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.utilities.MartusServerUtilities;
+import org.martus.util.UnicodeReader;
 
 public class ChangeKeypairPassphrase
 {
@@ -62,7 +62,7 @@ public class ChangeKeypairPassphrase
 			System.out.print("Enter current passphrase:");
 			System.out.flush();
 			
-			InputStreamReader rawReader = new InputStreamReader(System.in);	
+			UnicodeReader rawReader = new UnicodeReader(System.in);	
 			BufferedReader reader = new BufferedReader(rawReader);
 			try
 			{

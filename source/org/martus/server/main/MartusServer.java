@@ -34,7 +34,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.StringReader;
 import java.net.InetAddress;
@@ -1783,11 +1782,10 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		waitingFile.delete();
 		writeSyncFile(waitingFile);
 		
-		InputStreamReader rawReader = new InputStreamReader(System.in);	
-		BufferedReader reader = new BufferedReader(rawReader);
 		String passphrase = null;
 		try
 		{
+			BufferedReader reader = new BufferedReader(new UnicodeReader(System.in));
 			//TODO security issue here password is a string
 			passphrase = reader.readLine();
 		}

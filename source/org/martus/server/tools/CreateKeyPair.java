@@ -29,10 +29,10 @@ package org.martus.server.tools;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.InputStreamReader;
 
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MartusSecurity;
+import org.martus.util.UnicodeReader;
 
 public class CreateKeyPair
 {
@@ -67,9 +67,9 @@ public class CreateKeyPair
 			System.out.flush();
 		}
 
-		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 		try
 		{
+			BufferedReader reader = new BufferedReader(new UnicodeReader(System.in));
 			//TODO security issue password is in a string
 			String passphrase = reader.readLine();
 			

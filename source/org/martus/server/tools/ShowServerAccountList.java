@@ -28,7 +28,6 @@ package org.martus.server.tools;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.InputStreamReader;
 
 import org.martus.common.MartusUtilities;
 import org.martus.common.MartusUtilities.FileVerificationException;
@@ -40,6 +39,7 @@ import org.martus.common.database.ServerFileDatabase;
 import org.martus.common.database.FileDatabase.MissingAccountMapException;
 import org.martus.common.database.FileDatabase.MissingAccountMapSignatureException;
 import org.martus.common.utilities.MartusServerUtilities;
+import org.martus.util.UnicodeReader;
 
 public class ShowServerAccountList 
 {
@@ -94,9 +94,9 @@ public class ShowServerAccountList
 			System.out.flush();
 		}
 		
-		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 		try
 		{
+			BufferedReader reader = new BufferedReader(new UnicodeReader(System.in));
 			//TODO password is a string
 			String passphrase = reader.readLine();
 			security = MartusServerUtilities.loadCurrentMartusSecurity(keyPairFile, passphrase.toCharArray());

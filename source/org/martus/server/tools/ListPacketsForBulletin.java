@@ -28,7 +28,6 @@ package org.martus.server.tools;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.InputStreamReader;
 
 import org.martus.common.bulletin.BulletinZipUtilities;
 import org.martus.common.crypto.MartusSecurity;
@@ -39,6 +38,7 @@ import org.martus.common.packet.UniversalId;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.server.main.MartusServer;
 import org.martus.util.InputStreamWithSeek;
+import org.martus.util.UnicodeReader;
 
 public class ListPacketsForBulletin
 {
@@ -123,7 +123,7 @@ public class ListPacketsForBulletin
 				System.out.print("Enter server passphrase:");
 				System.out.flush();
 			}
-			BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+			BufferedReader reader = new BufferedReader(new UnicodeReader(System.in));
 //			TODO security issue password is a string
 			String passphrase = reader.readLine();
 			security = (MartusSecurity) MartusServerUtilities.loadCurrentMartusSecurity(serverKeyPairFile, passphrase.toCharArray());			
