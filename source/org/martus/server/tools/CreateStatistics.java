@@ -386,7 +386,6 @@ public class CreateStatistics
 					getNormalizedString(wasBurCreatedByThisServer) + DELIMITER + 
 					getNormalizedString(dateBulletinWasSavedOnServer) + DELIMITER +
 					getNormalizedString(dateBulletinLastSaved) + DELIMITER +
-					getNormalizedString(hasUnknownTags) + DELIMITER +
 					getNormalizedString(allHQsProxyUpload) + DELIMITER +
 					getNormalizedString(hQsAuthorizedToRead) + DELIMITER +
 					getNormalizedString(hQsAuthorizedToUpload) + DELIMITER +
@@ -478,7 +477,6 @@ public class CreateStatistics
 			private void getBulletinHeaderInfo(DatabaseKey key)
 			{
 				allPrivate = ERROR_MSG;
-				hasUnknownTags = ERROR_MSG;
 				dateBulletinLastSaved = ERROR_MSG;
 				allHQsProxyUpload = ERROR_MSG;
 				hQsAuthorizedToRead = ERROR_MSG;
@@ -490,10 +488,6 @@ public class CreateStatistics
 				try
 				{
 					BulletinHeaderPacket bhp = MartusServer.loadBulletinHeaderPacket(fileDatabase, key, security);
-					if(bhp.hasUnknownTags())
-						hasUnknownTags = BULLETIN_HAS_UNKNOWN_TAGS_TRUE;
-					else
-						hasUnknownTags = BULLETIN_HAS_UNKNOWN_TAGS_FALSE;
 					Calendar cal = new GregorianCalendar();
 					cal.setTimeInMillis(bhp.getLastSavedTime());		
 					dateBulletinLastSaved = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(cal.getTime());
@@ -644,7 +638,6 @@ public class CreateStatistics
 			
 			UnicodeWriter writer;
 			String allPrivate;
-			String hasUnknownTags;
 			String dateBulletinLastSaved;
 			String allHQsProxyUpload;
 			String hQsAuthorizedToRead;
@@ -797,7 +790,6 @@ public class CreateStatistics
 	final String BULLETIN_DATE_UPLOADED = "date uploaded";
 	final String BULLETIN_DATE_LAST_SAVED = "date last saved";
 	final String BULLETIN_HAS_CUSTOM_FIELDS = "has custom fields";
-	final String BULLETIN_HAS_UNKNOWN_TAGS = "has unknown tags";
 	final String BULLETIN_ALL_HQS_PROXY_UPLOAD = "all HQs proxy upload";
 	final String BULLETIN_AUTHORIZED_TO_READ = "HQs authorized to read";
 	final String BULLETIN_AUTHORIZED_TO_UPLOAD = "HQs authorized to upload";
@@ -808,8 +800,6 @@ public class CreateStatistics
 	final String BULLETIN_SEALED = "sealed";
 	final String BULLETIN_ALL_PRIVATE_TRUE = "1";
 	final String BULLETIN_ALL_PRIVATE_FALSE = "0";
-	final String BULLETIN_HAS_UNKNOWN_TAGS_TRUE = "1";
-	final String BULLETIN_HAS_UNKNOWN_TAGS_FALSE = "0";
 	final String BULLETIN_ALL_HQS_PROXY_UPLOAD_TRUE = "1";
 	final String BULLETIN_ALL_HQS_PROXY_UPLOAD_FALSE = "0";
 	final String BULLETIN_HAS_CUSTOM_FIELDS_TRUE = "1";
@@ -833,7 +823,6 @@ public class CreateStatistics
 		getNormalizedString(BULLETIN_ORIGINALLY_UPLOADED_TO_THIS_SERVER) + DELIMITER +
 		getNormalizedString(BULLETIN_DATE_UPLOADED) + DELIMITER +
 		getNormalizedString(BULLETIN_DATE_LAST_SAVED) + DELIMITER +
-		getNormalizedString(BULLETIN_HAS_UNKNOWN_TAGS) + DELIMITER +
 		getNormalizedString(BULLETIN_ALL_HQS_PROXY_UPLOAD) + DELIMITER +
 		getNormalizedString(BULLETIN_AUTHORIZED_TO_READ) + DELIMITER +
 		getNormalizedString(BULLETIN_AUTHORIZED_TO_UPLOAD) + DELIMITER +
