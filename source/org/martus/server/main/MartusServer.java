@@ -26,7 +26,6 @@ Boston, MA 02111-1307, USA.
 
 package org.martus.server.main;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -79,6 +78,7 @@ import org.martus.common.packet.UniversalId;
 import org.martus.common.packet.Packet.InvalidPacketException;
 import org.martus.common.packet.Packet.SignatureVerificationException;
 import org.martus.common.packet.Packet.WrongPacketTypeException;
+import org.martus.common.serverside.ServerSideUtilities;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.common.utilities.MartusServerUtilities.DuplicatePacketException;
 import org.martus.common.utilities.MartusServerUtilities.SealedPacketExistsException;
@@ -115,7 +115,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 
 			char[] passphrase = server.insecurePassword;
 			if(passphrase == null)
-				passphrase = server.getPassphraseFromConsole(server);
+				passphrase = ServerSideUtilities.getPassphraseFromConsole(server.getTriggerDirectory(),"MartusServer.main");
 			server.loadAccount(passphrase);
 			server.initalizeDatabase();
 			server.verifyAndLoadConfigurationFiles();
@@ -133,7 +133,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			
 			server.startBackgroundTimers();
 			
-			MartusServer.writeSyncFile(server.getRunningFile());
+			ServerSideUtilities.writeSyncFile(server.getRunningFile(), "MartusServer.main");
 			if(!server.isAmplifierEnabled() && !server.isAmplifierListenerEnabled() &&
 			   !server.isClientListenerEnabled() && !server.isMirrorListenerEnabled())
 			{				
@@ -1827,47 +1827,6 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		}
 		String hqAccountId;
 	}
-	
-	public static void writeSyncFile(File syncFile) 
-	{
-		try 
-		{
-			FileOutputStream out = new FileOutputStream(syncFile);
-			out.write(0);
-			out.close();
-		} 
-		catch(Exception e) 
-		{
-			System.out.println("MartusServer.main: " + e);
-			System.exit(6);
-		}
-	}
-	
-
-	protected char[] getPassphraseFromConsole(MartusServer server)
-	{
-		System.out.print("Enter passphrase: ");
-		System.out.flush();
-		
-		File waitingFile = new File(server.getTriggerDirectory(), "waiting");
-		waitingFile.delete();
-		writeSyncFile(waitingFile);
-		
-		String passphrase = null;
-		try
-		{
-			BufferedReader reader = new BufferedReader(new UnicodeReader(System.in));
-			//TODO security issue here password is a string
-			passphrase = reader.readLine();
-		}
-		catch(Exception e)
-		{
-			System.out.println("MartusServer.main: " + e);
-			System.exit(EXIT_UNEXPECTED_EXCEPTION);
-		}
-		return passphrase.toCharArray();
-	}
-
 
 	private void initializeServerForMirroring() throws Exception
 	{
