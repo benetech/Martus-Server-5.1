@@ -103,7 +103,7 @@ public class ShowServerAccountList
 		}
 		catch(Exception e)
 		{
-			System.err.println("FileSignerAndVerifier.main: " + e);
+			System.err.println("ShowServerAccountList.main: " + e);
 			System.exit(3);
 		}
 
