@@ -60,6 +60,7 @@ import org.martus.common.bulletin.BulletinZipUtilities;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MartusSecurity;
 import org.martus.common.crypto.MockMartusSecurity;
+import org.martus.common.crypto.SignatureEngine;
 import org.martus.common.crypto.MartusCrypto.MartusSignatureException;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
@@ -211,12 +212,12 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 			{
 			}
 
-			public boolean signatureIsValid(byte[] sig) throws MartusSignatureException
+			public SignatureEngine createSignatureVerifier(String signedByPublicKey) throws Exception
 			{
 				if(!shouldFailNext)
-					return super.signatureIsValid(sig);
+					return super.createSignatureVerifier(signedByPublicKey);
 				shouldFailNext = false;
-				return false;						
+				return null;
 			}
 
 			public boolean isValidSignatureOfStream(String publicKey, InputStream inputStream, byte[] signature) throws
