@@ -375,9 +375,8 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	{
 		String magicWord = getHumanReadableMagicWord(magicWordUsed);
 		String groupName = getGroupNameForMagicWord(magicWordUsed);
-		String publicCode = getPublicCode(clientId);
 		
-		log("allowUploads granted to:" + coreServer.getClientAliasForLogging(clientId) + " : " + publicCode + " groupName= " + groupName + " with magicword=" + magicWord);
+		log("allowUploads granted to: " + coreServer.getClientAliasForLogging(clientId) + " : " + clientId + " groupName= " + groupName + " with magicword=" + magicWord);
 		clientsThatCanUpload.add(clientId);
 		
 		try
@@ -389,6 +388,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			MartusServerUtilities.createSignatureFileFromFileOnServer(getAllowUploadFile(), security);
 			
 			AuthorizeLog authorizeLog = new AuthorizeLog(security, coreServer.getLogger(), getAuthorizeLogFile());
+			String publicCode = getPublicCode(clientId);
 			authorizeLog.appendToFile(new AuthorizeLogEntry(publicCode, groupName));
 
 			log("allowUploads : Exit OK");
