@@ -89,7 +89,6 @@ import org.martus.server.foramplifiers.ServerForAmplifiers;
 import org.martus.server.forclients.ServerForClients;
 import org.martus.server.formirroring.ServerForMirroring;
 import org.martus.util.Base64;
-import org.martus.util.InputStreamWithSeek;
 import org.martus.util.UnicodeReader;
 import org.martus.util.Base64.InvalidBase64Exception;
 import org.martus.util.xmlrpc.XmlRpcThread;
@@ -863,39 +862,6 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	
 		log("listFieldOfficeAccounts: Exit");
 		return visitor.getAccounts();	
-	}
-	
-	public String deleteDraftBulletins(String accountId, String[] localIds)
-	{
-		if(isClientBanned(accountId) )
-			return REJECTED;
-		
-		if( isShutdownRequested() )
-			return SERVER_DOWN;
-			
-		String result = OK;
-		for (int i = 0; i < localIds.length; i++)
-		{
-			UniversalId uid = UniversalId.createFromAccountAndLocalId(accountId, localIds[i]);
-			try
-			{
-				DatabaseKey key = DatabaseKey.createDraftKey(uid);
-				BulletinHeaderPacket bhp = new BulletinHeaderPacket(uid);
-				InputStreamWithSeek in = getDatabase().openInputStream(key, security);
-				bhp.loadFromXml(in, null, security);
-				in.close();
-
-				BulletinStore.deleteBulletinRevisionFromDatabase(bhp, getDatabase(), security);
-				DatabaseKey burKey = MartusServerUtilities.getBurKey(key);
-				getDatabase().discardRecord(burKey);			
-			}
-			catch (Exception e)
-			{
-				log("deleteDraftBulletins: " + e);
-				result = INCOMPLETE;
-			}
-		}
-		return result;
 	}
 	
 	public String putContactInfo(String accountId, Vector contactInfo)

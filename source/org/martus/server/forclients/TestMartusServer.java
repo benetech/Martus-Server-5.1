@@ -46,7 +46,6 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
-import org.martus.common.BulletinStore;
 import org.martus.common.ContactInfo;
 import org.martus.common.HQKey;
 import org.martus.common.HQKeys;
@@ -1421,81 +1420,6 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		assertEquals("Wrong Key hq2?", fieldSecurity1.getPublicKeyString(), list3.get(1));
 
 		TRACE_END();
-	}
-
-	public void testDeleteDraftBulletinsEmptyList() throws Exception
-	{
-		TRACE_BEGIN("testDeleteDraftBulletinsEmptyList");
-
-		String[] allIds = {};
-		String resultAllOk = testServer.deleteDraftBulletins(clientAccountId, allIds);
-		assertEquals("Empty not ok?", OK, resultAllOk);
-
-		TRACE_END();
-	}
-	
-	public void testDeleteDraftBulletinsThroughHandler() throws Exception
-	{
-		TRACE_BEGIN("testDeleteDraftBulletinsThroughHandler");
-
-		String[] allIds = uploadSampleDrafts();
-		Vector parameters = new Vector();
-		parameters.add(new Integer(allIds.length));
-		for (int i = 0; i < allIds.length; i++)
-			parameters.add(allIds[i]);
-
-		String sig = clientSecurity.createSignatureOfVectorOfStrings(parameters);
-		Vector result = testServerInterface.deleteDraftBulletins(clientAccountId, parameters, sig);
-		assertEquals("Result size?", 1, result.size());
-		assertEquals("Result not ok?", OK, result.get(0));
-
-		TRACE_END();
-	}
-		
-	public void testDeleteDraftBulletins() throws Exception
-	{
-		TRACE_BEGIN("testDeleteDraftBulletinsThroughHandler");
-
-		BulletinStore store = testServer.getStore();
-
-		String[] allIds = uploadSampleDrafts();
-		String resultAllOk = testServer.deleteDraftBulletins(clientAccountId, allIds);
-		assertEquals("Good 3 not ok?", OK, resultAllOk);
-		assertEquals("Didn't delete all?", 0, store.getBulletinCount());
-		
-		String[] twoGoodOneBad = uploadSampleDrafts();
-		twoGoodOneBad[1] = "Not a valid local id";
-		String resultOneBad = testServer.deleteDraftBulletins(clientAccountId, twoGoodOneBad);
-		assertEquals("Two good one bad not incomplete?", INCOMPLETE, resultOneBad);
-		assertEquals("Didn't delete two?", 1, store.getBulletinCount());
-		
-		uploadSampleBulletin();
-		int newRecordCount = store.getBulletinCount();
-		assertNotEquals("Didn't upload?", 1, newRecordCount);
-		String[] justSealed = new String[] {b1.getLocalId()};
-		testServer.deleteDraftBulletins(clientAccountId, justSealed);
-		assertEquals("Sealed not ok?", OK, resultAllOk);
-		assertEquals("Deleted sealed?", newRecordCount, store.getBulletinCount());
-
-		TRACE_END();
-	}
-
-	String[] uploadSampleDrafts() throws Exception
-	{
-		BulletinStore store = testServer.getStore();
-
-		assertEquals("db not empty?", 0, store.getBulletinCount());
-		Bulletin draft1 = new Bulletin(clientSecurity);
-		uploadSampleDraftBulletin(draft1);
-		assertEquals("Didn't save 1?", 1, store.getBulletinCount());
-		Bulletin draft2 = new Bulletin(clientSecurity);
-		uploadSampleDraftBulletin(draft2);
-		assertEquals("Didn't save 2?", 2, store.getBulletinCount());
-		Bulletin draft3 = new Bulletin(clientSecurity);
-		uploadSampleDraftBulletin(draft3);
-		assertEquals("Didn't save 3?", 3, store.getBulletinCount());
-
-		return new String[] {draft1.getLocalId(), draft2.getLocalId(), draft3.getLocalId()};
 	}
 
 	public void testKeyBelongsToClient()

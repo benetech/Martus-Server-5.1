@@ -33,17 +33,22 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Vector;
 
+import org.martus.common.BulletinStore;
 import org.martus.common.MagicWordEntry;
 import org.martus.common.MagicWords;
 import org.martus.common.MartusUtilities;
 import org.martus.common.Version;
 import org.martus.common.MartusUtilities.FileVerificationException;
 import org.martus.common.crypto.MartusCrypto;
+import org.martus.common.database.DatabaseKey;
 import org.martus.common.network.MartusXmlRpcServer;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.network.NetworkInterfaceXmlRpcConstants;
+import org.martus.common.packet.BulletinHeaderPacket;
+import org.martus.common.packet.UniversalId;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.server.main.MartusServer;
+import org.martus.util.InputStreamWithSeek;
 import org.martus.util.UnicodeWriter;
 import org.martus.util.xmlrpc.WebServerWithClientId;
 
@@ -82,6 +87,11 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		return coreServer.getPublicCode(clientId); 
 	}
 	
+	private File getConfigDirectory()
+	{
+		return coreServer.getStartupConfigDirectory();
+	}
+
 	public void addListeners() throws UnknownHostException
 	{
 		log("Initializing ServerForClients");
@@ -290,7 +300,35 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	// BEGIN SSL interface
 	public String deleteDraftBulletins(String accountId, String[] localIds)
 	{
-		return coreServer.deleteDraftBulletins(accountId, localIds);
+		if(isClientBanned(accountId) )
+			return NetworkInterfaceConstants.REJECTED;
+		
+		if( coreServer.isShutdownRequested() )
+			return NetworkInterfaceConstants.SERVER_DOWN;
+			
+		String result = NetworkInterfaceConstants.OK;
+		for (int i = 0; i < localIds.length; i++)
+		{
+			UniversalId uid = UniversalId.createFromAccountAndLocalId(accountId, localIds[i]);
+			try
+			{
+				DatabaseKey key = DatabaseKey.createDraftKey(uid);
+				BulletinHeaderPacket bhp = new BulletinHeaderPacket(uid);
+				InputStreamWithSeek in = coreServer.getDatabase().openInputStream(key, getSecurity());
+				bhp.loadFromXml(in, null, getSecurity());
+				in.close();
+		
+				BulletinStore.deleteBulletinRevisionFromDatabase(bhp, coreServer.getDatabase(), getSecurity());
+				DatabaseKey burKey = MartusServerUtilities.getBurKey(key);
+				coreServer.getDatabase().discardRecord(burKey);			
+			}
+			catch (Exception e)
+			{
+				coreServer.log("deleteDraftBulletins: " + e);
+				result = NetworkInterfaceConstants.INCOMPLETE;
+			}
+		}
+		return result;
 	}
 
 	public Vector getBulletinChunk(String myAccountId, String authorAccountId, String bulletinLocalId, int chunkOffset, int maxChunkSize)
@@ -400,12 +438,12 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	
 	File getBannedFile()
 	{
-		return new File(coreServer.getStartupConfigDirectory(), BANNEDCLIENTSFILENAME);
+		return new File(getConfigDirectory(), BANNEDCLIENTSFILENAME);
 	}
 	
 	File getTestAccountsFile()
 	{
-		return new File(coreServer.getStartupConfigDirectory(), TESTACCOUNTSFILENAME);
+		return new File(getConfigDirectory(), TESTACCOUNTSFILENAME);
 	}
 
 	public synchronized void loadBannedClients()
@@ -456,7 +494,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	
 	public File getMagicWordsFile()
 	{
-		return new File(coreServer.getStartupConfigDirectory(), MAGICWORDSFILENAME);
+		return new File(getConfigDirectory(), MAGICWORDSFILENAME);
 	}
 
 	void loadMagicWordsFile() throws IOException

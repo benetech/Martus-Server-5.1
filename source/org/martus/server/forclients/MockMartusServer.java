@@ -165,6 +165,11 @@ public class MockMartusServer extends MartusServer implements ServerForClientsIn
 			chunkOffset, maxChunkSize);
 	}
 
+	public String deleteDraftBulletins(String myAccountId, String[] idList)
+	{
+		return new String(super.serverForClients.deleteDraftBulletins(myAccountId, idList));
+	}
+
 	public Vector listMySealedBulletinIds(String clientId, Vector retrieveTags)
 	{
 		lastClientId = clientId;
@@ -434,5 +439,6 @@ public class MockMartusServer extends MartusServer implements ServerForClientsIn
 	private String authenticateResponse;
 	
 	public static final String CLIENT_IP_ADDRESS = "192.168.1.123";
+
 
 }
