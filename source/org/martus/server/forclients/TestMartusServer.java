@@ -207,8 +207,10 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 	{
 		TRACE_BEGIN("testHQProxyUploadBulletin");
 		testServer.serverForClients.clearCanUploadList();
-		testServer.allowUploads(clientSecurity.getPublicKeyString());
-		testServer.allowUploads(hqSecurity.getPublicKeyString());
+		String clientAccountId = clientSecurity.getPublicKeyString();
+		testServer.allowUploads(clientAccountId);
+		String hqAccountId = hqSecurity.getPublicKeyString();
+		testServer.allowUploads(hqAccountId);
 
 		
 		Bulletin b = new Bulletin(clientSecurity);
@@ -216,7 +218,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		b.set(Bulletin.TAGPUBLICINFO, "Details1");
 		b.set(Bulletin.TAGPRIVATEINFO, "PrivateDetails1");
 		Vector hqKey = new Vector();
-		hqKey.add(hqSecurity.getPublicKeyString());
+		hqKey.add(hqAccountId);
 		b.setAuthorizedToReadKeys(hqKey);
 		b.setSealed();
 		BulletinSaver.saveToClientDatabase(b, clientDatabase, true, clientSecurity);
@@ -225,13 +227,13 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		String draft1ZipString = BulletinForTesting.saveToZipString(clientDatabase, b, clientSecurity);
 		byte[] draft1ZipBytes = Base64.decode(draft1ZipString);
 
-		assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(testServerInterface, 
-				hqSecurity.getPublicKeyString(), b.getLocalId(), draft1ZipBytes.length, 0, 
-				draft1ZipBytes.length, draft1ZipString, hqSecurity));
+		String result = testServer.putBulletinChunk(hqAccountId, clientAccountId, b.getLocalId(), draft1ZipBytes.length, 0, 
+				draft1ZipBytes.length, draft1ZipString);
+		assertEquals(NetworkInterfaceConstants.OK, result);
 
-		assertEquals(NetworkInterfaceConstants.DUPLICATE, uploadBulletinChunk(testServerInterface, 
-			clientSecurity.getPublicKeyString(), b.getLocalId(), draft1ZipBytes.length, 0, 
-			draft1ZipBytes.length, draft1ZipString, clientSecurity));
+		result = testServer.putBulletinChunk(clientAccountId, clientAccountId, b.getLocalId(), draft1ZipBytes.length, 0, 
+			draft1ZipBytes.length, draft1ZipString);
+		assertEquals(NetworkInterfaceConstants.DUPLICATE, result);
 		
 		TRACE_END();
 	}
@@ -240,8 +242,10 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 	{
 		TRACE_BEGIN("testUploadNotMyBulletin");
 		testServer.serverForClients.clearCanUploadList();
-		testServer.allowUploads(clientSecurity.getPublicKeyString());
-		testServer.allowUploads(otherServerSecurity.getPublicKeyString());
+		String authorAccountId = clientSecurity.getPublicKeyString();
+		testServer.allowUploads(authorAccountId);
+		String notAuthorizedAccountId = otherServerSecurity.getPublicKeyString();
+		testServer.allowUploads(notAuthorizedAccountId);
 
 		Bulletin b = new Bulletin(clientSecurity);
 		b.set(Bulletin.TAGTITLE, "Title1");
@@ -254,13 +258,13 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		String draft1ZipString = BulletinForTesting.saveToZipString(clientDatabase, b, clientSecurity);
 		byte[] draft1ZipBytes = Base64.decode(draft1ZipString);
 
-		assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(testServerInterface, 
-			clientSecurity.getPublicKeyString(), b.getLocalId(), draft1ZipBytes.length, 0, 
-			draft1ZipBytes.length, draft1ZipString, clientSecurity));
+		String result = testServer.putBulletinChunk(authorAccountId, authorAccountId, b.getLocalId(), draft1ZipBytes.length, 0, 
+			draft1ZipBytes.length, draft1ZipString);
+		assertEquals(NetworkInterfaceConstants.OK, result);
 		
-		assertEquals(NetworkInterfaceConstants.NOTYOURBULLETIN, uploadBulletinChunk(testServerInterface, 
-				otherServerSecurity.getPublicKeyString(), b.getLocalId(), draft1ZipBytes.length, 0, 
-				draft1ZipBytes.length, draft1ZipString, otherServerSecurity));
+		result = testServer.putBulletinChunk(notAuthorizedAccountId, authorAccountId, b.getLocalId(), draft1ZipBytes.length, 0, 
+				draft1ZipBytes.length, draft1ZipString);
+		assertEquals(NetworkInterfaceConstants.NOTYOURBULLETIN, result);
 		
 		TRACE_END();
 	}

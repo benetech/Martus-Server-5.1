@@ -40,6 +40,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.TimerTask;
 import java.util.Vector;
+import java.util.zip.ZipFile;
 
 import org.martus.amplifier.ServerCallbackInterface;
 import org.martus.amplifier.main.MartusAmplifier;
@@ -77,6 +78,7 @@ import org.martus.common.packet.Packet;
 import org.martus.common.packet.UniversalId;
 import org.martus.common.packet.Packet.InvalidPacketException;
 import org.martus.common.packet.Packet.SignatureVerificationException;
+import org.martus.common.packet.Packet.WrongAccountException;
 import org.martus.common.packet.Packet.WrongPacketTypeException;
 import org.martus.common.serverside.ServerSideUtilities;
 import org.martus.common.utilities.MartusServerUtilities;
@@ -606,7 +608,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			return NetworkInterfaceConstants.INVALID_DATA;
 		}
 		
-		String result = NetworkInterfaceConstants.CHUNK_OK;
+		String result = NetworkInterfaceConstants.INVALID_DATA;
 		double newFileLength = interimZipFile.length();
 		if(chunkSize != newFileLength - oldFileLength)
 		{
@@ -615,19 +617,64 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			return NetworkInterfaceConstants.INVALID_DATA;
 		}			
 		
-		if(newFileLength >= totalSize)
+		if(newFileLength < totalSize)
+		{
+			result = NetworkInterfaceConstants.CHUNK_OK;
+		}
+		else
 		{
 			//log("entering saveUploadedBulletinZipFile");
-			try 
+			try
 			{
-				//check proxy uploader here
-				
-				result = saveUploadedBulletinZipFile(authorAccountId, bulletinLocalId, interimZipFile);
-			} catch (Exception e) 
-			{
-				log("Exception =" + e);
-				e.printStackTrace();
+				if(!isAuthorizedToUpload(uploaderAccountId, authorAccountId, interimZipFile))
+				{
+					log("putBulletinChunk NOTYOURBULLETIN isAuthorizedToUpload uploaderAccountId");
+					result = NetworkInterfaceConstants.NOTYOURBULLETIN;
+				}
+				else
+				{
+					result = saveUploadedBulletinZipFile(authorAccountId, bulletinLocalId, interimZipFile);
+				}
 			}
+			catch (InvalidPacketException e1)
+			{
+				result = NetworkInterfaceConstants.INVALID_DATA;
+				log("putBulletinChunk InvalidPacketException: " + e1);
+				e1.printStackTrace();
+			}
+			catch (SignatureVerificationException e1)
+			{
+				result = NetworkInterfaceConstants.SIG_ERROR;
+				log("putBulletinChunk SignatureVerificationException: " + e1);
+			}
+			catch (DecryptionException e1)
+			{
+				result = NetworkInterfaceConstants.INVALID_DATA;
+				log("putBulletinChunk DecryptionException: " + e1);
+				e1.printStackTrace();
+			}
+			catch (IOException e1)
+			{
+				result = NetworkInterfaceConstants.SERVER_ERROR;
+				log("putBulletinChunk IOException: " + e1);
+				e1.printStackTrace();
+			}
+			catch (SealedPacketExistsException e1)
+			{
+				log("putBulletinChunk SealedPacketExistsException: " + e1);
+				result = NetworkInterfaceConstants.DUPLICATE;
+			}
+			catch (DuplicatePacketException e1)
+			{
+				log("putBulletinChunk DuplicatePacketException: " + e1);
+				result = NetworkInterfaceConstants.DUPLICATE;
+			}
+			catch (WrongAccountException e1)
+			{
+				log("putBulletinChunk WrongAccountException: " + e1);
+				result = NetworkInterfaceConstants.INVALID_DATA;
+			}
+
 			//log("returned from saveUploadedBulletinZipFile result =" + result);
 			interimZipFile.delete();
 		}
@@ -636,7 +683,23 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		return result;
 	}
 
-
+	private boolean isAuthorizedToUpload(String uploaderAccountId, String authorAccountId, File zipFile) throws 
+		InvalidPacketException, SignatureVerificationException, 
+		DecryptionException, IOException, SealedPacketExistsException, 
+		DuplicatePacketException, WrongAccountException
+	{
+		ZipFile zip = new ZipFile(zipFile);
+		try
+		{
+			BulletinHeaderPacket header = MartusUtilities.extractHeaderPacket(authorAccountId, zip, security);
+			return header.isAuthorizedToUpload(uploaderAccountId);
+		}
+		finally
+		{
+			zip.close();
+		}
+	}	
+	
 	public Vector getBulletinChunk(String myAccountId, String authorAccountId, String bulletinLocalId,
 		int chunkOffset, int maxChunkSize) 
 	{
