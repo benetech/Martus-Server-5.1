@@ -28,8 +28,10 @@ package org.martus.server.tools;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Vector;
 
@@ -417,7 +419,7 @@ public class CreateStatistics
 					getNormalizedStringAndCheckForErrors(wasBurCreatedByThisServer) + DELIMITER +
 					getNormalizedStringAndCheckForErrors(isBulletinHidden) + DELIMITER +
 					getNormalizedStringAndCheckForErrors(dateBulletinWasSavedOnServer) + DELIMITER +
-					getNormalizedStringAndCheckForErrors(dateBulletinLastSaved) + DELIMITER +
+					getNormalizedStringAndCheckForErrors(dateTimeBulletinLastSaved) + DELIMITER +
 					getNormalizedStringAndCheckForErrors(allHQsProxyUpload) + DELIMITER +
 					getNormalizedStringAndCheckForErrors(hQsAuthorizedToRead) + DELIMITER +
 					getNormalizedStringAndCheckForErrors(hQsAuthorizedToUpload) + DELIMITER +
@@ -526,7 +528,7 @@ public class CreateStatistics
 			private void getBulletinHeaderInfo(DatabaseKey key)
 			{
 				allPrivate = ERROR_MSG;
-				dateBulletinLastSaved = ERROR_MSG;
+				dateTimeBulletinLastSaved = ERROR_MSG;
 				allHQsProxyUpload = ERROR_MSG;
 				hQsAuthorizedToRead = ERROR_MSG;
 				hQsAuthorizedToUpload = ERROR_MSG;
@@ -539,7 +541,8 @@ public class CreateStatistics
 					BulletinHeaderPacket bhp = BulletinStore.loadBulletinHeaderPacket(fileDatabase, key, security);
 					Calendar cal = new GregorianCalendar();
 					cal.setTimeInMillis(bhp.getLastSavedTime());		
-					dateBulletinLastSaved = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(cal.getTime());
+					SimpleDateFormat dateFormat = new SimpleDateFormat(ISO_DATE_TIME_PATTERN);
+					dateTimeBulletinLastSaved = dateFormat.format(cal);
 					
 					bulletinSizeInKBytes = MartusUtilities.getBulletinSize(fileDatabase, bhp) / 1000;
 					String[] publicAttachments = bhp.getPublicAttachmentIds();
@@ -572,10 +575,20 @@ public class CreateStatistics
 					allPrivate = ERROR_MSG + " " + e1;
 				}
 			}
-			private String getBuildDate(String martusBuildInfo)
+			private String getBuildDate(String martusBuildInfo) 
 			{
-				String date = getMartusBuildInfoField(martusBuildInfo, 0);
-				return date;
+				String rawDate = getMartusBuildInfoField(martusBuildInfo, 0);
+				SimpleDateFormat dateFormat = new SimpleDateFormat(MARTUS_BULLETIN_BUILD_DATE_PATTERN);
+				try 
+				{
+					Date newDate = dateFormat.parse(rawDate);
+					dateFormat.applyPattern(ISO_DATE_PATTERN);
+					return dateFormat.format(newDate);
+				} 
+				catch (ParseException e) 
+				{
+				}
+				return "?";
 			}
 			private String getBuildNumber(String martusBuildInfo)
 			{
@@ -702,7 +715,9 @@ public class CreateStatistics
 						if(burString.length()!=0)
 						{
 							String[] burData = burString.split("\n");
-							uploadDate = burData[2];
+							Date rawDate = MartusServerUtilities.getDateFromFormattedTimeStamp(burData[2]);
+							SimpleDateFormat dateFormat = new SimpleDateFormat(ISO_DATE_TIME_PATTERN);
+							uploadDate = dateFormat.format(rawDate);
 						}
 					}
 				}
@@ -715,7 +730,7 @@ public class CreateStatistics
 			
 			UnicodeWriter writer;
 			String allPrivate;
-			String dateBulletinLastSaved;
+			String dateTimeBulletinLastSaved;
 			String allHQsProxyUpload;
 			String hQsAuthorizedToRead;
 			String hQsAuthorizedToUpload;
@@ -807,6 +822,10 @@ public class CreateStatistics
 	Vector clientsNotToAmplify;
 	Vector hiddenBulletinIds;
 	AuthorizeLog authorizeLog;
+	
+	final String ISO_DATE_PATTERN = "yyyy-mm-dd";
+	final String ISO_DATE_TIME_PATTERN = "yyyy-mm-dd HH:MM";
+	final String MARTUS_BULLETIN_BUILD_DATE_PATTERN = "yyyymmdd";
 	
 	final String DELIMITER = ",";
 	final String ERROR_MSG = "Error:";
