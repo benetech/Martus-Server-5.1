@@ -481,7 +481,7 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 		return coreServer.getSecurity();
 	}
 
-	private static final String CLIENTS_NOT_TO_AMPLIFY_FILENAME = "clientsNotToAmplify.txt";
+	public static final String CLIENTS_NOT_TO_AMPLIFY_FILENAME = "clientsNotToAmplify.txt";
 	
 	MartusServer coreServer;
 	LoggerInterface logger;

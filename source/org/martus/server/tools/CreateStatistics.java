@@ -30,13 +30,17 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Vector;
 import org.martus.common.ContactInfo;
+import org.martus.common.MartusUtilities;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.database.Database;
 import org.martus.common.database.FileDatabase;
 import org.martus.common.database.ServerFileDatabase;
 import org.martus.common.utilities.MartusServerUtilities;
+import org.martus.server.foramplifiers.ServerForAmplifiers;
+import org.martus.server.forclients.ServerForClients;
 import org.martus.util.UnicodeReader;
 import org.martus.util.UnicodeWriter;
+import org.martus.util.Base64.InvalidBase64Exception;
 
 
 public class CreateStatistics
@@ -50,6 +54,7 @@ public class CreateStatistics
 			File dataDir = null;
 			File destinationDir = null;
 			File keyPairFile = null;
+			File adminStartupDir = null;
 
 			for (int i = 0; i < args.length; i++)
 			{
@@ -68,11 +73,14 @@ public class CreateStatistics
 				
 				if(args[i].startsWith("--destination-directory"))
 					destinationDir = new File(value);
+
+				if(args[i].startsWith("--admin-startup-directory"))
+					adminStartupDir = new File(value);
 			}
 			
-			if(destinationDir == null || dataDir == null || keyPairFile == null)
+			if(destinationDir == null || dataDir == null || keyPairFile == null || adminStartupDir == null)
 			{
-				System.err.println("Incorrect arguments: CreateStatistics [--no-prompt] [--delete-previous] --packet-directory=<packetdir> --keypair-file=<keypair> --destination-directory=<destinationdir>\n");
+				System.err.println("Incorrect arguments: CreateStatistics [--no-prompt] [--delete-previous] --packet-directory=<packetdir> --keypair-file=<keypair> --destination-directory=<destinationDir> --admin-startup-directory=<adminStartupConfigDir>\n");
 				System.exit(2);
 			}
 			
@@ -88,7 +96,7 @@ public class CreateStatistics
 			String passphrase = reader.readLine();
 			MartusCrypto security = MartusServerUtilities.loadCurrentMartusSecurity(keyPairFile, passphrase.toCharArray());
 
-			new CreateStatistics(security, dataDir, destinationDir, deletePrevious);
+			new CreateStatistics(security, dataDir, destinationDir, adminStartupDir, deletePrevious);
 		}
 		catch(Exception e)
 		{
@@ -100,13 +108,18 @@ public class CreateStatistics
 		System.exit(0);
 	}
 	
-	public CreateStatistics(MartusCrypto securityToUse, File dataDirToUse, File destinationDirToUse, boolean deletePreviousToUse) throws Exception
+	public CreateStatistics(MartusCrypto securityToUse, File dataDirToUse, File destinationDirToUse, File adminStartupDirToUse, boolean deletePreviousToUse) throws Exception
 	{
 		security = securityToUse;
 		deletePrevious = deletePreviousToUse;
+		packetsDir = dataDirToUse;
 		destinationDir = destinationDirToUse;
+		adminStartupDir = adminStartupDirToUse;
 		fileDatabase = new ServerFileDatabase(dataDirToUse, security);
 		fileDatabase.initialize();
+		clientsThatCanUpload = MartusUtilities.loadCanUploadFile(new File(packetsDir.getParentFile(), ServerForClients.UPLOADSOKFILENAME));
+		bannedClients = MartusUtilities.loadBannedClients(new File(adminStartupDir, ServerForClients.BANNEDCLIENTSFILENAME));
+		clientsNotToAmplify = MartusUtilities.loadClientsNotAmplified(new File(adminStartupDir, ServerForAmplifiers.CLIENTS_NOT_TO_AMPLIFY_FILENAME));
 		
 		CreateAccountStatistics();
 //		CreateBulletinStatistics();
@@ -136,6 +149,8 @@ public class CreateStatistics
 			writer = writerToUse;
 		}
 		
+		class HarmlessException extends IOException{};
+		
 		public void visit(String accountId)
 		{
 			File accountDir = fileDatabase.getAbsoluteAccountDirectory(accountId);
@@ -158,19 +173,28 @@ public class CreateStatistics
 				String webpage = "";
 				String phone = "";
 				String address = "";
+
 				try
 				{
 					File contactFile = fileDatabase.getContactInfoFile(accountId);
-					Vector contactInfo = ContactInfo.loadFromFile(contactFile);
+					if(!contactFile.exists())
+						throw new HarmlessException();
+					Vector contactInfoRaw = ContactInfo.loadFromFile(contactFile);
+					Vector contactInfo = ContactInfo.decodeContactInfoVectorIfNecessary(contactInfoRaw);
 					int size = contactInfo.size();
-					String contactAccountId;
 					if(size>0)
 					{
-						contactAccountId = (String)contactInfo.get(0);
-						if(!contactAccountId.equalsIgnoreCase(accountId))
+						String contactAccountIdInsideFile = (String)contactInfo.get(0);
+						if(!security.verifySignatureOfVectorOfStrings(contactInfo, contactAccountIdInsideFile))
+						{
+							author = "Error: Signature failure contactInfo";
+							throw new HarmlessException();
+						}
+						
+						if(!contactAccountIdInsideFile.equals(accountId))
 						{
 							author = "Error: AccountId doesn't match contactInfo's AccountId";
-							throw new IOException();
+							throw new HarmlessException();
 						}			
 					}
 					
@@ -187,12 +211,27 @@ public class CreateStatistics
 					if(size>7)
 						address = (String)(contactInfo.get(7));
 				}
-				catch (IOException e)
+				catch (HarmlessException e)
 				{
 				}
+				catch (IOException e)
+				{
+					author = "Error: IO exception contactInfo";
+				}
+				catch(InvalidBase64Exception e)
+				{
+					author = "Error: InvalidBase64Exception contactInfo";
+				}
+
+				String uploadOk = isAllowedToUpload(accountId);
+				String banned = isBanned(accountId);
+				String notToAmplify = canAmplify(accountId);
 				
 				String accountInfo = 
 					getNormalizedString(publicCode) + DELIMITER +
+					getNormalizedString(uploadOk) + DELIMITER +
+					getNormalizedString(banned) + DELIMITER +
+					getNormalizedString(notToAmplify) + DELIMITER +
 					getNormalizedString(author) + DELIMITER +
 					getNormalizedString(organization) + DELIMITER +
 					getNormalizedString(email) + DELIMITER +
@@ -204,12 +243,33 @@ public class CreateStatistics
 
 				writer.writeln(accountInfo);
 			}
-			catch(IOException e1)
+			catch(Exception e1)
 			{
 				e1.printStackTrace();
 			}
 		}
 		private UnicodeWriter writer;
+	}
+	
+	String isAllowedToUpload(String accountId)
+	{
+		if(clientsThatCanUpload.contains(accountId))
+			return ACCOUNT_UPLOAD_OK_TRUE;
+		return	ACCOUNT_UPLOAD_OK_FALSE;
+	}
+	
+	String isBanned(String accountId)
+	{
+		if(bannedClients.contains(accountId))
+			return ACCOUNT_BANNED_TRUE;
+		return ACCOUNT_BANNED_FALSE;
+	}
+	
+	String canAmplify(String accountId)
+	{
+		if(clientsNotToAmplify.contains(accountId))
+			return ACCOUNT_AMPLIFY_FALSE;
+		return ACCOUNT_AMPLIFY_TRUE;
 	}
 	
 /*	private void CreateBulletinStatistics()
@@ -241,9 +301,14 @@ public class CreateStatistics
 	}
 	
 	private boolean deletePrevious;
-	private MartusCrypto security;
+	MartusCrypto security;
+	private File packetsDir;
 	private File destinationDir;
+	private File adminStartupDir;
 	FileDatabase fileDatabase;
+	Vector clientsThatCanUpload;
+	Vector bannedClients;
+	Vector clientsNotToAmplify;
 	
 	final String DELIMITER = ",";
 	final String ACCOUNT_STATS_FILE_NAME = "accounts.csv";
@@ -254,11 +319,24 @@ public class CreateStatistics
 	final String ACCOUNT_WEBPAGE = "web page";
 	final String ACCOUNT_PHONE = "phone";
 	final String ACCOUNT_ADDRESS = "address";
+	final String ACCOUNT_BANNED = "banned";
+	final String ACCOUNT_UPLOAD_OK = "can upload";
 	final String ACCOUNT_BUCKET = "account bucket";
 	final String ACCOUNT_PUBLIC_KEY = "public key";
-
+	final String ACCOUNT_AMPLIFY = "can amplify";
+	final String ACCOUNT_UPLOAD_OK_TRUE = "1";
+	final String ACCOUNT_UPLOAD_OK_FALSE = "0";
+	final String ACCOUNT_BANNED_TRUE = "1";
+	final String ACCOUNT_BANNED_FALSE = "0"; 
+	final String ACCOUNT_AMPLIFY_TRUE = "1";
+	final String ACCOUNT_AMPLIFY_FALSE = "0";
+	
+	
 	final String ACCOUNT_STATISTICS_HEADER = 
 		getNormalizedString(ACCOUNT_PUBLIC_CODE) + DELIMITER + 
+		getNormalizedString(ACCOUNT_UPLOAD_OK) + DELIMITER + 
+		getNormalizedString(ACCOUNT_BANNED) + DELIMITER + 
+		getNormalizedString(ACCOUNT_AMPLIFY) + DELIMITER + 
 		getNormalizedString(ACCOUNT_AUTHOR) + DELIMITER + 
 		getNormalizedString(ACCOUNT_ORGANIZATION) + DELIMITER + 
 		getNormalizedString(ACCOUNT_EMAIL) + DELIMITER + 
