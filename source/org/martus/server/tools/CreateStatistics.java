@@ -139,13 +139,13 @@ public class CreateStatistics
 		adminStartupDir = adminStartupDirToUse;
 		fileDatabase = new ServerFileDatabase(dataDirToUse, security);
 		fileDatabase.initialize();
-		clientsThatCanUpload = MartusUtilities.loadCanUploadFile(new File(packetsDir.getParentFile(), ServerForClients.UPLOADSOKFILENAME));
-		bannedClients = MartusUtilities.loadBannedClients(new File(adminStartupDir, ServerForClients.BANNEDCLIENTSFILENAME));
+		clientsThatCanUpload = MartusUtilities.loadClientList(new File(packetsDir.getParentFile(), ServerForClients.UPLOADSOKFILENAME));
+		bannedClients = MartusUtilities.loadClientListAndExitOnError(new File(adminStartupDir, ServerForClients.BANNEDCLIENTSFILENAME));
 
 		UnicodeReader reader = new UnicodeReader(new File(adminStartupDir, MartusServer.HIDDENPACKETSFILENAME));
 		hiddenBulletinIds = MartusServerUtilities.getHiddenPacketsList(reader);
 		
-		clientsNotToAmplify = MartusUtilities.loadClientsNotAmplified(new File(adminStartupDir, ServerForAmplifiers.CLIENTS_NOT_TO_AMPLIFY_FILENAME));
+		clientsNotToAmplify = MartusUtilities.loadClientListAndExitOnError(new File(adminStartupDir, ServerForAmplifiers.CLIENTS_NOT_TO_AMPLIFY_FILENAME));
 		authorizeLog = new AuthorizeLog(security, new NullLogger(), new File(packetsDir.getParentFile(), ServerForClients.AUTHORIZELOGFILENAME));  		
 		authorizeLog.loadFile();
 

@@ -295,6 +295,26 @@ public class TestServerForClients extends TestCaseEnhanced
 		TRACE_END();
 	}
 
+	public void testTestAccounts()	throws Exception
+	{
+		TRACE_BEGIN("testTestAccounts");
+	
+		String clientId = clientSecurity.getPublicKeyString();
+		
+		testServer.loadTestAccounts(createTempFile());
+		assertEquals("nonexistant file should have 0 test accounts",0, testServer.getNumberOfTestAccounts());
+		
+		File testClient = createTempFile();
+		
+		UnicodeWriter writer = new UnicodeWriter(testClient);
+		writer.writeln(clientId);
+		writer.close();
+		testServer.loadTestAccounts(testClient);
+		assertEquals("1 test account should be active",1, testServer.getNumberOfTestAccounts());
+		assertTrue("Tester's AccountID not found?", testServer.isTestAccount(clientId));
+		
+}
+
 	public void testClientCounter()
 	{
 		TRACE_BEGIN("testClientCounter");

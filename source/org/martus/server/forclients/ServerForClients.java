@@ -62,6 +62,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		Vector startupFiles = new Vector();
 		startupFiles.add(getMagicWordsFile());
 		startupFiles.add(getBannedFile());
+		startupFiles.add(getTestAccountsFile());
 		return startupFiles;
 	}
 	
@@ -144,6 +145,8 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		System.out.println(clientsBanned.size() + " client(s) are currently banned");
 		System.out.println(magicWords.getNumberOfActiveWords() + " active magic word(s)");
 		System.out.println(magicWords.getNumberOfInactiveWords() + " inactive magic word(s)");
+		System.out.println(getNumberOfTestAccounts() + " client(s) are known test accounts");
+		System.out.println();
 	}
 
 	public void verifyConfigurationFiles()
@@ -176,6 +179,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		loadBannedClients();
 		loadCanUploadFile();
 		loadMagicWordsFile();
+		loadTestAccounts();
 	}
 
 	public void prepareToShutdown()
@@ -197,6 +201,18 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			return true;
 		}
 		return false;
+	}
+	
+	public boolean isTestAccount(String clientId)
+	{
+		if(testAccounts.contains(clientId))
+			return true;
+		return false;
+	}
+	
+	public int getNumberOfTestAccounts()
+	{
+		return testAccounts.size();
 	}
 	
 	public boolean canClientUpload(String clientId)
@@ -356,15 +372,30 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	{
 		return new File(coreServer.getStartupConfigDirectory(), BANNEDCLIENTSFILENAME);
 	}
+	
+	File getTestAccountsFile()
+	{
+		return new File(coreServer.getStartupConfigDirectory(), TESTACCOUNTSFILENAME);
+	}
 
 	public synchronized void loadBannedClients()
 	{
-		clientsBanned = MartusUtilities.loadBannedClients(getBannedFile());
+		loadBannedClients(getBannedFile());
 	}
 	
 	public void loadBannedClients(File bannedClientsFile)
 	{
-		clientsBanned = MartusUtilities.loadBannedClients(bannedClientsFile);
+		clientsBanned = MartusUtilities.loadClientListAndExitOnError(bannedClientsFile);
+	}	
+	
+	public synchronized void loadTestAccounts()
+	{
+		loadTestAccounts(getTestAccountsFile());
+	}
+	
+	public void loadTestAccounts(File testAccountsFile)
+	{
+		testAccounts = MartusUtilities.loadClientListAndExitOnError(testAccountsFile);
 	}	
 	
 	public String getGroupNameForMagicWord(String tryMagicWord)
@@ -448,7 +479,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	void loadCanUploadFile()
 	{
 		log("loadCanUploadList");
-		clientsThatCanUpload = MartusUtilities.loadCanUploadFile(getAllowUploadFile());
+		clientsThatCanUpload = MartusUtilities.loadClientList(getAllowUploadFile());
 	}
 	
 	public synchronized void loadCanUploadList(BufferedReader canUploadInput)
@@ -476,8 +507,10 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	
 	public Vector clientsThatCanUpload;
 	public Vector clientsBanned;
+	public Vector testAccounts;
 	private Vector activeWebServers;
 
+	static final String TESTACCOUNTSFILENAME = "isTester.txt";
 	public static final String BANNEDCLIENTSFILENAME = "banned.txt";
 	public static final String UPLOADSOKFILENAME = "uploadsok.txt";
 	public static final String AUTHORIZELOGFILENAME = "authorizelog.txt";
