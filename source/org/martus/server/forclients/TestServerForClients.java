@@ -386,7 +386,7 @@ public class TestServerForClients extends TestCaseEnhanced
 				((MockMartusServer)coreServer).deleteAllFiles();	
 			}
 			
-			boolean wantsDevelopmentMode()
+			public boolean wantsDevelopmentMode()
 			{
 				return pretendToHaveDevelopmentFlag;
 			}

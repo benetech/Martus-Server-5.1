@@ -124,7 +124,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		if(isRunningUnderWindows())
 			return defaultPorts;
 		
-		if(!coreServer.wantsDevelopmentMode())
+		if(!wantsDevelopmentMode())
 			return defaultPorts;
 		
 		int[] developmentPorts = new int[defaultPorts.length];
@@ -137,6 +137,11 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	boolean isRunningUnderWindows()
 	{
 		return Version.isRunningUnderWindows();
+	}
+	
+	public boolean wantsDevelopmentMode()
+	{
+		return coreServer.wantsDevelopmentMode();
 	}
 
 	public synchronized void log(String message)
