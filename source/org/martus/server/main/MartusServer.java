@@ -970,7 +970,6 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		try
 		{
 			File contactFile = getDatabase().getContactInfoFile(accountId);
-			contactFile.mkdirs();
 			MartusServerUtilities.writeContatctInfo(accountId, contactInfo, contactFile);
 		}
 		catch (IOException e)
