@@ -194,7 +194,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		
 		getTriggerDirectory().mkdirs();
 		getStartupConfigDirectory().mkdirs();
-		serverForClients = new ServerForClients(this);
+		serverForClients = createServerForClients();
 		serverForMirroring = new ServerForMirroring(this, getLogger());
 		serverForAmplifiers = new ServerForAmplifiers(this, getLogger());
 		amp = new MartusAmplifier(this);
@@ -202,6 +202,11 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		store = new BulletinStore();
 	}
 	
+	public ServerForClients createServerForClients()
+	{
+		return new ServerForClients(this);
+	}
+
 	public boolean anyUnexpectedFilesOrFoldersInStartupDirectory()
 	{
 		Vector startupFilesWeExpect = getDeleteOnStartupFiles();
@@ -1258,7 +1263,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		return null;
 	}
 
-	protected String saveUploadedBulletinZipFile(String authorAccountId, String bulletinLocalId, File zipFile) 
+	public String saveUploadedBulletinZipFile(String authorAccountId, String bulletinLocalId, File zipFile) 
 	{
 		String result = NetworkInterfaceConstants.OK;
 		

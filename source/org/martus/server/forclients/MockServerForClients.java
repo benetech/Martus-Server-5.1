@@ -31,54 +31,21 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Vector;
 
-import org.martus.common.LoggerForTesting;
-import org.martus.common.MartusUtilities;
-import org.martus.common.crypto.MartusCrypto;
-import org.martus.common.database.Database;
-import org.martus.common.database.MockServerDatabase;
 import org.martus.common.network.NetworkInterfaceConstants;
-import org.martus.common.utilities.MartusServerUtilities;
-import org.martus.server.main.MartusServer;
 import org.martus.util.Base64;
 
-public class MockMartusServer extends MartusServer
+public class MockServerForClients extends ServerForClients implements ServerForNonSSLClientsInterface
 {
-	public MockMartusServer() throws Exception
+	public MockServerForClients(MockMartusServer coreServer)
 	{
-		this(new TempDirectory(), new MockServerDatabase());
-	}
-	
-	public MockMartusServer(Database databaseToUse) throws Exception
-	{
-		this(new TempDirectory(), databaseToUse);
-	}
-	
-	public MockMartusServer(File dataDir) throws Exception
-	{
-		this(dataDir, new MockServerDatabase());
-	}
-	
-	public MockMartusServer(File dataDir, Database databaseToUse) throws Exception
-	{
-		super(dataDir, new LoggerForTesting());
-		initializeBulletinStore(databaseToUse);
-	}
-	
-	public ServerForClients createServerForClients()
-	{
-		return new MockServerForClients(this);
-	}
-
-	public void setSecurity(MartusCrypto securityToUse)
-	{
-		security = securityToUse;
+		super(coreServer);
 	}
 	
 	public void verifyAndLoadConfigurationFiles() throws Exception
 	{
 		try
 		{
-			super.verifyAndLoadConfigurationFiles();
+			coreServer.verifyAndLoadConfigurationFiles();
 		}
 		catch (FileNotFoundException okIfComplianceFileIsMissing)
 		{
@@ -87,7 +54,7 @@ public class MockMartusServer extends MartusServer
 	
 	public String ping()
 	{
-		return "" + super.ping();
+		return "" + NetworkInterfaceConstants.VERSION;
 	}
 	
 	public Vector getServerInformation()
@@ -106,7 +73,7 @@ public class MockMartusServer extends MartusServer
 	
 	public String requestUploadRights(String authorAccountId, String tryMagicWord)
 	{
-		return new String(super.serverForClients.requestUploadRights(authorAccountId, tryMagicWord));
+		return new String(super.requestUploadRights(authorAccountId, tryMagicWord));
 	}
 
 	public String uploadBulletin(String authorAccountId, String bulletinLocalId, String data)
@@ -127,7 +94,7 @@ public class MockMartusServer extends MartusServer
 
 		if(uploadResponse != null)
 			return new String(uploadResponse);
-		return "" + super.uploadBulletinChunk(authorAccountId, bulletinLocalId, totalSize, chunkOffset, chunkSize, data, signature);
+		return "" + coreServer.uploadBulletinChunk(authorAccountId, bulletinLocalId, totalSize, chunkOffset, chunkSize, data, signature);
 	}
 
 	public String putBulletinChunk(String uploaderAccountId, String authorAccountId, String bulletinLocalId,
@@ -229,13 +196,6 @@ public class MockMartusServer extends MartusServer
 		authenticateResponse = response;	
 	}
 	
-	public void deleteAllData() throws Exception
-	{
-		getStore().deleteAllData();
-		lastClientId = null;
-		lastUploadedBulletinId = null;
-	}
-	
 	public void nullListMyResponse(boolean nullResponse)
 	{ 
 		listMyResponseNull = nullResponse;
@@ -251,32 +211,6 @@ public class MockMartusServer extends MartusServer
 		listFieldOfficeAccountsResponseNull = nullResponse;
 	}
 	
-	public void serverExit(int exitCode) throws UnexpectedExitException
-	{
-		throw new UnexpectedExitException();
-	}
-	
-	public int getMaxFailedUploadAllowedAttemptsPerIp()
-	{
-		return 2;
-	}
-	
-	public synchronized void subtractMaxFailedUploadAttemptsFromCounter()
-	{
-		return;
-	}
-	
-	public synchronized void subtractMaxFailedUploadAttemptsFromServerCounter()
-	{
-		String clientIp = getCurrentClientIp();
-		super.subtractMaxFailedUploadRequestsForIp(clientIp);
-	}
-	
-	protected String getCurrentClientIp()
-	{
-		return CLIENT_IP_ADDRESS;
-	}
-
 	static class TempDirectory extends File
 	{
 		public TempDirectory() throws IOException
@@ -286,45 +220,6 @@ public class MockMartusServer extends MartusServer
 			delete();
 			mkdir();
 		}
-	}
-
-	public void deleteAllFiles() throws IOException
-	{
-		File allowUploadFile = serverForClients.getAllowUploadFile();
-		allowUploadFile.delete();
-		if(allowUploadFile.exists())
-			throw new IOException("allowUploadFile");
-		MartusServerUtilities.deleteSignaturesForFile(allowUploadFile);
-		
-		File authorizeLogFile = serverForClients.getAuthorizeLogFile();
-		authorizeLogFile.delete();
-		if(authorizeLogFile.exists())
-			throw new IOException("authorizeLogFile");
-		MartusServerUtilities.deleteSignaturesForFile(authorizeLogFile);
-			
-		File magicWordsFile = serverForClients.getMagicWordsFile();
-		magicWordsFile.delete();
-		if(magicWordsFile.exists())
-			throw new IOException("magicWordsFile");
-		getKeyPairFile().delete();
-		if(getKeyPairFile().exists())
-			throw new IOException("keyPairFile");
-			
-		File magicSig = MartusUtilities.getSignatureFileFromFile(magicWordsFile);
-		if(magicSig.exists())
-			magicSig.delete();
-
-		File triggerDirectory = getTriggerDirectory();
-		if(triggerDirectory.exists())
-			triggerDirectory.delete();
-			
-		File startupDirectory = getStartupConfigDirectory();
-		if(startupDirectory.exists())
-			startupDirectory.delete();
-
-		getDataDirectory().delete();
-		if(getDataDirectory().exists())
-			throw new IOException("dataDirectory: " + getDataDirectory().getPath());
 	}
 
 	public Vector getNews(String accountId, String versionLabel, String versionBuildDate)
@@ -357,7 +252,7 @@ public class MockMartusServer extends MartusServer
 		{
 			countDownToGetPacketFailure = 0;
 			Vector result = new Vector();
-			result.add(SERVER_ERROR);		
+			result.add(NetworkInterfaceConstants.SERVER_ERROR);		
 			return result;
 		}
 		if (countDownToGetPacketFailure > 0)
@@ -368,12 +263,7 @@ public class MockMartusServer extends MartusServer
 
 	public void allowUploads(String clientId)
 	{
-		serverForClients.allowUploads(clientId, null);
-	}
-
-	public boolean shouldSimulateBadConnection()
-	{
-		return false;
+		allowUploads(clientId, null);
 	}
 
 	public String mockUploadBulletin(String authorAccountId, String bulletinLocalId, String data)
@@ -395,7 +285,7 @@ public class MockMartusServer extends MartusServer
 			log("uploadBulletin INVALID_DATA " + e);
 			return NetworkInterfaceConstants.INVALID_DATA;
 		}
-		String result = saveUploadedBulletinZipFile(authorAccountId, bulletinLocalId, tempFile);
+		String result = coreServer.saveUploadedBulletinZipFile(authorAccountId, bulletinLocalId, tempFile);
 		tempFile.delete();
 
 		return result;
@@ -423,7 +313,4 @@ public class MockMartusServer extends MartusServer
 	
 	private String authenticateResponse;
 	
-	public static final String CLIENT_IP_ADDRESS = "192.168.1.123";
-
-
 }

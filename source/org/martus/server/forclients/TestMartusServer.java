@@ -180,10 +180,10 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		}
 		
 		testServer = new MockMartusServer();
-		testServer.loadBannedClients();
+		testServer.serverForClients.loadBannedClients();
 		testServer.setSecurity(serverSecurity);
 		testServer.verifyAndLoadConfigurationFiles();
-		testServerInterface = new ServerSideNetworkHandler(testServer);
+		testServerInterface = new ServerSideNetworkHandler(testServer.serverForClients);
 
 		TRACE_END();
 	}
@@ -1056,7 +1056,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		try
 		{
 			tempServer.setSecurity(serverSecurity);
-			tempServer.loadBannedClients();
+			tempServer.serverForClients.loadBannedClients();
 			tempServer.allowUploads(clientSecurity.getPublicKeyString());
 			assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(tempServer, clientSecurity.getPublicKeyString(), draft.getLocalId(), draftZipBytes.length, 0, draftZipBytes.length, draftZipString, clientSecurity));
 		}
@@ -1185,7 +1185,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		try
 		{
 			tempServer.setSecurity(serverSecurity);
-			tempServer.loadBannedClients();
+			tempServer.serverForClients.loadBannedClients();
 			tempServer.allowUploads(clientSecurity.getPublicKeyString());
 			assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(tempServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ZipBytes.length, b1ZipString, clientSecurity));
 		}
@@ -1769,7 +1769,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		verifyErrorResult("getPacket", vecResult, NetworkInterfaceConstants.SERVER_DOWN );
 		assertEquals("getPacket", 1, serverForClients.getNumberActiveClients() );
 
-		strResult = testServer.deleteDraftBulletins(clientId, new String[] {bogusStringParameter} );
+		strResult = testServer.serverForClients.deleteDraftBulletins(clientId, new String[] {bogusStringParameter} );
 		assertEquals("deleteDraftBulletins", NetworkInterfaceConstants.SERVER_DOWN, strResult);
 		assertEquals("deleteDraftBulletins", 1, serverForClients.getNumberActiveClients() );
 
