@@ -68,6 +68,11 @@ public class MockMartusServer extends MartusServer
 	{
 		return new MockServerForClients(this);
 	}
+	
+	public Database getWriteableDatabase()
+	{
+		return getDatabase();
+	}
 
 	public void setSecurity(MartusCrypto securityToUse)
 	{

@@ -32,6 +32,7 @@ import org.martus.common.BulletinSummary;
 import org.martus.common.MartusUtilities;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
+import org.martus.common.database.ReadableDatabase;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.BulletinHistory;
@@ -91,7 +92,7 @@ public abstract class SummaryCollector implements Database.PacketVisitor
 		return summaries;	
 	}
 	
-	public static String extractSummary(BulletinHeaderPacket bhp, Database db, Vector tags)
+	public static String extractSummary(BulletinHeaderPacket bhp, ReadableDatabase db, Vector tags)
 	{
 		String summary = bhp.getLocalId() + BulletinSummary.fieldDelimeter;
 		summary  += bhp.getFieldDataPacketId();

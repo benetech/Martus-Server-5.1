@@ -384,10 +384,12 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		String[] localIds)
 		throws Exception
 	{
-		Database db = new MockServerDatabase();
+		MockMartusServer server = new MockMartusServer();
 		byte[] bytes = isHiddenNoTrailingNewline.getBytes("UTF-8");
 		UnicodeReader reader = new UnicodeReader(new ByteArrayInputStream(bytes));
-		MartusServerUtilities.loadHiddenPacketsList(reader, db, new LoggerForTesting());
+		Vector hiddenPackets = MartusServerUtilities.getHiddenPacketsList(reader);		
+		server.getStore().hidePackets(hiddenPackets, new LoggerForTesting());
+		Database db = server.getWriteableDatabase();
 		assertTrue(db.isHidden(UniversalId.createFromAccountAndLocalId(accountIds[0], localIds[0])));
 		assertTrue(db.isHidden(UniversalId.createFromAccountAndLocalId(accountIds[0], localIds[1])));
 		assertTrue(db.isHidden(UniversalId.createFromAccountAndLocalId(accountIds[2], localIds[0])));

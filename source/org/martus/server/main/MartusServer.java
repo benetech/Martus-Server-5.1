@@ -287,7 +287,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			serverForAmplifiers.loadConfigurationFiles();
 
 		//Tests will fail if compliance isn't last.
-		MartusServerUtilities.loadHiddenPacketsFile(getHiddenPacketsFile(), getDatabase(), getLogger());
+		MartusServerUtilities.loadHiddenPacketsFile(getHiddenPacketsFile(), getStore(), getLogger());
 		loadComplianceStatementFile();
 	}
 	
@@ -298,7 +298,8 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 
 	public Database getDatabase()
 	{
-		return store.getDatabase();
+		// FIXME: This cast is EVIL and must be removed!!! Not optional!!! kbs
+		return (Database)store.getDatabase();
 	}
 	
 	public void setAmpIpAddress(String ampIpAddress)
