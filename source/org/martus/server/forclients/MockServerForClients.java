@@ -28,9 +28,7 @@ package org.martus.server.forclients;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.Vector;
-
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.util.Base64;
 
@@ -211,17 +209,6 @@ public class MockServerForClients extends ServerForClients implements ServerForN
 		listFieldOfficeAccountsResponseNull = nullResponse;
 	}
 	
-	static class TempDirectory extends File
-	{
-		public TempDirectory() throws IOException
-		{
-			super(File.createTempFile("$$$MockMartusServer", null).getPath());
-			deleteOnExit();
-			delete();
-			mkdir();
-		}
-	}
-
 	public Vector getNews(String accountId, String versionLabel, String versionBuildDate)
 	{
 		if(newsResponse != null)

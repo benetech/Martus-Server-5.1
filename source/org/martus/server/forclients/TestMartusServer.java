@@ -395,6 +395,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		assertTrue(db.isHidden(UniversalId.createFromAccountAndLocalId(accountIds[0], localIds[1])));
 		assertTrue(db.isHidden(UniversalId.createFromAccountAndLocalId(accountIds[2], localIds[0])));
 		assertTrue(db.isHidden(UniversalId.createFromAccountAndLocalId(accountIds[2], localIds[2])));
+		server.deleteAllFiles();
 	}
 	
 	public void testGetNews() throws Exception
@@ -1014,30 +1015,6 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		//Should return SERVER_ERROR not INVALID_DATA;
 	}
 
-	class MockDraftDatabase extends MockServerDatabase
-	{
-		
-		public void writeRecord(DatabaseKey key, InputStream record)
-			throws IOException, RecordHiddenException
-		{
-			if(!key.isDraft())
-				throw new IOException("Invalid Status");
-			super.writeRecord(key, record);
-		}
-	}
-
-	class MockSealedDatabase extends MockServerDatabase
-	{
-		
-		public void writeRecord(DatabaseKey key, InputStream record)
-			throws IOException, RecordHiddenException
-		{
-			if(!key.isSealed())
-				throw new IOException("Invalid Status");
-			super.writeRecord(key, record);
-		}
-	}
-
 	public void testUploadDraft() throws Exception
 	{
 		TRACE_BEGIN("testUploadDraft");
@@ -1065,13 +1042,31 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		}
 		finally
 		{
-			tempServer.deleteAllData();
+			tempServer.deleteAllFiles();
 		}
 
 		TRACE_END();
 	}
 	
+	public void testUploadSealedStatus() throws Exception
+	{
+		TRACE_BEGIN("testUploadSealedStatus");
 
+		MockMartusServer tempServer = new MockMartusServer(new MockSealedDatabase());
+		try
+		{
+			tempServer.setSecurity(serverSecurity);
+			tempServer.serverForClients.loadBannedClients();
+			tempServer.allowUploads(clientSecurity.getPublicKeyString());
+			assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(tempServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ZipBytes.length, b1ZipString, clientSecurity));
+		}
+		finally
+		{
+			tempServer.deleteAllFiles();
+		}
+
+		TRACE_END();
+	}
 
 	public void testUploadDuplicates() throws Exception
 	{
@@ -1180,26 +1175,6 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		TRACE_END();
 	}
 
-	public void testUploadSealedStatus() throws Exception
-	{
-		TRACE_BEGIN("testUploadSealedStatus");
-
-		MockMartusServer tempServer = new MockMartusServer(new MockSealedDatabase());
-		try
-		{
-			tempServer.setSecurity(serverSecurity);
-			tempServer.serverForClients.loadBannedClients();
-			tempServer.allowUploads(clientSecurity.getPublicKeyString());
-			assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(tempServer, clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipBytes.length, 0, b1ZipBytes.length, b1ZipString, clientSecurity));
-		}
-		finally
-		{
-			tempServer.deleteAllData();
-		}
-
-		TRACE_END();
-	}
-
 	public void testBadlySignedBulletinUpload() throws Exception
 	{
 		TRACE_BEGIN("testBadlySignedBulletinUpload");
@@ -1222,7 +1197,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 
 		TRACE_END();
 	}
-	
+		
 	public void testInvalidDataUpload() throws Exception
 	{
 		TRACE_BEGIN("testInvalidDataUpload");
@@ -1290,19 +1265,6 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		return result;
 	}
 		
-	Vector getBulletinChunk(MartusCrypto securityToUse, NetworkInterface server, String authorAccountId, String bulletinLocalId, int chunkOffset, int maxChunkSize) throws Exception
-	{
-		Vector parameters = new Vector();
-		parameters.add(authorAccountId);
-		parameters.add(bulletinLocalId);
-		parameters.add(new Integer(chunkOffset));
-		parameters.add(new Integer(maxChunkSize));
-
-		String signature = securityToUse.createSignatureOfVectorOfStrings(parameters);
-		return server.getBulletinChunk(securityToUse.getPublicKeyString(), parameters, signature);
-	}
-
-
 	public void testGetMyBulletin() throws Exception
 	{
 		TRACE_BEGIN("testGetMyBulletin");
@@ -1482,7 +1444,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		
 		TRACE_END();
 	}
-	
+		
 	public void testAllowUploadsAuthorizeLogWritingToDisk() throws Exception
 	{
 		TRACE_BEGIN("testAllowUploadsAuthorizeLogWritingToDisk");
@@ -1537,7 +1499,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 
 		TRACE_END();
 	}
-	
+		
 	public void testTooManyUploadRequests() throws Exception
 	{
 		TRACE_BEGIN("testTooManyUploadRequests");
@@ -1620,7 +1582,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 
 		TRACE_END();
 	}
-	
+		
 	public void testGetAllPacketKeysDraft() throws Exception
 	{
 		TRACE_BEGIN("testGetAllPacketKeysDraft");
@@ -1758,7 +1720,19 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 
 		TRACE_END();
 	}
-	
+
+	Vector getBulletinChunk(MartusCrypto securityToUse, NetworkInterface server, String authorAccountId, String bulletinLocalId, int chunkOffset, int maxChunkSize) throws Exception
+	{
+		Vector parameters = new Vector();
+		parameters.add(authorAccountId);
+		parameters.add(bulletinLocalId);
+		parameters.add(new Integer(chunkOffset));
+		parameters.add(new Integer(maxChunkSize));
+
+		String signature = securityToUse.createSignatureOfVectorOfStrings(parameters);
+		return server.getBulletinChunk(securityToUse.getPublicKeyString(), parameters, signature);
+	}
+
 	void verifyErrorResult(String label, Vector vector, String expected )
 	{
 		assertEquals( label + " error size not 1?", 1, vector.size());
@@ -1795,6 +1769,30 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		return server.uploadBulletinChunk(authorId, localId, totalLength, offset, chunkLength, data, signature);
 	}
 	
+	class MockDraftDatabase extends MockServerDatabase
+	{
+		
+		public void writeRecord(DatabaseKey key, InputStream record)
+			throws IOException, RecordHiddenException
+		{
+			if(!key.isDraft())
+				throw new IOException("Invalid Status");
+			super.writeRecord(key, record);
+		}
+	}
+
+	class MockSealedDatabase extends MockServerDatabase
+	{
+		
+		public void writeRecord(DatabaseKey key, InputStream record)
+			throws IOException, RecordHiddenException
+		{
+			if(!key.isSealed())
+				throw new IOException("Invalid Status");
+			super.writeRecord(key, record);
+		}
+	}
+
 	static File tempFile;
 	static Bulletin b1;
 	static String b1ZipString;

@@ -27,7 +27,6 @@ package org.martus.server.forclients;
 
 import java.io.File;
 import java.util.Vector;
-
 import org.martus.common.LoggerForTesting;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MockMartusSecurity;
@@ -139,9 +138,9 @@ public class TestAuthorizeLog extends TestCaseEnhanced
 		assertEquals("Line 2 should match", client2, line2);
 		assertNull("There shouldn't be a line 3", reader.readLine());
 		reader.close();
-		
+
+		MartusServerUtilities.deleteSignaturesForFile(tempFile1);
 		tempFile1.delete();
-		
 	}
 	
 	AuthorizeLog authorized;

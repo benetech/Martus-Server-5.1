@@ -29,6 +29,7 @@ package org.martus.server.forclients;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Vector;
 
@@ -380,6 +381,11 @@ public class TestServerForClients extends TestCaseEnhanced
 				super(new MockMartusServer());
 			}
 			
+			public void deleteAllFiles() throws IOException
+			{
+				((MockMartusServer)coreServer).deleteAllFiles();	
+			}
+			
 			boolean wantsDevelopmentMode()
 			{
 				return pretendToHaveDevelopmentFlag;
@@ -413,7 +419,7 @@ public class TestServerForClients extends TestCaseEnhanced
 		int[] developmentLinuxPorts = server.shiftToDevelopmentPortsIfRequested(ports);
 		for(int i=0; i < ports.length; ++i)
 			assertEquals("didn't shift? " + i, ports[i]+9000, developmentLinuxPorts[i]);
-		
+		server.deleteAllFiles();
 	}
 
 	public void testBannedClients()

@@ -30,7 +30,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Vector;
-
 import org.martus.common.LoggerForTesting;
 import org.martus.common.MartusUtilities;
 import org.martus.common.crypto.MartusCrypto;
@@ -40,6 +39,7 @@ import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.server.main.MartusServer;
 import org.martus.util.Base64;
+import org.martus.util.TestCaseEnhanced;
 
 public class MockMartusServer extends MartusServer
 {
@@ -234,13 +234,13 @@ public class MockMartusServer extends MartusServer
 	{
 		public TempDirectory() throws IOException
 		{
-			super(File.createTempFile("$$$MockMartusServer", null).getPath());
+			super(File.createTempFile("$$$MockMartusServer_" + TestCaseEnhanced.getCallingTestClass(), null).getPath());
 			deleteOnExit();
 			delete();
 			mkdir();
 		}
 	}
-
+	
 	public void deleteAllFiles() throws IOException
 	{
 		File allowUploadFile = serverForClients.getAllowUploadFile();

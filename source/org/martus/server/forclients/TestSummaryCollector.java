@@ -69,6 +69,12 @@ public class TestSummaryCollector extends TestCaseEnhanced
 		BulletinSaver.saveToClientDatabase(clone, db, false, authorSecurity);
 		
 	}
+	
+	public void tearDown() throws Exception
+	{
+		server.deleteAllFiles();
+		super.tearDown();
+	}
 
 	class MockSummaryCollector extends SummaryCollector
 	{
