@@ -90,7 +90,7 @@ public class EncryptFile
 			String publicKeyString = (String) publicInfo.get(0);
 			PublicKey publicKey = MartusKeyPair.extractPublicKey(publicKeyString);
 			
-			security.encrypt(plainStream, cipherByteArrayOutputStream, security.createSessionKey(), publicKey);
+			security.encrypt(plainStream, cipherByteArrayOutputStream, security.createSessionKey(), publicKeyString);
 			String encodedEncryptedFile = Base64.encode(cipherByteArrayOutputStream.toByteArray());
 					
 			UnicodeWriter writer = new UnicodeWriter(cryptoFile);
