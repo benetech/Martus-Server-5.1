@@ -30,7 +30,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Vector;
-import org.martus.common.LoggerForTesting;
+import org.martus.common.LoggerToNull;
 import org.martus.common.MartusUtilities;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MockMartusSecurity;
@@ -61,7 +61,7 @@ public class MockMartusServer extends MartusServer
 	
 	public MockMartusServer(File dataDir, Database databaseToUse) throws Exception
 	{
-		super(dataDir, new LoggerForTesting());
+		super(dataDir, new LoggerToNull());
 		getStore().setSignatureGenerator(MockMartusSecurity.createServer());
 		initializeBulletinStore(databaseToUse);
 	}

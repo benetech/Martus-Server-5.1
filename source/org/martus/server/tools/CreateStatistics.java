@@ -34,14 +34,13 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Vector;
-
 import org.martus.common.BulletinStore;
 import org.martus.common.ContactInfo;
 import org.martus.common.CustomFields;
 import org.martus.common.FieldSpec;
 import org.martus.common.HQKey;
 import org.martus.common.HQKeys;
-import org.martus.common.LoggerInterface;
+import org.martus.common.LoggerToNull;
 import org.martus.common.MartusUtilities;
 import org.martus.common.MartusXml;
 import org.martus.common.StandardFieldSpecs;
@@ -159,7 +158,7 @@ public class CreateStatistics
 		hiddenBulletinIds = MartusServerUtilities.getHiddenPacketsList(reader);
 		
 		clientsNotToAmplify = MartusUtilities.loadClientListAndExitOnError(new File(adminStartupDir, ServerForAmplifiers.CLIENTS_NOT_TO_AMPLIFY_FILENAME));
-		authorizeLog = new AuthorizeLog(security, new NullLogger(), new File(packetsDir.getParentFile(), ServerForClients.AUTHORIZELOGFILENAME));  		
+		authorizeLog = new AuthorizeLog(security, new LoggerToNull(), new File(packetsDir.getParentFile(), ServerForClients.AUTHORIZELOGFILENAME));  		
 		authorizeLog.loadFile();
 
 		CreateAccountStatistics();
@@ -846,11 +845,7 @@ public class CreateStatistics
 			publicCode = ERROR_MSG + " " + e;
 		}
 	}
-	public class NullLogger implements LoggerInterface
-	{
-		public NullLogger()	{}
-		public void log(String message)	{}
-	}
+	
 	void writeErrorLog(File bulletinStatsError, String headerString, String errorMsg) throws IOException
 	{
 		boolean includeErrorHeader = (!bulletinStatsError.exists());

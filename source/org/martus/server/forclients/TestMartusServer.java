@@ -51,7 +51,7 @@ import org.martus.common.BulletinStore;
 import org.martus.common.ContactInfo;
 import org.martus.common.HQKey;
 import org.martus.common.HQKeys;
-import org.martus.common.LoggerForTesting;
+import org.martus.common.LoggerToNull;
 import org.martus.common.MartusUtilities;
 import org.martus.common.bulletin.AttachmentProxy;
 import org.martus.common.bulletin.Bulletin;
@@ -394,7 +394,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		byte[] bytes = isHiddenNoTrailingNewline.getBytes("UTF-8");
 		UnicodeReader reader = new UnicodeReader(new ByteArrayInputStream(bytes));
 		Vector hiddenPackets = MartusServerUtilities.getHiddenPacketsList(reader);		
-		server.getStore().hidePackets(hiddenPackets, new LoggerForTesting());
+		server.getStore().hidePackets(hiddenPackets, new LoggerToNull());
 		ReadableDatabase db = server.getDatabase();
 		assertTrue(db.isHidden(UniversalId.createFromAccountAndLocalId(accountIds[0], localIds[0])));
 		assertTrue(db.isHidden(UniversalId.createFromAccountAndLocalId(accountIds[0], localIds[1])));

@@ -31,7 +31,7 @@ import java.io.File;
 import java.util.Vector;
 
 import org.martus.common.BulletinStore;
-import org.martus.common.LoggerForTesting;
+import org.martus.common.LoggerToNull;
 import org.martus.common.bulletin.Bulletin;
 import org.martus.common.bulletin.BulletinZipUtilities;
 import org.martus.common.crypto.MartusCrypto;
@@ -72,7 +72,7 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 
 		handler = new SupplierSideMirroringHandler(supplier, security);
 		realGateway = new CallerSideMirroringGateway(handler);
-		LoggerForTesting logger = new LoggerForTesting();
+		LoggerToNull logger = new LoggerToNull();
 		realRetriever = new MirroringRetriever(server.getStore(), realGateway, "Dummy IP", logger);
 		
 	}

@@ -31,7 +31,7 @@ import java.io.FileOutputStream;
 import java.util.Vector;
 
 import org.martus.common.ContactInfo;
-import org.martus.common.LoggerForTesting;
+import org.martus.common.LoggerToNull;
 import org.martus.common.MartusUtilities;
 import org.martus.common.bulletin.AttachmentProxy;
 import org.martus.common.bulletin.Bulletin;
@@ -59,7 +59,7 @@ public class TestServerForAmplifiers extends TestCaseEnhanced
 	{
 		super.setUp();
 		if(logger == null)
-			logger = new LoggerForTesting();
+			logger = new LoggerToNull();
 		if(clientSecurity == null)
 		{
 			clientSecurity = new MockMartusSecurity();
@@ -351,7 +351,7 @@ public class TestServerForAmplifiers extends TestCaseEnhanced
 
 	MockMartusServer coreServer;
 	MockMartusServer otherServer;
-	LoggerForTesting logger;
+	LoggerToNull logger;
 	private static Bulletin b1;
 	private static String b1ZipString;
 

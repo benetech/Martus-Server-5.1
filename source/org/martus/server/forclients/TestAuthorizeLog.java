@@ -27,7 +27,7 @@ package org.martus.server.forclients;
 
 import java.io.File;
 import java.util.Vector;
-import org.martus.common.LoggerForTesting;
+import org.martus.common.LoggerToNull;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MockMartusSecurity;
 import org.martus.common.utilities.MartusServerUtilities;
@@ -53,7 +53,7 @@ public class TestAuthorizeLog extends TestCaseEnhanced
 		tempDir = createTempDirectory();
 		File authorizeLogFile = new File(tempDir, "$$AuthorizeLog.txt");
 		authorizeLogFile.deleteOnExit();
-		authorized = new AuthorizeLog(security, new LoggerForTesting(), authorizeLogFile);
+		authorized = new AuthorizeLog(security, new LoggerToNull(), authorizeLogFile);
 	}
 	
 	public void tearDown()
@@ -119,7 +119,7 @@ public class TestAuthorizeLog extends TestCaseEnhanced
 		writer.close();
 		MartusServerUtilities.createSignatureFileFromFileOnServer(tempFile1, security);
 		
-		AuthorizeLog log = new AuthorizeLog(security, new LoggerForTesting(), tempFile1);	
+		AuthorizeLog log = new AuthorizeLog(security, new LoggerToNull(), tempFile1);	
 		log.loadFile();
 		Vector clientStrings = log.getAuthorizedClientStrings();
 		assertEquals("Size incorrect", 1, clientStrings.size());

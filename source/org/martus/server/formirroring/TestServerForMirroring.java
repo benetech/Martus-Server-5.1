@@ -33,7 +33,7 @@ import java.util.Vector;
 
 import org.martus.common.FieldSpec;
 import org.martus.common.LegacyCustomFields;
-import org.martus.common.LoggerForTesting;
+import org.martus.common.LoggerToNull;
 import org.martus.common.MartusUtilities;
 import org.martus.common.MartusUtilities.InvalidPublicKeyFileException;
 import org.martus.common.bulletin.BulletinConstants;
@@ -60,7 +60,7 @@ public class TestServerForMirroring extends TestCaseEnhanced
 	protected void setUp() throws Exception
 	{
 		super.setUp();
-		logger = new LoggerForTesting();
+		logger = new LoggerToNull();
 		MockMartusSecurity serverSecurity = MockMartusSecurity.createServer();
 		coreServer = new MockMartusServer();
 		coreServer.setSecurity(serverSecurity);
@@ -252,7 +252,7 @@ public class TestServerForMirroring extends TestCaseEnhanced
 
 	ServerForMirroring server;
 	MockMartusServer coreServer;
-	LoggerForTesting logger;
+	LoggerToNull logger;
 
 	MockMartusSecurity clientSecurity1;
 	MockMartusSecurity clientSecurity2;
