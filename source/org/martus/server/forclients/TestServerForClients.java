@@ -199,13 +199,13 @@ public class TestServerForClients extends TestCaseEnhanced
 		bulletinSealed.setAuthorizedToReadKeys(keys);
 		bulletinSealed.setSealed();
 		bulletinSealed.setAllPrivate(true);
-		BulletinStore.saveToClientDatabase(bulletinSealed, getClientDatabase(), true, clientSecurity);
+		store.saveEncryptedBulletinForTesting(bulletinSealed);
 		mockServer.uploadBulletin(clientSecurity.getPublicKeyString(), bulletinSealed.getLocalId(), BulletinForTesting.saveToZipString(getClientDatabase(), bulletinSealed, clientSecurity));
 
 		Bulletin bulletinDraft = new Bulletin(clientSecurity);
 		bulletinDraft.setAuthorizedToReadKeys(keys);
 		bulletinDraft.setDraft();
-		BulletinStore.saveToClientDatabase(bulletinDraft, getClientDatabase(), true, clientSecurity);
+		store.saveEncryptedBulletinForTesting(bulletinDraft);
 		mockServer.uploadBulletin(clientSecurity.getPublicKeyString(), bulletinDraft.getLocalId(), BulletinForTesting.saveToZipString(getClientDatabase(), bulletinDraft, clientSecurity));
 
 		Vector list2 = testServer.listFieldOfficeDraftBulletinIds(hqSecurity.getPublicKeyString(), fieldSecurity1.getPublicKeyString(), new Vector());
