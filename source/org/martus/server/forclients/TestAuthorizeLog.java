@@ -30,9 +30,9 @@ import java.util.Vector;
 
 import org.martus.common.LoggerForTesting;
 import org.martus.common.crypto.MartusSecurity;
-import org.martus.common.test.TestCaseEnhanced;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.util.DirectoryUtils;
+import org.martus.util.TestCaseEnhanced;
 import org.martus.util.UnicodeReader;
 import org.martus.util.UnicodeWriter;
 

@@ -43,10 +43,10 @@ import org.martus.common.database.MockServerDatabase;
 import org.martus.common.network.mirroring.*;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
-import org.martus.common.test.TestCaseEnhanced;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.util.Base64;
 import org.martus.util.InputStreamWithSeek;
+import org.martus.util.TestCaseEnhanced;
 
 public class TestMirroringRetriever extends TestCaseEnhanced
 {

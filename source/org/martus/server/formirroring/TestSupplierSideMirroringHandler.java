@@ -39,8 +39,8 @@ import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.network.mirroring.*;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
-import org.martus.common.test.TestCaseEnhanced;
 import org.martus.util.Base64;
+import org.martus.util.TestCaseEnhanced;
 
 public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 {

@@ -31,9 +31,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Vector;
 
-import org.martus.common.test.TestCaseEnhanced;
 import org.martus.server.forclients.MockMartusServer;
 import org.martus.util.DirectoryUtils;
+import org.martus.util.TestCaseEnhanced;
 
 
 public class TestServerDeleteStartupFilesAndFolders extends TestCaseEnhanced

@@ -41,8 +41,8 @@ import org.martus.common.database.MockClientDatabase;
 import org.martus.common.database.MockServerDatabase;
 import org.martus.common.network.NetworkInterface;
 import org.martus.common.network.NetworkInterfaceConstants;
-import org.martus.common.test.TestCaseEnhanced;
 import org.martus.util.Base64;
+import org.martus.util.TestCaseEnhanced;
 import org.martus.util.UnicodeWriter;
 
 public class TestServerForClients extends TestCaseEnhanced

@@ -30,7 +30,7 @@ import java.util.Vector;
 
 import org.martus.common.crypto.MartusSecurity;
 import org.martus.common.network.NetworkInterfaceConstants;
-import org.martus.common.test.TestCaseEnhanced;
+import org.martus.util.TestCaseEnhanced;
 
 
 public class TestServerSideNetworkHandler extends TestCaseEnhanced 
