@@ -1705,8 +1705,9 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			SignatureVerificationException,
 			DecryptionException
 	{
-		BulletinHeaderPacket bhp = new BulletinHeaderPacket(key.getAccountId());
 		InputStreamWithSeek in = db.openInputStream(key, security);
+		//TODO:combine the next 2 lines into a static in bhp.
+		BulletinHeaderPacket bhp = new BulletinHeaderPacket();
 		bhp.loadFromXml(in, security);
 		in.close();
 		return bhp;

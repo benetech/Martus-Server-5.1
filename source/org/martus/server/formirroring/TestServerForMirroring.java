@@ -44,6 +44,7 @@ import org.martus.common.database.MockServerDatabase;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.FieldDataPacket;
 import org.martus.common.packet.UniversalId;
+import org.martus.common.test.UniversalIdForTesting;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.server.forclients.MockMartusServer;
 import org.martus.util.TestCaseEnhanced;
@@ -69,32 +70,32 @@ public class TestServerForMirroring extends TestCaseEnhanced
 
 		Database db = server.getDatabase();
 
-		bhp1 = new BulletinHeaderPacket(clientSecurity1.getPublicKeyString());
+		bhp1 = new BulletinHeaderPacket(clientSecurity1);
 		bhp1.setStatus(BulletinConstants.STATUSSEALED);
 		DatabaseKey key1 = bhp1.createKeyWithHeaderStatus(bhp1.getUniversalId());
 		bhp1.writeXmlToDatabase(db, key1, false, clientSecurity1);
 
-		bhp2 = new BulletinHeaderPacket(clientSecurity1.getPublicKeyString());
+		bhp2 = new BulletinHeaderPacket(clientSecurity1);
 		bhp2.setStatus(BulletinConstants.STATUSSEALED);
 		DatabaseKey key2 = bhp2.createKeyWithHeaderStatus(bhp2.getUniversalId());
 		bhp2.writeXmlToDatabase(db, key2, false, clientSecurity1);
 
-		bhp3 = new BulletinHeaderPacket(clientSecurity2.getPublicKeyString());
+		bhp3 = new BulletinHeaderPacket(clientSecurity2);
 		bhp3.setStatus(BulletinConstants.STATUSSEALED);
 		DatabaseKey key3 = bhp3.createKeyWithHeaderStatus(bhp3.getUniversalId());
 		bhp3.writeXmlToDatabase(db, key3, false, clientSecurity2);
 
-		bhp4 = new BulletinHeaderPacket(clientSecurity2.getPublicKeyString());
+		bhp4 = new BulletinHeaderPacket(clientSecurity2);
 		bhp4.setStatus(BulletinConstants.STATUSDRAFT);
 		DatabaseKey key4 = bhp4.createKeyWithHeaderStatus(bhp4.getUniversalId());
 		bhp4.writeXmlToDatabase(db, key4, false, clientSecurity2);
 		
-		UniversalId fdpUid = FieldDataPacket.createUniversalId(clientSecurity1.getPublicKeyString());
+		UniversalId fdpUid = FieldDataPacket.createUniversalId(clientSecurity1);
 		FieldSpec[] tags = {LegacyCustomFields.createFromLegacy("whatever")};
 		FieldDataPacket fdp1 = new FieldDataPacket(fdpUid, tags);
 		fdp1.writeXmlToClientDatabase(db, false, clientSecurity1);
 		
-		UniversalId otherPacketId = UniversalId.createFromAccountAndPrefix(clientSecurity2.getPublicKeyString(), "X");
+		UniversalId otherPacketId = UniversalIdForTesting.createFromAccountAndPrefix(clientSecurity2.getPublicKeyString(), "X");
 		DatabaseKey key = new DatabaseKey(otherPacketId);
 		db.writeRecord(key, "Not a valid packet");
 	}

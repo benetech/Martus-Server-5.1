@@ -131,10 +131,11 @@ public class ListPacketsForBulletin
 			ServerFileDatabase db = new ServerFileDatabase(packetDir,security);
 			db.initialize();
 			
-			DatabaseKey dbKey = new DatabaseKey(UniversalId.createFromAccountAndLocalId(accountPublicKey, bulletinLocalId));
+			UniversalId uId = UniversalId.createFromAccountAndLocalId(accountPublicKey, bulletinLocalId);
+			DatabaseKey dbKey = new DatabaseKey(uId);
 			
 			InputStreamWithSeek inForLoad = db.openInputStream(dbKey, security);
-			BulletinHeaderPacket bhp = new BulletinHeaderPacket(bulletinLocalId);
+			BulletinHeaderPacket bhp = new BulletinHeaderPacket(uId);
 			try
 			{
 				bhp.loadFromXml(inForLoad, security);

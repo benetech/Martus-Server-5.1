@@ -39,6 +39,7 @@ import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.network.mirroring.*;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
+import org.martus.common.test.UniversalIdForTesting;
 import org.martus.util.Base64;
 import org.martus.util.TestCaseEnhanced;
 
@@ -220,15 +221,15 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 	{
 		String authorAccountId = authorSecurity.getPublicKeyString();
 		
-		BulletinHeaderPacket bhp1 = new BulletinHeaderPacket(authorAccountId);
+		BulletinHeaderPacket bhp1 = new BulletinHeaderPacket(authorSecurity);
 		bhp1.setStatus(BulletinConstants.STATUSSEALED);
 		Vector result1 = writeSampleHeaderPacket(bhp1);
 		
-		BulletinHeaderPacket bhp2 = new BulletinHeaderPacket(authorAccountId);
+		BulletinHeaderPacket bhp2 = new BulletinHeaderPacket(authorSecurity);
 		bhp2.setStatus(BulletinConstants.STATUSSEALED);
 		Vector result2 = writeSampleHeaderPacket(bhp2);
 
-		BulletinHeaderPacket bhpDraft = new BulletinHeaderPacket(authorAccountId);
+		BulletinHeaderPacket bhpDraft = new BulletinHeaderPacket(authorSecurity);
 		bhp2.setStatus(BulletinConstants.STATUSDRAFT);
 		Vector result3 = writeSampleHeaderPacket(bhpDraft);
 		
@@ -367,7 +368,7 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 	
 	String writeSealedRecord(Database db, String accountId) throws Exception
 	{
-		UniversalId uid = UniversalId.createFromAccountAndPrefix(accountId, "x");
+		UniversalId uid = UniversalIdForTesting.createFromAccountAndPrefix(accountId, "x");
 		DatabaseKey key = DatabaseKey.createSealedKey(uid);
 		db.writeRecord(key, "just some sample data");
 		return key.getLocalId();

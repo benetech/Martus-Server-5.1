@@ -469,7 +469,7 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 			SignatureVerificationException,
 			DecryptionException
 	{
-		BulletinHeaderPacket bhp = new BulletinHeaderPacket(key.getAccountId());
+		BulletinHeaderPacket bhp = new BulletinHeaderPacket();
 		InputStreamWithSeek in = db.openInputStream(key, getSecurity());
 		bhp.loadFromXml(in, getSecurity());
 		in.close();

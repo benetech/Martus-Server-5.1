@@ -43,6 +43,7 @@ import org.martus.common.database.MockServerDatabase;
 import org.martus.common.network.mirroring.*;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
+import org.martus.common.test.UniversalIdForTesting;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.util.Base64;
 import org.martus.util.InputStreamWithSeek;
@@ -223,7 +224,7 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 
 	private UniversalId addNewUid(Vector infos, String accountId)
 	{
-		UniversalId newUid = UniversalId.createFromAccountAndPrefix(accountId, "H");
+		UniversalId newUid = UniversalIdForTesting.createFromAccountAndPrefix(accountId, "H");
 		Vector newInfo = new Vector();
 		newInfo.add(newUid.getLocalId());
 		infos.add(newInfo);

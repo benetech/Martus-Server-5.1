@@ -194,7 +194,7 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface
 				byte[] headerBytes = headerXml.getBytes("UTF-8");
 				
 				ByteArrayInputStreamWithSeek headerIn = new ByteArrayInputStreamWithSeek(headerBytes);
-				BulletinHeaderPacket bhp = new BulletinHeaderPacket("");
+				BulletinHeaderPacket bhp = new BulletinHeaderPacket();
 				bhp.loadFromXml(headerIn, null);
 				if(! bhp.isAllPrivate())
 				{

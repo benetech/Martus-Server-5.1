@@ -206,6 +206,63 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		super.tearDown();
 	}
 	
+	public void testListFieldOfficeAccountsErrorCondition() throws Exception
+	{
+		TRACE_BEGIN("testListFieldOfficeAccountsErrorCondition");
+
+		class MyMock extends MartusSecurity
+		{
+			public MyMock() throws Exception
+			{
+			}
+
+			public boolean signatureIsValid(byte[] sig) throws MartusSignatureException
+			{
+				if(!shouldFailNext)
+					return super.signatureIsValid(sig);
+				shouldFailNext = false;
+				return false;						
+			}
+
+			public boolean isValidSignatureOfStream(PublicKey publicKey, InputStream inputStream, byte[] signature) throws
+					MartusSignatureException
+			{
+				if(!shouldFailNext)
+					return super.isValidSignatureOfStream(publicKey, inputStream, signature);
+				shouldFailNext = false;
+				return false;						
+			}			
+			boolean shouldFailNext;
+		}
+		MyMock myMock = new MyMock();
+		testServer.security = serverSecurity;
+		
+		MartusSecurity fieldSecurity1 = clientSecurity;
+		testServer.allowUploads(fieldSecurity1.getPublicKeyString());
+		Bulletin bulletin = new Bulletin(clientSecurity);
+		HQKeys keys = new HQKeys();
+		HQKey key = new HQKey(hqSecurity.getPublicKeyString());
+		keys.add(key);
+		bulletin.setAuthorizedToReadKeys(keys);
+		bulletin.setSealed();
+		BulletinSaver.saveToClientDatabase(bulletin, clientDatabase, true, clientSecurity);
+		testServer.uploadBulletin(bulletin.getAccount(), bulletin.getLocalId(), BulletinForTesting.saveToZipString(clientDatabase, bulletin, clientSecurity));
+
+		privateBulletin.setAuthorizedToReadKeys(keys);
+		BulletinSaver.saveToClientDatabase(privateBulletin, clientDatabase, true, clientSecurity);
+		testServer.uploadBulletin(privateBulletin.getAccount(), privateBulletin.getLocalId(), BulletinForTesting.saveToZipString(clientDatabase, privateBulletin, clientSecurity));
+
+		testServer.security = myMock;
+		myMock.shouldFailNext = true;
+		Vector list2 = testServer.listFieldOfficeAccounts(hqSecurity.getPublicKeyString());
+		assertNotNull("null id1 [0]", list2.get(0));
+		assertEquals(NetworkInterfaceConstants.SERVER_ERROR, list2.get(0));
+		assertEquals("wrong length", 2, list2.size());
+		assertEquals(clientSecurity.getPublicKeyString(), list2.get(1));
+		TRACE_END();
+	}
+
+
 	public void testHQProxyUploadBulletin() throws Exception
 	{
 		TRACE_BEGIN("testHQProxyUploadBulletin");
@@ -1375,62 +1432,6 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		TRACE_END();
 	}
 
-
-	public void testListFieldOfficeAccountsErrorCondition() throws Exception
-	{
-		TRACE_BEGIN("testListFieldOfficeAccountsErrorCondition");
-
-		class MyMock extends MartusSecurity
-		{
-			public MyMock() throws Exception
-			{
-			}
-
-			public boolean signatureIsValid(byte[] sig) throws MartusSignatureException
-			{
-				if(!shouldFailNext)
-					return super.signatureIsValid(sig);
-				shouldFailNext = false;
-				return false;						
-			}
-
-			public boolean isValidSignatureOfStream(PublicKey publicKey, InputStream inputStream, byte[] signature) throws
-					MartusSignatureException
-			{
-				if(!shouldFailNext)
-					return super.isValidSignatureOfStream(publicKey, inputStream, signature);
-				shouldFailNext = false;
-				return false;						
-			}			
-			boolean shouldFailNext;
-		}
-		MyMock myMock = new MyMock();
-		testServer.security = serverSecurity;
-		
-		MartusSecurity fieldSecurity1 = clientSecurity;
-		testServer.allowUploads(fieldSecurity1.getPublicKeyString());
-		Bulletin bulletin = new Bulletin(clientSecurity);
-		HQKeys keys = new HQKeys();
-		HQKey key = new HQKey(hqSecurity.getPublicKeyString());
-		keys.add(key);
-		bulletin.setAuthorizedToReadKeys(keys);
-		bulletin.setSealed();
-		BulletinSaver.saveToClientDatabase(bulletin, clientDatabase, true, clientSecurity);
-		testServer.uploadBulletin(bulletin.getAccount(), bulletin.getLocalId(), BulletinForTesting.saveToZipString(clientDatabase, bulletin, clientSecurity));
-
-		privateBulletin.setAuthorizedToReadKeys(keys);
-		BulletinSaver.saveToClientDatabase(privateBulletin, clientDatabase, true, clientSecurity);
-		testServer.uploadBulletin(privateBulletin.getAccount(), privateBulletin.getLocalId(), BulletinForTesting.saveToZipString(clientDatabase, privateBulletin, clientSecurity));
-
-		testServer.security = myMock;
-		myMock.shouldFailNext = true;
-		Vector list2 = testServer.listFieldOfficeAccounts(hqSecurity.getPublicKeyString());
-		assertEquals("wrong length", 2, list2.size());
-		assertNotNull("null id1 [0]", list2.get(0));
-		assertEquals(NetworkInterfaceConstants.SERVER_ERROR, list2.get(0));
-
-		TRACE_END();
-	}
 
 	public void testListFieldOfficeAccounts() throws Exception
 	{
