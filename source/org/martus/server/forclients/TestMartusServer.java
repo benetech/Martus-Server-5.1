@@ -1522,7 +1522,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		String sampleMagicWord = "bliflfji";
 
 		testServer.serverForClients.clearCanUploadList();
-		testServer.serverForClients.addMagicWord(sampleMagicWord);
+		testServer.serverForClients.addMagicWordForTesting(sampleMagicWord,null);
 		
 		assertEquals("any upload attemps?", 0, testServer.getNumFailedUploadRequestsForIp(MockMartusServer.CLIENT_IP_ADDRESS));
 		
@@ -1544,7 +1544,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		String sampleMagicWord = "bliflfji";
 
 		testServer.serverForClients.clearCanUploadList();
-		testServer.serverForClients.addMagicWord(sampleMagicWord);
+		testServer.serverForClients.addMagicWordForTesting(sampleMagicWord,null);
 		
 		assertEquals("counter 1?", 0, testServer.getNumFailedUploadRequestsForIp(MockMartusServer.CLIENT_IP_ADDRESS));
 		

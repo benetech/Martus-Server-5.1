@@ -338,9 +338,9 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		return (magicWords.isValidMagicWord(tryMagicWord));
 	}
 	
-	public void addMagicWord(String newMagicWordInfo)
+	public void addMagicWordForTesting(String newMagicWordInfo, String groupInfo)
 	{
-		magicWords.add(newMagicWordInfo);
+		magicWords.add(newMagicWordInfo, groupInfo);
 	}
 	
 	public File getMagicWordsFile()
