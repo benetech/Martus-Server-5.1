@@ -361,7 +361,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		this.mirrorListenerEnabled = mirrorListenerEnabled;
 	}
 
-	private boolean isMirrorListenerEnabled()
+	boolean isMirrorListenerEnabled()
 	{
 		return mirrorListenerEnabled;
 	}
@@ -2182,7 +2182,8 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		
 		synchronized void protectedRun()
 		{
-			serverForMirroring.doBackgroundTick();
+			if(isMirrorListenerEnabled())
+				serverForMirroring.doBackgroundTick();
 			if(MartusServer.needsAmpSync)
 			{
 				amp.startSynch();
