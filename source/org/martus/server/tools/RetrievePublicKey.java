@@ -37,10 +37,10 @@ import org.martus.common.crypto.MartusSecurity;
 import org.martus.common.crypto.MartusCrypto.MartusSignatureException;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.network.NetworkResponse;
-import org.martus.server.formirroring.CallerSideMirroringGateway;
-import org.martus.server.formirroring.CallerSideMirroringGatewayForXmlRpc;
-import org.martus.server.formirroring.MirroringInterface;
-import org.martus.server.formirroring.CallerSideMirroringGatewayForXmlRpc.SSLSocketSetupException;
+import org.martus.common.network.mirroring.CallerSideMirroringGateway;
+import org.martus.common.network.mirroring.CallerSideMirroringGatewayForXmlRpc;
+import org.martus.common.network.mirroring.MirroringInterface;
+import org.martus.common.network.mirroring.CallerSideMirroringGatewayForXmlRpc.SSLSocketSetupException;
 import org.martus.util.Base64;
 import org.martus.util.UnicodeWriter;
 
