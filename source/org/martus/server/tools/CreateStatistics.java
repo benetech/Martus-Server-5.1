@@ -348,9 +348,10 @@ public class CreateStatistics
 		final File bulletinStatsError = new File(destinationDir, BULLETIN_STATS_FILE_NAME + ERR_EXT + CSV_EXT);
 		class BulletinVisitor implements Database.PacketVisitor
 		{
-			public BulletinVisitor(UnicodeWriter writerToUse)
+			public BulletinVisitor(UnicodeWriter writerToUse, String isBulletinHiddenToUse)
 			{
 				writer = writerToUse;
+				isBulletinHidden = isBulletinHiddenToUse;
 			}
 			public void visit(DatabaseKey key)
 			{
@@ -383,7 +384,8 @@ public class CreateStatistics
 					getNormalizedString(bulletinDateEvent) + DELIMITER +
 					getNormalizedString(Integer.toString(publicAttachmentCount)) + DELIMITER + 
 					getNormalizedString(Integer.toString(privateAttachmentCount)) + DELIMITER + 
-					getNormalizedString(wasBurCreatedByThisServer) + DELIMITER + 
+					getNormalizedString(wasBurCreatedByThisServer) + DELIMITER +
+					getNormalizedString(isBulletinHidden) + DELIMITER +
 					getNormalizedString(dateBulletinWasSavedOnServer) + DELIMITER +
 					getNormalizedString(dateBulletinLastSaved) + DELIMITER +
 					getNormalizedString(allHQsProxyUpload) + DELIMITER +
@@ -637,6 +639,7 @@ public class CreateStatistics
 			}
 			
 			UnicodeWriter writer;
+			String isBulletinHidden;
 			String allPrivate;
 			String dateBulletinLastSaved;
 			String allHQsProxyUpload;
@@ -670,7 +673,7 @@ public class CreateStatistics
 		try
 		{
 			writer.writeln(BULLETIN_STATISTICS_HEADER);
-			fileDatabase.visitAllRecords(new BulletinVisitor(writer));
+			fileDatabase.visitAllRecords(new BulletinVisitor(writer, BULLETIN_HIDDEN_FALSE));
 		}
 		finally
 		{
@@ -790,6 +793,7 @@ public class CreateStatistics
 	final String BULLETIN_DATE_UPLOADED = "date uploaded";
 	final String BULLETIN_DATE_LAST_SAVED = "date last saved";
 	final String BULLETIN_HAS_CUSTOM_FIELDS = "has custom fields";
+	final String BULLETIN_HIDDEN = "hidden on server";
 	final String BULLETIN_ALL_HQS_PROXY_UPLOAD = "all HQs proxy upload";
 	final String BULLETIN_AUTHORIZED_TO_READ = "HQs authorized to read";
 	final String BULLETIN_AUTHORIZED_TO_UPLOAD = "HQs authorized to upload";
@@ -804,6 +808,8 @@ public class CreateStatistics
 	final String BULLETIN_ALL_HQS_PROXY_UPLOAD_FALSE = "0";
 	final String BULLETIN_HAS_CUSTOM_FIELDS_TRUE = "1";
 	final String BULLETIN_HAS_CUSTOM_FIELDS_FALSE = "0";
+	final String BULLETIN_HIDDEN_TRUE = "1"; 
+	final String BULLETIN_HIDDEN_FALSE = "0"; 
 	
 	final String BULLETIN_STATISTICS_HEADER = 
 		getNormalizedString(BULLETIN_HEADER_PACKET) + DELIMITER +
@@ -821,6 +827,7 @@ public class CreateStatistics
 		getNormalizedString(BULLETIN_PUBLIC_ATTACHMENT_COUNT) + DELIMITER +
 		getNormalizedString(BULLETIN_PRIVATE_ATTACHMENT_COUNT) + DELIMITER +
 		getNormalizedString(BULLETIN_ORIGINALLY_UPLOADED_TO_THIS_SERVER) + DELIMITER +
+		getNormalizedString(BULLETIN_HIDDEN) + DELIMITER +
 		getNormalizedString(BULLETIN_DATE_UPLOADED) + DELIMITER +
 		getNormalizedString(BULLETIN_DATE_LAST_SAVED) + DELIMITER +
 		getNormalizedString(BULLETIN_ALL_HQS_PROXY_UPLOAD) + DELIMITER +
