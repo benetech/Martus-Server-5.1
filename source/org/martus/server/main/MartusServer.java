@@ -1459,6 +1459,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		if(!isSecureMode())
 			return true;
 
+		log("Deleting Startup Files");
 		MartusUtilities.deleteAllFiles(getMainServersDeleteOnStartupFiles());
 		amp.deleteAmplifierStartupFiles();
 		serverForClients.deleteStartupFiles();
