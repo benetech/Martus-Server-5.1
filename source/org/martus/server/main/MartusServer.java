@@ -233,14 +233,6 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		System.out.println();
 	}
 
-	private String displayServerAccountId()
-	{
-		String accountId = getAccountId();
-		System.out.println("Server Account: " + accountId);
-		System.out.println();
-		return accountId;
-	}
-
 	private void displayComplianceStatement()
 	{
 		System.out.println();
@@ -259,7 +251,6 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	protected void displayStatistics() throws InvalidBase64Exception
 	{
 		displayComplianceStatement();
-		displayServerAccountId();
 		displayServerPublicCode();
 	}
 	
@@ -465,7 +456,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			incrementFailedUploadRequestsForCurrentClientIp();
 			return NetworkInterfaceConstants.REJECTED;
 		}
-		log("requestUploadRights granted to: " + clientId + " with magicword=" + tryMagicWord);
+		log("requestUploadRights granted to: " + getPublicCode(clientId) + " with magicword=" + tryMagicWord);
 			
 		serverForClients.allowUploads(clientId);
 		return NetworkInterfaceConstants.OK;
