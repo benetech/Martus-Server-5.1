@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Vector;
 import org.martus.common.ContactInfo;
+import org.martus.common.LoggerInterface;
 import org.martus.common.MartusUtilities;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.database.Database;
@@ -37,6 +38,8 @@ import org.martus.common.database.FileDatabase;
 import org.martus.common.database.ServerFileDatabase;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.server.foramplifiers.ServerForAmplifiers;
+import org.martus.server.forclients.AuthorizeLog;
+import org.martus.server.forclients.AuthorizeLogEntry;
 import org.martus.server.forclients.ServerForClients;
 import org.martus.util.UnicodeReader;
 import org.martus.util.UnicodeWriter;
@@ -120,15 +123,140 @@ public class CreateStatistics
 		clientsThatCanUpload = MartusUtilities.loadCanUploadFile(new File(packetsDir.getParentFile(), ServerForClients.UPLOADSOKFILENAME));
 		bannedClients = MartusUtilities.loadBannedClients(new File(adminStartupDir, ServerForClients.BANNEDCLIENTSFILENAME));
 		clientsNotToAmplify = MartusUtilities.loadClientsNotAmplified(new File(adminStartupDir, ServerForAmplifiers.CLIENTS_NOT_TO_AMPLIFY_FILENAME));
-		
+		authorizeLog = new AuthorizeLog(security, new NullLogger(), new File(packetsDir.getParentFile(), ServerForClients.AUTHORIZELOGFILENAME));  		
+		authorizeLog.loadFile();
 		CreateAccountStatistics();
 //		CreateBulletinStatistics();
 //		CreatePacketStatistics();
-//		CreateMagicWordStatistics();
 	}
-	
+	public class NullLogger implements LoggerInterface
+	{
+		public NullLogger()	{}
+		public void log(String message)	{}
+	}
+
 	private void CreateAccountStatistics() throws Exception
 	{
+		class AccountVisitor implements Database.AccountVisitor 
+		{
+			public AccountVisitor(UnicodeWriter writerToUse)
+			{
+				writer = writerToUse;
+			}
+			class HarmlessException extends IOException{};
+			public void visit(String accountId)
+			{
+				File accountDir = fileDatabase.getAbsoluteAccountDirectory(accountId);
+				File bucket = accountDir.getParentFile();
+				String publicCode = "";
+				try
+				{
+					publicCode = MartusCrypto.computeFormattedPublicCode(accountId);
+				}
+				catch(Exception e)
+				{
+					publicCode = "ERROR: " + e;
+				}
+				try
+				{
+					String author = "";
+					String organization = "";
+					String email = "";
+					String webpage = "";
+					String phone = "";
+					String address = "";
+
+					try
+					{
+						File contactFile = fileDatabase.getContactInfoFile(accountId);
+						if(!contactFile.exists())
+							throw new HarmlessException();
+						Vector contactInfoRaw = ContactInfo.loadFromFile(contactFile);
+						Vector contactInfo = ContactInfo.decodeContactInfoVectorIfNecessary(contactInfoRaw);
+						int size = contactInfo.size();
+						if(size>0)
+						{
+							String contactAccountIdInsideFile = (String)contactInfo.get(0);
+							if(!security.verifySignatureOfVectorOfStrings(contactInfo, contactAccountIdInsideFile))
+							{
+								author = "Error: Signature failure contactInfo";
+								throw new HarmlessException();
+							}
+							
+							if(!contactAccountIdInsideFile.equals(accountId))
+							{
+								author = "Error: AccountId doesn't match contactInfo's AccountId";
+								throw new HarmlessException();
+							}			
+						}
+						
+						if(size>2)
+							author = (String)(contactInfo.get(2));
+						if(size>3)
+							organization = (String)(contactInfo.get(3));
+						if(size>4)
+							email = (String)(contactInfo.get(4));
+						if(size>5)
+							webpage = (String)(contactInfo.get(5));
+						if(size>6)
+							phone = (String)(contactInfo.get(6));
+						if(size>7)
+							address = (String)(contactInfo.get(7));
+					}
+					catch (HarmlessException e)
+					{
+					}
+					catch (IOException e)
+					{
+						author = "Error: IO exception contactInfo";
+					}
+					catch(InvalidBase64Exception e)
+					{
+						author = "Error: InvalidBase64Exception contactInfo";
+					}
+
+					String uploadOk = isAllowedToUpload(accountId);
+					String banned = isBanned(accountId);
+					String notToAmplify = canAmplify(accountId);
+					
+					AuthorizeLogEntry clientEntry = authorizeLog.getAuthorizedClientEntry(publicCode);
+					String clientAuthorizedDate = "";
+					String clientIPAddress = "";
+					String clientMagicWordGroup = "";
+					if(clientEntry != null)
+					{
+						clientAuthorizedDate = clientEntry.getDate();
+						clientIPAddress = clientEntry.getIp();
+						clientMagicWordGroup = clientEntry.getGroupName();
+					}
+					
+					String accountInfo = 
+						getNormalizedString(publicCode) + DELIMITER +
+						getNormalizedString(uploadOk) + DELIMITER +
+						getNormalizedString(banned) + DELIMITER +
+						getNormalizedString(notToAmplify) + DELIMITER +
+						getNormalizedString(clientAuthorizedDate) + DELIMITER +
+						getNormalizedString(clientIPAddress) + DELIMITER +
+						getNormalizedString(clientMagicWordGroup) + DELIMITER +
+						getNormalizedString(author) + DELIMITER +
+						getNormalizedString(organization) + DELIMITER +
+						getNormalizedString(email) + DELIMITER +
+						getNormalizedString(webpage) + DELIMITER +
+						getNormalizedString(phone) + DELIMITER +
+						getNormalizedString(address) + DELIMITER +
+						getNormalizedString(bucket.getName() + "/" + accountDir.getName()) + DELIMITER + 
+						getNormalizedString(accountId);
+
+					writer.writeln(accountInfo);
+				}
+				catch(Exception e1)
+				{
+					e1.printStackTrace();
+				}
+			}
+			private UnicodeWriter writer;
+		}
+
 		System.out.println("Creating Account Statistics");
 		File accountStats = new File(destinationDir,ACCOUNT_STATS_FILE_NAME);
 		if(deletePrevious)
@@ -142,114 +270,6 @@ public class CreateStatistics
 		writer.close();
 	}
 
-	class AccountVisitor implements Database.AccountVisitor 
-	{
-		public AccountVisitor(UnicodeWriter writerToUse)
-		{
-			writer = writerToUse;
-		}
-		
-		class HarmlessException extends IOException{};
-		
-		public void visit(String accountId)
-		{
-			File accountDir = fileDatabase.getAbsoluteAccountDirectory(accountId);
-			File bucket = accountDir.getParentFile();
-			String publicCode = "";
-			try
-			{
-				publicCode = MartusCrypto.computeFormattedPublicCode(accountId);
-			}
-			catch(Exception e)
-			{
-				publicCode = "ERROR: " + e;
-			}
-			
-			try
-			{
-				String author = "";
-				String organization = "";
-				String email = "";
-				String webpage = "";
-				String phone = "";
-				String address = "";
-
-				try
-				{
-					File contactFile = fileDatabase.getContactInfoFile(accountId);
-					if(!contactFile.exists())
-						throw new HarmlessException();
-					Vector contactInfoRaw = ContactInfo.loadFromFile(contactFile);
-					Vector contactInfo = ContactInfo.decodeContactInfoVectorIfNecessary(contactInfoRaw);
-					int size = contactInfo.size();
-					if(size>0)
-					{
-						String contactAccountIdInsideFile = (String)contactInfo.get(0);
-						if(!security.verifySignatureOfVectorOfStrings(contactInfo, contactAccountIdInsideFile))
-						{
-							author = "Error: Signature failure contactInfo";
-							throw new HarmlessException();
-						}
-						
-						if(!contactAccountIdInsideFile.equals(accountId))
-						{
-							author = "Error: AccountId doesn't match contactInfo's AccountId";
-							throw new HarmlessException();
-						}			
-					}
-					
-					if(size>2)
-						author = (String)(contactInfo.get(2));
-					if(size>3)
-						organization = (String)(contactInfo.get(3));
-					if(size>4)
-						email = (String)(contactInfo.get(4));
-					if(size>5)
-						webpage = (String)(contactInfo.get(5));
-					if(size>6)
-						phone = (String)(contactInfo.get(6));
-					if(size>7)
-						address = (String)(contactInfo.get(7));
-				}
-				catch (HarmlessException e)
-				{
-				}
-				catch (IOException e)
-				{
-					author = "Error: IO exception contactInfo";
-				}
-				catch(InvalidBase64Exception e)
-				{
-					author = "Error: InvalidBase64Exception contactInfo";
-				}
-
-				String uploadOk = isAllowedToUpload(accountId);
-				String banned = isBanned(accountId);
-				String notToAmplify = canAmplify(accountId);
-				
-				String accountInfo = 
-					getNormalizedString(publicCode) + DELIMITER +
-					getNormalizedString(uploadOk) + DELIMITER +
-					getNormalizedString(banned) + DELIMITER +
-					getNormalizedString(notToAmplify) + DELIMITER +
-					getNormalizedString(author) + DELIMITER +
-					getNormalizedString(organization) + DELIMITER +
-					getNormalizedString(email) + DELIMITER +
-					getNormalizedString(webpage) + DELIMITER +
-					getNormalizedString(phone) + DELIMITER +
-					getNormalizedString(address) + DELIMITER +
-					getNormalizedString(bucket.getName() + "/" + accountDir.getName()) + DELIMITER + 
-					getNormalizedString(accountId);
-
-				writer.writeln(accountInfo);
-			}
-			catch(Exception e1)
-			{
-				e1.printStackTrace();
-			}
-		}
-		private UnicodeWriter writer;
-	}
 	
 	String isAllowedToUpload(String accountId)
 	{
@@ -284,11 +304,6 @@ public class CreateStatistics
 
 	}
 
-	private void CreateMagicWordStatistics()
-	{
-		System.out.println("Creating Magic Word Statistics");
-
-	}
 */
 
 	
@@ -309,21 +324,25 @@ public class CreateStatistics
 	Vector clientsThatCanUpload;
 	Vector bannedClients;
 	Vector clientsNotToAmplify;
+	AuthorizeLog authorizeLog;
 	
 	final String DELIMITER = ",";
 	final String ACCOUNT_STATS_FILE_NAME = "accounts.csv";
 	final String ACCOUNT_PUBLIC_CODE = "public code";
+	final String ACCOUNT_UPLOAD_OK = "can upload";
+	final String ACCOUNT_BANNED = "banned";
+	final String ACCOUNT_AMPLIFY = "can amplify";
+	final String ACCOUNT_DATE_AUTHORIZED = "date authorized";
+	final String ACCOUNT_IP = "ip address";
+	final String ACCOUNT_GROUP = "group";
 	final String ACCOUNT_AUTHOR = "author name";
 	final String ACCOUNT_ORGANIZATION = "organization";
 	final String ACCOUNT_EMAIL = "email";
 	final String ACCOUNT_WEBPAGE = "web page";
 	final String ACCOUNT_PHONE = "phone";
 	final String ACCOUNT_ADDRESS = "address";
-	final String ACCOUNT_BANNED = "banned";
-	final String ACCOUNT_UPLOAD_OK = "can upload";
 	final String ACCOUNT_BUCKET = "account bucket";
 	final String ACCOUNT_PUBLIC_KEY = "public key";
-	final String ACCOUNT_AMPLIFY = "can amplify";
 	final String ACCOUNT_UPLOAD_OK_TRUE = "1";
 	final String ACCOUNT_UPLOAD_OK_FALSE = "0";
 	final String ACCOUNT_BANNED_TRUE = "1";
@@ -337,6 +356,9 @@ public class CreateStatistics
 		getNormalizedString(ACCOUNT_UPLOAD_OK) + DELIMITER + 
 		getNormalizedString(ACCOUNT_BANNED) + DELIMITER + 
 		getNormalizedString(ACCOUNT_AMPLIFY) + DELIMITER + 
+		getNormalizedString(ACCOUNT_DATE_AUTHORIZED) + DELIMITER + 
+		getNormalizedString(ACCOUNT_IP) + DELIMITER + 
+		getNormalizedString(ACCOUNT_GROUP) + DELIMITER + 
 		getNormalizedString(ACCOUNT_AUTHOR) + DELIMITER + 
 		getNormalizedString(ACCOUNT_ORGANIZATION) + DELIMITER + 
 		getNormalizedString(ACCOUNT_EMAIL) + DELIMITER + 
