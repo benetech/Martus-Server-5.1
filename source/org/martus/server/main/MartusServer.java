@@ -498,6 +498,8 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		{
 			StringBuffer logMsg = new StringBuffer();
 			logMsg.append("putBulletinChunk");
+			if(!uploaderAccountId.equals(authorAccountId))
+				logMsg.append("  Proxy Uploader:" + getClientAliasForLogging(uploaderAccountId));
 			logMsg.append("  " + getClientAliasForLogging(authorAccountId) + " " + bulletinLocalId);
 			logMsg.append("  Total Size=" + totalSize + ", Offset=" + chunkOffset);
 			if(chunkSize != NetworkInterfaceConstants.MAX_CHUNK_SIZE)
@@ -506,12 +508,24 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			log(logMsg.toString());
 		}
 		
-		if(isClientBanned(authorAccountId) || !canClientUpload(authorAccountId))
+		if(!canClientUpload(uploaderAccountId))
 		{
-			log("putBulletinChunk REJECTED");
+			log("putBulletinChunk REJECTED canClientUpload failed");
 			return NetworkInterfaceConstants.REJECTED;
 		}
 		
+		if(isClientBanned(uploaderAccountId))
+		{
+			log("putBulletinChunk REJECTED isClientBanned uploaderAccountId");
+			return NetworkInterfaceConstants.REJECTED;
+		}
+			
+		if(isClientBanned(authorAccountId))
+		{
+			log("putBulletinChunk REJECTED isClientBanned authorAccountId");
+			return NetworkInterfaceConstants.REJECTED;
+		}
+
 		if( isShutdownRequested() )
 		{
 			log(" returning SERVER_DOWN");
@@ -606,6 +620,8 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			//log("entering saveUploadedBulletinZipFile");
 			try 
 			{
+				//check proxy uploader here
+				
 				result = saveUploadedBulletinZipFile(authorAccountId, bulletinLocalId, interimZipFile);
 			} catch (Exception e) 
 			{

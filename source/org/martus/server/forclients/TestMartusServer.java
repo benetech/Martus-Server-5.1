@@ -205,7 +205,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 	
 	public void testHQProxyUploadBulletin() throws Exception
 	{
-		TRACE_BEGIN("testUploadNotMyBulletin");
+		TRACE_BEGIN("testHQProxyUploadBulletin");
 		testServer.serverForClients.clearCanUploadList();
 		testServer.allowUploads(clientSecurity.getPublicKeyString());
 		testServer.allowUploads(hqSecurity.getPublicKeyString());
@@ -229,10 +229,9 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 				hqSecurity.getPublicKeyString(), b.getLocalId(), draft1ZipBytes.length, 0, 
 				draft1ZipBytes.length, draft1ZipString, hqSecurity));
 
-		assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(testServerInterface, 
+		assertEquals(NetworkInterfaceConstants.DUPLICATE, uploadBulletinChunk(testServerInterface, 
 			clientSecurity.getPublicKeyString(), b.getLocalId(), draft1ZipBytes.length, 0, 
 			draft1ZipBytes.length, draft1ZipString, clientSecurity));
-		
 		
 		TRACE_END();
 	}

@@ -175,16 +175,17 @@ public class TestServerForClients extends TestCaseEnhanced
 		String hqId = hqSecurity.getPublicKeyString();
 		testServer.loadBannedClients(new File("test"));
 		
-		File tempBanned = createTempFile();
+		File clientBanned = createTempFile();
 		
-		UnicodeWriter writer = new UnicodeWriter(tempBanned);
+		UnicodeWriter writer = new UnicodeWriter(clientBanned);
 		writer.writeln(clientId);
 		writer.close();
 		
 		String bogusStringParameter = "this is never used in this call. right?";
 
 		testServer.allowUploads(clientId, null);
-		testServer.loadBannedClients(tempBanned);
+		testServer.allowUploads(hqId, null);
+		testServer.loadBannedClients(clientBanned);
 
 		Vector vecResult = null;
 		vecResult = testServer.listMyDraftBulletinIds(clientId, new Vector());
@@ -196,9 +197,25 @@ public class TestServerForClients extends TestCaseEnhanced
 		assertEquals("requestUploadRights", 0, testServer.getNumberActiveClients() );
 		
 		strResult = testServer.putBulletinChunk(clientId, clientId, bogusStringParameter, 0, 0, 0, bogusStringParameter);
-		assertEquals("putBulletinChunk", NetworkInterfaceConstants.REJECTED, strResult);
-		assertEquals("putBulletinChunk", 0, testServer.getNumberActiveClients() );
+		assertEquals("putBulletinChunk client banned", NetworkInterfaceConstants.REJECTED, strResult);
+		assertEquals("putBulletinChunk client banned", 0, testServer.getNumberActiveClients() );
 
+		strResult = testServer.putBulletinChunk(hqId, clientId, bogusStringParameter, 0, 0, 0, bogusStringParameter);
+		assertEquals("putBulletinChunk hq not banned but client is", NetworkInterfaceConstants.REJECTED, strResult);
+
+		File noneBanned = createTempFile();
+		writer = new UnicodeWriter(noneBanned);
+		writer.writeln("");
+		writer.close();
+		testServer.loadBannedClients(noneBanned);
+		strResult = testServer.putBulletinChunk(hqId, clientId, bogusStringParameter, 0, 0, 0, bogusStringParameter);
+		assertEquals("putBulletinChunk hq and client not banned should get invalid data", NetworkInterfaceConstants.INVALID_DATA, strResult);
+		testServer.clearCanUploadList();
+		testServer.allowUploads(hqId, null);
+		assertEquals("putBulletinChunk client can't upload but hq can should get invalid data", NetworkInterfaceConstants.INVALID_DATA, strResult);
+		
+		testServer.allowUploads(clientId, null);
+		testServer.loadBannedClients(clientBanned);
 		vecResult = testServer.getBulletinChunk(clientId, clientId, bogusStringParameter, 0, 0);
 		verifyErrorResult("getBulletinChunk", vecResult, NetworkInterfaceConstants.REJECTED );
 		assertEquals("getBulletinChunk", 0, testServer.getNumberActiveClients() );
