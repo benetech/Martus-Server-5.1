@@ -28,7 +28,7 @@ package org.martus.server.forclients;
 
 import java.util.Vector;
 
-import org.martus.common.MartusConstants;
+import org.martus.common.BulletinSummary;
 import org.martus.common.MartusUtilities;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
@@ -92,7 +92,7 @@ public abstract class SummaryCollector implements Database.PacketVisitor
 	
 	public static String extractSummary(BulletinHeaderPacket bhp, Database db, Vector tags)
 	{
-		String summary = bhp.getLocalId() + MartusConstants.regexEqualsDelimeter;
+		String summary = bhp.getLocalId() + BulletinSummary.fieldDelimeter;
 		summary  += bhp.getFieldDataPacketId();
 		for(int t=0; t < tags.size(); ++t)
 		{
@@ -100,11 +100,11 @@ public abstract class SummaryCollector implements Database.PacketVisitor
 			if(tag.equals(NetworkInterfaceConstants.TAG_BULLETIN_SIZE))
 			{
 				int size = MartusUtilities.getBulletinSize(db, bhp);
-				summary += MartusConstants.regexEqualsDelimeter + size;
+				summary += BulletinSummary.fieldDelimeter + size;
 			}
 			else if(tag.equals(NetworkInterfaceConstants.TAG_BULLETIN_DATE_SAVED))
 			{
-				summary += MartusConstants.regexEqualsDelimeter + bhp.getLastSavedTime();
+				summary += BulletinSummary.fieldDelimeter + bhp.getLastSavedTime();
 			}
 			else if(tag.equals(NetworkInterfaceConstants.TAG_BULLETIN_HISTORY))
 			{
@@ -112,7 +112,7 @@ public abstract class SummaryCollector implements Database.PacketVisitor
 				Vector history = bhp.getHistory();
 				for(int i = 0; i < history.size(); ++i)
 					localIds.append((String)history.get(i) + " ");
-				summary += MartusConstants.regexEqualsDelimeter + new String(localIds);
+				summary += BulletinSummary.fieldDelimeter + new String(localIds);
 			}
 			else
 				System.out.println("WARNING: requested unknown summary tag: " + tag);
