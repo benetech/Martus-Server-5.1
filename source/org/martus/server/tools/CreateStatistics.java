@@ -384,6 +384,7 @@ public class CreateStatistics
 					getNormalizedStringAndCheckForErrors(allPrivate) + DELIMITER +
 					getNormalizedStringAndCheckForErrors(bulletinHasCustomFields) + DELIMITER +
 					getNormalizedStringAndCheckForErrors(bulletinCustomFieldTypes) + DELIMITER +
+					getNormalizedStringAndCheckForErrors(bulletinTitle) + DELIMITER +
 					getNormalizedStringAndCheckForErrors(bulletinSummary) + DELIMITER +
 					getNormalizedStringAndCheckForErrors(bulletinLanguage) + DELIMITER +
 					getNormalizedStringAndCheckForErrors(bulletinLocation) + DELIMITER +
@@ -421,6 +422,7 @@ public class CreateStatistics
 			
 			private void getPacketInfo(DatabaseKey key)
 			{
+				bulletinTitle = ERROR_MSG;
 				bulletinSummary = ERROR_MSG;
 				bulletinLanguage = ERROR_MSG;
 				bulletinLocation = ERROR_MSG;
@@ -435,6 +437,7 @@ public class CreateStatistics
 					BulletinHeaderPacket bhp = MartusServer.loadBulletinHeaderPacket(fileDatabase, key, security);
 					if(key.isDraft() || bhp.isAllPrivate())
 					{
+						bulletinTitle = "";
 						bulletinSummary = "";
 						bulletinLanguage = "";
 						bulletinLocation = "";
@@ -455,6 +458,7 @@ public class CreateStatistics
 					fdp.loadFromXml(in, bhp.getFieldDataSignature(), security);
 
 					in.close();
+					bulletinTitle = fdp.get(BulletinConstants.TAGTITLE);
 					bulletinSummary = fdp.get(BulletinConstants.TAGSUMMARY);
 					bulletinLanguage = fdp.get(BulletinConstants.TAGLANGUAGE);
 					bulletinLocation = fdp.get(BulletinConstants.TAGLOCATION);
@@ -494,7 +498,7 @@ public class CreateStatistics
 				}
 				catch(Exception e)
 				{
-					bulletinSummary = ERROR_MSG + " " + e.getMessage();
+					bulletinTitle = ERROR_MSG + " " + e.getMessage();
 				}
 			}
 
@@ -664,6 +668,7 @@ public class CreateStatistics
 			String allHQsProxyUpload;
 			String hQsAuthorizedToRead;
 			String hQsAuthorizedToUpload;
+			String bulletinTitle;
 			String bulletinSummary;
 			String bulletinLanguage;
 			String bulletinLocation;
@@ -802,6 +807,7 @@ public class CreateStatistics
 	final String BULLETIN_TYPE = "type";
 	final String BULLETIN_SIZE = "size (Kb)";
 	final String BULLETIN_ALL_PRIVATE = "all private";
+	final String BULLETIN_TITLE = "title";
 	final String BULLETIN_SUMMARY = "summary";
 	final String BULLETIN_LANGUAGE = "language";
 	final String BULLETIN_LOCATION = "location";
@@ -842,6 +848,7 @@ public class CreateStatistics
 		getNormalizedStringAndCheckForErrors(BULLETIN_ALL_PRIVATE) + DELIMITER +
 		getNormalizedStringAndCheckForErrors(BULLETIN_HAS_CUSTOM_FIELDS) + DELIMITER +
 		getNormalizedStringAndCheckForErrors(BULLETIN_CUSTOM_FIELD_TYPES) + DELIMITER +
+		getNormalizedStringAndCheckForErrors(BULLETIN_TITLE) + DELIMITER +
 		getNormalizedStringAndCheckForErrors(BULLETIN_SUMMARY) + DELIMITER +
 		getNormalizedStringAndCheckForErrors(BULLETIN_LANGUAGE) + DELIMITER +
 		getNormalizedStringAndCheckForErrors(BULLETIN_LOCATION) + DELIMITER +
