@@ -871,7 +871,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		{
 			contactInfo = ContactInfo.decodeContactInfoVectorIfNecessary(contactInfo);
 		}
-		catch (InvalidBase64Exception e1)
+		catch (Exception e1)
 		{
 			return result;
 		}
