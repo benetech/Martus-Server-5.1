@@ -597,6 +597,8 @@ public class CreateStatistics
 			private String getBuildDate(String martusBuildInfo) 
 			{
 				String rawDate = getMartusBuildInfoField(martusBuildInfo, 0);
+				if(rawDate.startsWith("?"))
+					return rawDate.substring(1);
 				SimpleDateFormat dateFormat = new SimpleDateFormat(MARTUS_BULLETIN_BUILD_DATE_PATTERN);
 				try 
 				{
@@ -621,9 +623,13 @@ public class CreateStatistics
 					return "";
 				int splitAt = martusBuildInfo.indexOf(".");
 				if(splitAt <= 0)
-					return "?"+martusBuildInfo+"?";
+				{
+					if(position == 0)
+						return "?" + martusBuildInfo;
+					return "?";
+				}
 				
-				if(position == 0)
+				if(position == 1)
 					return martusBuildInfo.substring(splitAt+1);
 				return martusBuildInfo.substring(0,splitAt);
 			}
