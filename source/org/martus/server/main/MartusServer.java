@@ -48,6 +48,7 @@ import org.martus.amplifier.main.MartusAmplifier;
 import org.martus.common.LoggerInterface;
 import org.martus.common.LoggerToConsole;
 import org.martus.common.MartusUtilities;
+import org.martus.common.Version;
 import org.martus.common.VersionBuildDate;
 import org.martus.common.MartusUtilities.FileTooLargeException;
 import org.martus.common.MartusUtilities.FileVerificationException;
@@ -1128,7 +1129,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	public static String getDefaultDataDirectoryPath()
 	{
 		String dataDirectory = null;
-		if(isRunningUnderWindows())
+		if(Version.isRunningUnderWindows())
 		{
 			dataDirectory = "C:/MartusServer/";
 		}
@@ -1139,11 +1140,6 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		return dataDirectory;
 	}
 	
-	public static boolean isRunningUnderWindows()
-	{
-		return System.getProperty("os.name").indexOf("Windows") >= 0;
-	}
-
 	public static File getDefaultDataDirectory()
 	{
 		File file = new File(MartusServer.getDefaultDataDirectoryPath());
