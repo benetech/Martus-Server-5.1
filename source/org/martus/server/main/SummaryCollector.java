@@ -78,6 +78,7 @@ public abstract class SummaryCollector implements Database.PacketVisitor
 		}
 	}
 	
+	abstract public String callerAccountId();
 	abstract public boolean isWanted(DatabaseKey key);
 	abstract public boolean isAuthorized(BulletinHeaderPacket bhp);
 	
@@ -105,7 +106,7 @@ public abstract class SummaryCollector implements Database.PacketVisitor
 	}
 
 	private MartusServer server;
-	private String authorAccountId;
+	protected String authorAccountId;
 	private Vector summaries;
 	private Vector retrieveTags;
 }

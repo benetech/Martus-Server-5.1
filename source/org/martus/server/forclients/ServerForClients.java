@@ -329,88 +329,28 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		return coreServer.putContactInfo(myAccountId, parameters);
 	}
 
-	public Vector listMySealedBulletinIds(String authorAccountId, Vector retrieveTags)
+	public Vector listMySealedBulletinIds(String myAccountId, Vector retrieveTags)
 	{
-		log("listMySealedBulletinIds " + coreServer.getClientAliasForLogging(authorAccountId));
-		
-		MySealedSummaryCollector summaryCollector = new MySealedSummaryCollector(coreServer, authorAccountId, retrieveTags);
-
-		if(isClientBanned(authorAccountId) )
-			return coreServer.returnSingleResponseAndLog("  returning REJECTED", NetworkInterfaceConstants.REJECTED);
-		
-		if( coreServer.isShutdownRequested() )
-			return coreServer.returnSingleResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
-		
-		Vector summaries = summaryCollector.collectSummaries();
-		Vector result = new Vector();
-		result.add(NetworkInterfaceConstants.OK);
-		result.add(summaries);
-		
-		log("listMySealedBulletinIds: Exit");
-		return result;
+		SummaryCollector summaryCollector = new MySealedSummaryCollector(coreServer, myAccountId, retrieveTags);
+		return collectBulletinSummaries(summaryCollector, "listMySealedBulletinIds ");
 	}
 
 	public Vector listFieldOfficeDraftBulletinIds(String hqAccountId, String authorAccountId, Vector retrieveTags)
 	{
-		log("listFieldOfficeDraftBulletinIds " + coreServer.getClientAliasForLogging(hqAccountId));
-		
 		SummaryCollector summaryCollector = new FieldOfficeDraftSummaryCollector(coreServer, hqAccountId, authorAccountId, retrieveTags);
-
-		if(isClientBanned(hqAccountId) )
-			return coreServer.returnSingleResponseAndLog( " returning REJECTED", NetworkInterfaceConstants.REJECTED );
-		
-		if( coreServer.isShutdownRequested() )
-			return coreServer.returnSingleResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
-			
-		Vector summaries = summaryCollector.collectSummaries();
-		Vector result = new Vector();
-		result.add(NetworkInterfaceConstants.OK);
-		result.add(summaries);
-		
-		log("listFieldOfficeDraftBulletinIds: Exit");
-		return result;
+		return collectBulletinSummaries(summaryCollector, "listFieldOfficeDraftBulletinIds ");
 	}
 
 	public Vector listFieldOfficeSealedBulletinIds(String hqAccountId, String authorAccountId, Vector retrieveTags)
 	{
-		log("listFieldOfficeSealedBulletinIds " + coreServer.getClientAliasForLogging(hqAccountId));
-			
 		SummaryCollector summaryCollector = new FieldOfficeSealedSummaryCollector(coreServer, hqAccountId, authorAccountId, retrieveTags);
-
-		if(isClientBanned(hqAccountId) )
-			return coreServer.returnSingleResponseAndLog("  returning REJECTED", NetworkInterfaceConstants.REJECTED);
-		
-		if( coreServer.isShutdownRequested() )
-			return coreServer.returnSingleResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
-		
-		Vector summaries = summaryCollector.collectSummaries();
-		Vector result = new Vector();
-		result.add(NetworkInterfaceConstants.OK);
-		result.add(summaries);
-		
-		log("listFieldOfficeSealedBulletinIds: Exit");
-		return result;
+		return collectBulletinSummaries(summaryCollector, "listFieldOfficeSealedBulletinIds ");
 	}
 
 	public Vector listMyDraftBulletinIds(String authorAccountId, Vector retrieveTags)
 	{
 		SummaryCollector summaryCollector = new MyDraftSummaryCollector(coreServer, authorAccountId, retrieveTags);
-
-		log("listMyDraftBulletinIds " + coreServer.getClientAliasForLogging(authorAccountId));
-			
-		if(isClientBanned(authorAccountId) )
-			return coreServer.returnSingleResponseAndLog("  returning REJECTED", NetworkInterfaceConstants.REJECTED);
-		
-		if( coreServer.isShutdownRequested() )
-			return coreServer.returnSingleResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
-		
-		Vector summaries = summaryCollector.collectSummaries();
-		Vector result = new Vector();
-		result.add(NetworkInterfaceConstants.OK);
-		result.add(summaries);
-		
-		log("listMyDraftBulletinIds: Exit");
-		return result;
+		return collectBulletinSummaries(summaryCollector, "listMyDraftBulletinIds");
 	}
 
 	public String deleteDraftBulletins(String accountId, String[] localIds)
@@ -446,6 +386,11 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		return result;
 	}
 
+	public Vector listFieldOfficeAccounts(String hqAccountId)
+	{
+		return coreServer.listFieldOfficeAccounts(hqAccountId);
+	}
+	
 	// begin NON-SSL interface (sort of)
 	public String authenticateServer(String tokenToSign)
 	{
@@ -496,11 +441,32 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		return NetworkInterfaceConstants.OK;
 	}
 	
-	public Vector listFieldOfficeAccounts(String hqAccountId)
-	{
-		return coreServer.listFieldOfficeAccounts(hqAccountId);
-	}
+
 	
+	
+	
+	
+	
+	private Vector collectBulletinSummaries(SummaryCollector summaryCollector, String methodName)
+	{
+		String myAccountId = summaryCollector.callerAccountId();
+		log(methodName + coreServer.getClientAliasForLogging(myAccountId));
+		
+		if(isClientBanned(myAccountId) )
+			return coreServer.returnSingleResponseAndLog("  returning REJECTED", NetworkInterfaceConstants.REJECTED);
+		
+		if( coreServer.isShutdownRequested() )
+			return coreServer.returnSingleResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
+		
+		Vector summaries = summaryCollector.collectSummaries();
+		Vector result = new Vector();
+		result.add(NetworkInterfaceConstants.OK);
+		result.add(summaries);
+		
+		log(methodName + "Exit");
+		return result;
+	}
+
 	File getBannedFile()
 	{
 		return new File(getConfigDirectory(), BANNEDCLIENTSFILENAME);
@@ -632,8 +598,27 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		log("loadCanUploadList : Exit OK");
 	}
 	
+	abstract class MySummaryCollector extends SummaryCollector
+	{
+		public MySummaryCollector(MartusServer serverToUse, String authorAccount, Vector retrieveTags) 
+		{
+			super(serverToUse, authorAccount, retrieveTags);
+		}
 
-	class MySealedSummaryCollector extends SummaryCollector
+		public boolean isAuthorized(BulletinHeaderPacket bhp)
+		{
+			return true;
+		}
+
+		public String callerAccountId()
+		{
+			return authorAccountId;
+		}
+	
+	}
+	
+
+	class MySealedSummaryCollector extends MySummaryCollector
 	{
 		public MySealedSummaryCollector(MartusServer serverToUse, String authorAccount, Vector retrieveTags) 
 		{
@@ -644,14 +629,9 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		{
 			return(key.isSealed());
 		}
-
-		public boolean isAuthorized(BulletinHeaderPacket bhp)
-		{
-			return true;
-		}
 	}
 
-	class MyDraftSummaryCollector extends SummaryCollector
+	class MyDraftSummaryCollector extends MySummaryCollector
 	{
 		public MyDraftSummaryCollector(MartusServer serverToUse, String authorAccount, Vector retrieveTagsToUse) 
 		{
@@ -662,55 +642,56 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		{
 			return(key.isDraft());
 		}
-
-		public boolean isAuthorized(BulletinHeaderPacket bhp)
-		{
-			return true;
-		}
 	}
-
-	class FieldOfficeSealedSummaryCollector extends SummaryCollector
+	
+	
+	
+	abstract class FieldOfficeSummaryCollector extends SummaryCollector
 	{
-		public FieldOfficeSealedSummaryCollector(MartusServer serverToUse, String hqAccountIdToUse, String authorAccountIdToUse, Vector retrieveTagsToUse) 
+		public FieldOfficeSummaryCollector(MartusServer serverToUse, String hqAccountIdToUse, String authorAccountIdToUse, Vector retrieveTagsToUse) 
 		{
 			super(serverToUse, authorAccountIdToUse, retrieveTagsToUse);
 			hqAccountId = hqAccountIdToUse;
 
+		}
+		
+		String hqAccountId;
+
+		public boolean isAuthorized(BulletinHeaderPacket bhp)
+		{
+			return(bhp.isHQAuthorizedToRead(hqAccountId));
+		}
+
+		public String callerAccountId()
+		{
+			return hqAccountId;
+		}
+	}
+
+	class FieldOfficeSealedSummaryCollector extends FieldOfficeSummaryCollector
+	{
+		public FieldOfficeSealedSummaryCollector(MartusServer serverToUse, String hqAccountIdToUse, String authorAccountIdToUse, Vector retrieveTagsToUse) 
+		{
+			super(serverToUse, hqAccountIdToUse, authorAccountIdToUse, retrieveTagsToUse);
 		}
 
 		public boolean isWanted(DatabaseKey key)
 		{
 			return(key.isSealed());
 		}
-
-		public boolean isAuthorized(BulletinHeaderPacket bhp)
-		{
-			return(bhp.isHQAuthorizedToRead(hqAccountId));
-		}
-
-		String hqAccountId;
 	}
 
-	class FieldOfficeDraftSummaryCollector extends SummaryCollector
+	class FieldOfficeDraftSummaryCollector extends FieldOfficeSummaryCollector
 	{
 		public FieldOfficeDraftSummaryCollector(MartusServer serverToUse, String hqAccountIdToUse, String authorAccountIdToUse, Vector retrieveTagsToUse) 
 		{
-			super(serverToUse, authorAccountIdToUse, retrieveTagsToUse);
-			hqAccountId = hqAccountIdToUse;
-
+			super(serverToUse, hqAccountIdToUse, authorAccountIdToUse, retrieveTagsToUse);
 		}
 
 		public boolean isWanted(DatabaseKey key)
 		{
 			return(key.isDraft());
 		}
-
-		public boolean isAuthorized(BulletinHeaderPacket bhp)
-		{
-			return(bhp.isHQAuthorizedToRead(hqAccountId));
-		}
-
-		String hqAccountId;
 	}
 
 	MartusServer coreServer;
