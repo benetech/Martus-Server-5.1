@@ -723,28 +723,6 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	}
 
 
-	public Vector listMySealedBulletinIds(String clientId, Vector retrieveTags)
-	{
-		log("listMySealedBulletinIds " + getClientAliasForLogging(clientId));
-		
-		if(isClientBanned(clientId) )
-			return returnSingleResponseAndLog("  returning REJECTED", NetworkInterfaceConstants.REJECTED);
-		
-		if( isShutdownRequested() )
-			return returnSingleResponseAndLog( " returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN );
-		
-		SummaryCollector summaryCollector = new MySealedSummaryCollector(getDatabase(), clientId, retrieveTags);
-		Vector summaries = summaryCollector.getSummaries();
-		String resultCode = (String)summaries.get(0);
-		summaries.remove(0);
-
-		Vector result = new Vector();
-		result.add(resultCode);
-		result.add(summaries);
-		log("listMySealedBulletinIds: Exit");
-		return result;
-	}
-
 	public Vector listMyDraftBulletinIds(String authorAccountId, Vector retrieveTags)
 	{
 		log("listMyDraftBulletinIds " + getClientAliasForLogging(authorAccountId));
@@ -1213,7 +1191,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		return KEYPAIRFILENAME;
 	}
 	
-	private Vector returnSingleResponseAndLog( String message, String responseCode )
+	public Vector returnSingleResponseAndLog( String message, String responseCode )
 	{
 		if( message.length() > 0 )
 			log( message.toString());
@@ -1637,7 +1615,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		return servers;
 	}
 
-	BulletinHeaderPacket loadBulletinHeaderPacket(Database db, DatabaseKey key)
+	public BulletinHeaderPacket loadBulletinHeaderPacket(Database db, DatabaseKey key)
 	throws
 		IOException,
 		CryptoException,
@@ -1656,9 +1634,9 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		System.exit(exitCode);
 	}
 
-	abstract class SummaryCollector implements Database.PacketVisitor
+	public abstract static class SummaryCollector implements Database.PacketVisitor
 	{
-		SummaryCollector(Database dbToUse, String accountIdToUse, Vector retrieveTagsToUse)
+		protected SummaryCollector(Database dbToUse, String accountIdToUse, Vector retrieveTagsToUse)
 		{
 			db = dbToUse;
 			authorAccountId = accountIdToUse;
@@ -1698,13 +1676,13 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			return summaries;	
 		}
 		
-		void addToSummary(BulletinHeaderPacket bhp) 
+		protected void addToSummary(BulletinHeaderPacket bhp) 
 		{
 			String summary = bhp.getLocalId() + MartusConstants.regexEqualsDelimeter;
 			summary  += bhp.getFieldDataPacketId();
 			if(retrieveTags.contains(NetworkInterfaceConstants.TAG_BULLETIN_SIZE))
 			{
-				int size = MartusUtilities.getBulletinSize(getDatabase(), bhp);
+				int size = MartusUtilities.getBulletinSize(db, bhp);
 				summary += MartusConstants.regexEqualsDelimeter + size;
 			}
 			if(retrieveTags.contains(NetworkInterfaceConstants.TAG_BULLETIN_DATE_SAVED))
@@ -1715,40 +1693,12 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			summaries.add(summary);
 		}
 
-		Database db;
-		String authorAccountId;
+		protected Database db;
+		protected String authorAccountId;
 		Vector summaries;
 		Vector retrieveTags;
 	}
 	
-	class MySealedSummaryCollector extends SummaryCollector
-	{
-		public MySealedSummaryCollector(Database dbToUse, String accountIdToUse, Vector retrieveTags) 
-		{
-			super(dbToUse, accountIdToUse, retrieveTags);
-		}
-
-		public void addSummaryIfAppropriate(DatabaseKey key) 
-		{
-			if(!keyBelongsToClient(key, authorAccountId))
-				return;
-
-			if(!key.isSealed())
-				return;
-				
-			try
-			{
-				addToSummary(loadBulletinHeaderPacket(db, key));
-			}
-			catch(Exception e)
-			{
-				log("visit " + e);
-				e.printStackTrace();
-				//System.out.println("MySealedSummaryCollector: " + e);
-			}
-		}
-	}
-
 	class MyDraftSummaryCollector extends SummaryCollector
 	{
 		public MyDraftSummaryCollector(Database dbToUse, String accountIdToUse, Vector retrieveTagsToUse) 

@@ -155,28 +155,6 @@ public class MockMartusServer extends MartusServer
 			chunkOffset, maxChunkSize);
 	}
 
-	public Vector listMySealedBulletinIds(String clientId, Vector retrieveTags)
-	{
-		lastClientId = clientId;
-		if(listMyResponseNull)	
-			return null;
-		if(listMyResponse != null)
-			return new Vector(listMyResponse);
-		return (Vector)(super.listMySealedBulletinIds(clientId, retrieveTags)).clone();
-		
-	}
-	
-	public Vector listMyDraftBulletinIds(String clientId, Vector retrieveTags)
-	{
-		lastClientId = clientId;
-		if(listMyResponseNull)	
-			return null;
-		if(listMyResponse != null)
-			return new Vector(listMyResponse);
-		return (Vector)(super.listMyDraftBulletinIds(clientId, retrieveTags)).clone();
-		
-	}
-	
 	public Vector listFieldOfficeSealedBulletinIds(String hqAccountId, String authorAccountId, Vector retrieveTags)
 	{
 		lastClientId = hqAccountId;
@@ -234,11 +212,6 @@ public class MockMartusServer extends MartusServer
 		getStore().deleteAllData();
 		lastClientId = null;
 		lastUploadedBulletinId = null;
-	}
-	
-	public void nullListMyResponse(boolean nullResponse)
-	{ 
-		listMyResponseNull = nullResponse;
 	}
 	
 	public void nullListFieldOfficeSummariesResponse(boolean nullResponse)
@@ -410,14 +383,12 @@ public class MockMartusServer extends MartusServer
 	public Vector infoResponse;
 	public String uploadResponse;
 	public Vector downloadResponse;
-	public Vector listMyResponse;
 	public Vector listFieldOfficeSummariesResponse;
 	public Vector listFieldOfficeAccountsResponse;
 	public Vector complianceResponse;
 	
 	public String lastClientId;
 	public String lastUploadedBulletinId;
-	private boolean listMyResponseNull;
 	private boolean listFieldOfficeSummariesResponseNull;
 	private boolean listFieldOfficeAccountsResponseNull;
 	
