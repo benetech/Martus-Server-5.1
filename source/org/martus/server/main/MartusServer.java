@@ -147,21 +147,25 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		catch(CryptoInitializationException e) 
 		{
 			System.out.println("Crypto Initialization Exception" + e);
+			e.printStackTrace();
 			System.exit(EXIT_CRYPTO_INITIALIZATION);			
 		}
 		catch (AuthorizationFailedException e)
 		{
 			System.out.println("Invalid password: " + e);
+			e.printStackTrace();
 			System.exit(EXIT_INVALID_PASSWORD);
 		}
 		catch (UnknownHostException e)
 		{
 			System.out.println("ipAddress invalid: " + e);
+			e.printStackTrace();
 			System.exit(EXIT_INVALID_IPADDRESS);
 		}
 		catch (Exception e)
 		{
 			System.out.println("MartusServer.main: " + e);
+			e.printStackTrace();
 			System.exit(EXIT_UNEXPECTED_EXCEPTION);
 		}
 			
