@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-    <classpathentry kind="src" path="source"/>
-    <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-    <classpathentry kind="src" path="/martus-utils"/>
-    <classpathentry kind="src" path="/martus-common"/>
-    <classpathentry kind="src" path="/martus-amplifier"/>
-    <classpathentry kind="src" path="/martus-logi"/>
-    <classpathentry kind="lib" path="/martus-common/ThirdPartyJars/server/jasper-compiler.jar"/>
-    <classpathentry kind="lib" path="/martus-common/ThirdPartyJars/server/jasper-runtime.jar"/>
-    <classpathentry kind="lib" path="/martus-common/ThirdPartyJars/server/org.mortbay.jetty.jar"/>
-    <classpathentry kind="lib" path="/martus-common/ThirdPartyJars/server/servlet.jar"/>
-    <classpathentry kind="lib" path="/martus-common/ThirdPartyJars/server/velocity-dep-1.4-rc1.jar"/>
-    <classpathentry kind="lib" path="/martus-common/ThirdPartyJars/common/xmlrpc-1.2-b1.jar"/>
-    <classpathentry kind="output" path="bin"/>
+	<classpathentry kind="src" path="source"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="/martus-utils"/>
+	<classpathentry kind="src" path="/martus-common"/>
+	<classpathentry kind="src" path="/martus-amplifier"/>
+	<classpathentry kind="src" path="/martus-logi"/>
+	<classpathentry kind="lib" path="C:/EclipseMartus/martus-thirdparty/server/Jasper/bin/jasper-compiler.jar"/>
+	<classpathentry kind="lib" path="C:/EclipseMartus/martus-thirdparty/server/Jasper/bin/jasper-runtime.jar"/>
+	<classpathentry kind="lib" path="C:/EclipseMartus/martus-thirdparty/server/Jetty/bin/org.mortbay.jetty.jar"/>
+	<classpathentry kind="lib" path="C:/EclipseMartus/martus-thirdparty/server/Servlet/bin/servlet.jar"/>
+	<classpathentry kind="lib" path="C:/EclipseMartus/martus-thirdparty/server/Velocity/bin/velocity-dep-1.4-rc1.jar"/>
+	<classpathentry kind="lib" path="C:/EclipseMartus/martus-thirdparty/common/XMLRPC/bin/xmlrpc-1.2-b1.jar"/>
+	<classpathentry kind="output" path="bin"/>
 </classpath>
