@@ -28,8 +28,6 @@ package org.martus.server.forclients;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -316,24 +314,13 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 
 	public synchronized void loadBannedClients()
 	{
-		loadBannedClients(getBannedFile());
+		clientsBanned = MartusUtilities.loadBannedClients(getBannedFile());
 	}
 	
 	public void loadBannedClients(File bannedClientsFile)
 	{
-		clientsBanned = new Vector();
-		if(!bannedClientsFile.exists())
-			return;
-		try
-		{
-			clientsBanned = MartusUtilities.loadListFromFile(bannedClientsFile);
-		}
-		catch (IOException e)
-		{
-			e.printStackTrace();
-			System.exit(12);
-		}
-	}
+		clientsBanned = MartusUtilities.loadBannedClients(bannedClientsFile);
+	}	
 	
 	public String getGroupNameForMagicWord(String tryMagicWord)
 	{
@@ -415,20 +402,8 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 
 	void loadCanUploadFile()
 	{
-		try
-		{
-			BufferedReader reader = new BufferedReader(new FileReader(getAllowUploadFile()));
-			loadCanUploadList(reader);
-			reader.close();
-		}
-		catch(FileNotFoundException nothingToWorryAbout)
-		{
-		}
-		catch(IOException e)
-		{
-			// TODO: Log this so the administrator knows
-			System.out.println("MartusServer constructor: " + e);
-		}
+		log("loadCanUploadList");
+		clientsThatCanUpload = MartusUtilities.loadCanUploadFile(getAllowUploadFile());
 	}
 	
 	public synchronized void loadCanUploadList(BufferedReader canUploadInput)

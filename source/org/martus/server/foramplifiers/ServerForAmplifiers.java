@@ -153,24 +153,13 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants
 	
 	public synchronized void loadClientsNotAmplified()
 	{
-		loadClientsNotAmplified(getClientsNotToAmplifiyFile());
+		clientsNotAmplified = MartusUtilities.loadClientsNotAmplified(getClientsNotToAmplifiyFile());
 	}
 	
 	public void loadClientsNotAmplified(File clientsNotToBeAmplifiedFile)
 	{
-		clientsNotAmplified = new Vector();
-		if(!clientsNotToBeAmplifiedFile.exists())
-			return;
-		try
-		{
-			clientsNotAmplified = MartusUtilities.loadListFromFile(clientsNotToBeAmplifiedFile);
-		}
-		catch (IOException e)
-		{
-			e.printStackTrace();
-			System.exit(12);
-		}
-	}
+		clientsNotAmplified = MartusUtilities.loadClientsNotAmplified(clientsNotToBeAmplifiedFile);
+	}	
 	
 	public void addListeners() throws UnknownHostException
 	{
