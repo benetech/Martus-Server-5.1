@@ -118,19 +118,26 @@ public class TestSummaryCollector extends TestCaseEnhanced
 		String noTags = SummaryCollector.extractSummary(bhp, db, tags);
 		assertEquals(minimalSummary, noTags);
 		
-		tags.add(NetworkInterfaceConstants.TAG_BULLETIN_DATE_SAVED);
-		String justDate = SummaryCollector.extractSummary(bhp, db, tags);
-		assertEquals(minimalSummary + "=" + bhp.getLastSavedTime(), justDate);
-		
-		tags.add(NetworkInterfaceConstants.TAG_BULLETIN_SIZE);
-		String sizeAndDate = SummaryCollector.extractSummary(bhp, db, tags);
-		String typicalSummary = minimalSummary + "=0=" + bhp.getLastSavedTime();
-		assertEquals(typicalSummary, sizeAndDate); 
-		
-		tags.add(NetworkInterfaceConstants.TAG_BULLETIN_HISTORY);
-		String withAncestor = SummaryCollector.extractSummary(bhp, db, tags);
 		String history = original.getLocalId() + " " + firstClone.getLocalId() + " ";
-		assertEquals(typicalSummary + "=" + history, withAncestor);
+
+		
+		String expectedSizeDateHistory = minimalSummary + "=0=" + bhp.getLastSavedTime() + "=" + history;
+
+		tags.add(NetworkInterfaceConstants.TAG_BULLETIN_SIZE);
+		tags.add(NetworkInterfaceConstants.TAG_BULLETIN_DATE_SAVED);
+		tags.add(NetworkInterfaceConstants.TAG_BULLETIN_HISTORY);
+		String gotSizeDateHistory = SummaryCollector.extractSummary(bhp, db, tags);
+		assertEquals(expectedSizeDateHistory, gotSizeDateHistory);
+		
+		
+		String expectedHistoryDateSize = minimalSummary + "=" + history + "=" + bhp.getLastSavedTime() +"=0";
+
+		tags.clear();
+		tags.add(NetworkInterfaceConstants.TAG_BULLETIN_HISTORY);
+		tags.add(NetworkInterfaceConstants.TAG_BULLETIN_DATE_SAVED);
+		tags.add(NetworkInterfaceConstants.TAG_BULLETIN_SIZE);
+		String gotHistoryDateSize = SummaryCollector.extractSummary(bhp, db, tags);
+		assertEquals(expectedHistoryDateSize, gotHistoryDateSize);
 	}
 
 	MockMartusServer server;

@@ -94,22 +94,28 @@ public abstract class SummaryCollector implements Database.PacketVisitor
 	{
 		String summary = bhp.getLocalId() + MartusConstants.regexEqualsDelimeter;
 		summary  += bhp.getFieldDataPacketId();
-		if(tags.contains(NetworkInterfaceConstants.TAG_BULLETIN_SIZE))
+		for(int t=0; t < tags.size(); ++t)
 		{
-			int size = MartusUtilities.getBulletinSize(db, bhp);
-			summary += MartusConstants.regexEqualsDelimeter + size;
-		}
-		if(tags.contains(NetworkInterfaceConstants.TAG_BULLETIN_DATE_SAVED))
-		{
-			summary += MartusConstants.regexEqualsDelimeter + bhp.getLastSavedTime();
-		}
-		if(tags.contains(NetworkInterfaceConstants.TAG_BULLETIN_HISTORY))
-		{
-			StringBuffer localIds = new StringBuffer();
-			Vector history = bhp.getHistory();
-			for(int i = 0; i < history.size(); ++i)
-				localIds.append((String)history.get(i) + " ");
-			summary += MartusConstants.regexEqualsDelimeter + new String(localIds);
+			String tag = (String)tags.get(t);
+			if(tag.equals(NetworkInterfaceConstants.TAG_BULLETIN_SIZE))
+			{
+				int size = MartusUtilities.getBulletinSize(db, bhp);
+				summary += MartusConstants.regexEqualsDelimeter + size;
+			}
+			else if(tag.equals(NetworkInterfaceConstants.TAG_BULLETIN_DATE_SAVED))
+			{
+				summary += MartusConstants.regexEqualsDelimeter + bhp.getLastSavedTime();
+			}
+			else if(tag.equals(NetworkInterfaceConstants.TAG_BULLETIN_HISTORY))
+			{
+				StringBuffer localIds = new StringBuffer();
+				Vector history = bhp.getHistory();
+				for(int i = 0; i < history.size(); ++i)
+					localIds.append((String)history.get(i) + " ");
+				summary += MartusConstants.regexEqualsDelimeter + new String(localIds);
+			}
+			else
+				System.out.println("WARNING: requested unknown summary tag: " + tag);
 		}
 		return summary;
 	}
