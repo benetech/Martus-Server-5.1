@@ -70,7 +70,8 @@ public abstract class SummaryCollector implements Database.PacketVisitor
 			if(!isAuthorized(bhp))
 				return;
 			
-			addSummary(bhp);
+			String summary = extractSummary(bhp, getDatabase(), retrieveTags);
+			summaries.add(summary);
 		}
 		catch (Exception e)
 		{
@@ -89,21 +90,20 @@ public abstract class SummaryCollector implements Database.PacketVisitor
 		return summaries;	
 	}
 	
-	private void addSummary(BulletinHeaderPacket bhp) 
+	public static String extractSummary(BulletinHeaderPacket bhp, Database db, Vector tags)
 	{
 		String summary = bhp.getLocalId() + MartusConstants.regexEqualsDelimeter;
 		summary  += bhp.getFieldDataPacketId();
-		if(retrieveTags.contains(NetworkInterfaceConstants.TAG_BULLETIN_SIZE))
+		if(tags.contains(NetworkInterfaceConstants.TAG_BULLETIN_SIZE))
 		{
-			int size = MartusUtilities.getBulletinSize(getDatabase(), bhp);
+			int size = MartusUtilities.getBulletinSize(db, bhp);
 			summary += MartusConstants.regexEqualsDelimeter + size;
 		}
-		if(retrieveTags.contains(NetworkInterfaceConstants.TAG_BULLETIN_DATE_SAVED))
+		if(tags.contains(NetworkInterfaceConstants.TAG_BULLETIN_DATE_SAVED))
 		{
 			summary += MartusConstants.regexEqualsDelimeter + bhp.getLastSavedTime();
 		}
-		
-		summaries.add(summary);
+		return summary;
 	}
 
 	private MartusServer server;

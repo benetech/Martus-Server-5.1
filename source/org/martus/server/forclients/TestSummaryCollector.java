@@ -34,6 +34,7 @@ import org.martus.common.crypto.MockMartusSecurity;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.MockServerDatabase;
+import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.server.main.MartusServer;
 import org.martus.util.TestCaseEnhanced;
@@ -44,6 +45,23 @@ public class TestSummaryCollector extends TestCaseEnhanced
 	public TestSummaryCollector(String name)
 	{
 		super(name);
+	}
+	
+	public void setUp() throws Exception
+	{
+		server = new MockMartusServer();
+		server.initializeBulletinStore(new MockServerDatabase());
+		authorSecurity = MockMartusSecurity.createClient();
+		Database db = server.getDatabase();
+
+		original = new Bulletin(authorSecurity);
+		original.setSealed();
+		BulletinSaver.saveToClientDatabase(original, db, false, authorSecurity);
+		
+		clone = new Bulletin(authorSecurity); 
+		clone.createDraftCopyOf(original, db);
+		BulletinSaver.saveToClientDatabase(clone, db, false, authorSecurity);
+		
 	}
 
 	class MockSummaryCollector extends SummaryCollector
@@ -72,26 +90,40 @@ public class TestSummaryCollector extends TestCaseEnhanced
 	
 	public void testSummarCollectorOmitsOldVersions() throws Exception
 	{
-		MockMartusServer server = new MockMartusServer();
-		server.initializeBulletinStore(new MockServerDatabase());
-		MockMartusSecurity authorSecurity = MockMartusSecurity.createClient();
-		String authorId = authorSecurity.getPublicKeyString();
-		Database db = server.getDatabase();
-
-		Bulletin original = new Bulletin(authorSecurity);
-		original.setSealed();
-		BulletinSaver.saveToClientDatabase(original, db, false, authorSecurity);
-		
-		Bulletin clone = new Bulletin(authorSecurity); 
-		clone.createDraftCopyOf(original, db);
-		BulletinSaver.saveToClientDatabase(clone, db, false, authorSecurity);
 		
 		Vector leafUids = server.getStore().getAllBulletinUids();
 		assertEquals(1, leafUids.size());
 		
+		String authorId = authorSecurity.getPublicKeyString();
 		SummaryCollector collector = new MockSummaryCollector(server, authorId, new Vector());
 		Vector localIds = collector.collectSummaries();
 		assertEquals(1, localIds.size());
 		assertEquals(clone.getLocalId() + "=" + clone.getFieldDataPacket().getLocalId(), localIds.get(0));
 	}
+	
+	public void testTags() throws Exception
+	{
+		Database db = server.getDatabase();
+		BulletinHeaderPacket bhp = clone.getBulletinHeaderPacket();
+		String fdpLocalId = bhp.getFieldDataPacketId();
+		Vector tags = new Vector();
+		
+		String minimalSummary = bhp.getLocalId() + "=" + fdpLocalId;
+		
+		String noTags = SummaryCollector.extractSummary(bhp, db, tags);
+		assertEquals(minimalSummary, noTags);
+		
+		tags.add(NetworkInterfaceConstants.TAG_BULLETIN_DATE_SAVED);
+		String justDate = SummaryCollector.extractSummary(bhp, db, tags);
+		assertEquals(minimalSummary + "=" + bhp.getLastSavedTime(), justDate);
+		
+		tags.add(NetworkInterfaceConstants.TAG_BULLETIN_SIZE);
+		String sizeAndDate = SummaryCollector.extractSummary(bhp, db, tags);
+		assertEquals(minimalSummary + "=0=" + bhp.getLastSavedTime(), sizeAndDate); 
+	}
+
+	MockMartusServer server;
+	MockMartusSecurity authorSecurity;
+	Bulletin original;
+	Bulletin clone;
 }
