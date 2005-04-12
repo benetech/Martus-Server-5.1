@@ -91,7 +91,7 @@ public class ServerForMirroring implements ServerSupplierInterface
 	
 	private String createLogString(String message)
 	{
-		return message;
+		return "ServerForMirror " + message;
 	}
 
 	public void logError(String message)

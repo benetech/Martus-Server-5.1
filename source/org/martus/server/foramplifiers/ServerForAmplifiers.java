@@ -100,7 +100,7 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants, LoggerInt
 
 	private String createLogString(String message)
 	{
-		return message;
+		return "ServerForAmp " + message;
 	}
 
 	public void logError(String message)
