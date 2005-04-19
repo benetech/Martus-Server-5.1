@@ -242,9 +242,6 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		store.saveEncryptedBulletinForTesting(privateBulletin);
 		testServer.uploadBulletin(privateBulletin.getAccount(), privateBulletin.getLocalId(), BulletinForTesting.saveToZipString(getClientDatabase(), privateBulletin, clientSecurity));
 
-		// make sure the store's cache is loaded, so the next scanForLeafKeys won't have to do anything
-		testServer.getStore().scanForLeafKeys();
-		// now force the next database openInputStream to fail
 		ourMockDatabase.shouldFail = true;
 		Vector list2 = testServer.listFieldOfficeAccounts(hqSecurity.getPublicKeyString());
 		assertEquals("wrong length", 1, list2.size());

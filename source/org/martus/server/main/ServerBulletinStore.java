@@ -60,49 +60,6 @@ import org.martus.common.utilities.MartusServerUtilities;
 public class ServerBulletinStore extends BulletinStore
 {
 
-	public static class FieldOfficeAccountCollector implements Database.PacketVisitor
-	{
-		FieldOfficeAccountCollector(ServerBulletinStore storeToUse, String hqAccountIdToUse, LoggerInterface loggerToUse)
-		{
-			store = storeToUse;
-			hqAccountId = hqAccountIdToUse;
-			logger = loggerToUse;
-			
-			accounts = new Vector();
-			accounts.add(NetworkInterfaceConstants.OK);
-		}
-		
-		public void visit(DatabaseKey key)
-		{
-			try
-			{
-				BulletinHeaderPacket bhp = BulletinStore.loadBulletinHeaderPacket(store.getDatabase(), key, store.getSignatureVerifier());
-				if(bhp.isHQAuthorizedToRead(hqAccountId))
-				{
-					String packetAccountId = bhp.getAccountId();
-					if(!accounts.contains(packetAccountId))
-						accounts.add(packetAccountId);
-				}
-			}
-			catch(Exception e)
-			{
-				logger.logError("FieldOfficeAccountCollector:Visit " + e);
-				accounts.set(0, NetworkInterfaceConstants.SERVER_ERROR);
-			}
-		}
-		
-		public Vector getAccountsWithResultCode()
-		{
-			return accounts;
-		}
-		
-		ServerBulletinStore store;
-		String hqAccountId;
-		LoggerInterface logger;
-		
-		Vector accounts;
-	}
-
 	public void deleteBulletinRevision(DatabaseKey keyToDelete)
 			throws IOException, CryptoException, InvalidPacketException,
 			WrongPacketTypeException, SignatureVerificationException,
@@ -220,11 +177,22 @@ public class ServerBulletinStore extends BulletinStore
 	
 	public Vector getFieldOfficeAccountIdsWithResultCode(String hqAccountId, LoggerInterface logger)
 	{
-		ServerBulletinStore.FieldOfficeAccountCollector visitor = new ServerBulletinStore.FieldOfficeAccountCollector(this, hqAccountId, logger);
+		Vector results = new Vector();
 		
-		visitAllBulletins(visitor);
-	
-		return visitor.getAccountsWithResultCode();
+		try
+		{
+			Vector fieldOfficeAccounts = getFieldOffices(hqAccountId);
+			if(hadErrorsWhileCacheing())
+				throw new Exception();
+			results.add(NetworkInterfaceConstants.OK);
+			results.addAll(fieldOfficeAccounts);
+		}
+		catch(Exception e)
+		{
+			results.add(NetworkInterfaceConstants.SERVER_ERROR);
+		}
+
+		return results;
 	}
 
 	public static class DuplicatePacketException extends Exception
