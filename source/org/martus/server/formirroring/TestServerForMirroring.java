@@ -31,7 +31,6 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
 
-import org.martus.common.FieldSpec;
 import org.martus.common.LegacyCustomFields;
 import org.martus.common.LoggerToNull;
 import org.martus.common.MartusUtilities;
@@ -42,6 +41,7 @@ import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.MockServerDatabase;
 import org.martus.common.database.ReadableDatabase;
+import org.martus.common.fieldspec.FieldSpec;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.FieldDataPacket;
 import org.martus.common.packet.UniversalId;
