@@ -47,6 +47,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
+
 import org.martus.common.BulletinStore;
 import org.martus.common.ContactInfo;
 import org.martus.common.HQKey;
@@ -61,7 +62,6 @@ import org.martus.common.bulletin.BulletinZipUtilities;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MartusSecurity;
 import org.martus.common.crypto.MockMartusSecurity;
-import org.martus.common.crypto.SignatureEngine;
 import org.martus.common.crypto.MartusCrypto.MartusSignatureException;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
@@ -82,6 +82,7 @@ import org.martus.util.TestCaseEnhanced;
 import org.martus.util.UnicodeReader;
 import org.martus.util.UnicodeWriter;
 import org.martus.util.Base64.InvalidBase64Exception;
+import org.martus.util.inputstreamwithseek.InputStreamWithSeek;
 
 
 public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfaceConstants
@@ -210,32 +211,21 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 	{
 		TRACE_BEGIN("testListFieldOfficeAccountsErrorCondition");
 
-		class MyMock extends MartusSecurity
+		class MockDatabaseThatFails extends MockServerDatabase
 		{
-			public MyMock() throws Exception
+			public InputStreamWithSeek openInputStream(DatabaseKey key, MartusCrypto decrypter)
 			{
+				if(shouldFail)
+					return null;
+				return super.openInputStream(key, decrypter);
 			}
-
-			public SignatureEngine createSignatureVerifier(String signedByPublicKey) throws Exception
-			{
-				if(!shouldFailNext)
-					return super.createSignatureVerifier(signedByPublicKey);
-				shouldFailNext = false;
-				return null;
-			}
-
-			public boolean isValidSignatureOfStream(String publicKey, InputStream inputStream, byte[] signature) throws
-					MartusSignatureException
-			{
-				if(!shouldFailNext)
-					return super.isValidSignatureOfStream(publicKey, inputStream, signature);
-				shouldFailNext = false;
-				return false;						
-			}			
-			boolean shouldFailNext;
+			
+			boolean shouldFail;
 		}
-		MyMock myMock = new MyMock();
+		MockDatabaseThatFails ourMockDatabase = new MockDatabaseThatFails(); 
+		
 		testServer.setSecurity(serverSecurity);
+		testServer.getStore().setDatabase(ourMockDatabase);
 		
 		MartusCrypto fieldSecurity1 = clientSecurity;
 		testServer.allowUploads(fieldSecurity1.getPublicKeyString());
@@ -252,13 +242,13 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		store.saveEncryptedBulletinForTesting(privateBulletin);
 		testServer.uploadBulletin(privateBulletin.getAccount(), privateBulletin.getLocalId(), BulletinForTesting.saveToZipString(getClientDatabase(), privateBulletin, clientSecurity));
 
-		testServer.setSecurity(myMock);
-		myMock.shouldFailNext = true;
+		// make sure the store's cache is loaded, so the next scanForLeafKeys won't have to do anything
+		testServer.getStore().scanForLeafKeys();
+		// now force the next database openInputStream to fail
+		ourMockDatabase.shouldFail = true;
 		Vector list2 = testServer.listFieldOfficeAccounts(hqSecurity.getPublicKeyString());
-		assertNotNull("null id1 [0]", list2.get(0));
+		assertEquals("wrong length", 1, list2.size());
 		assertEquals(NetworkInterfaceConstants.SERVER_ERROR, list2.get(0));
-		assertEquals("wrong length", 2, list2.size());
-		assertEquals(clientSecurity.getPublicKeyString(), list2.get(1));
 		TRACE_END();
 	}
 

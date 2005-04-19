@@ -43,6 +43,7 @@ import java.util.Iterator;
 import java.util.TimerTask;
 import java.util.Vector;
 import java.util.zip.ZipFile;
+
 import org.martus.amplifier.ServerCallbackInterface;
 import org.martus.amplifier.main.MartusAmplifier;
 import org.martus.common.BulletinStore;
@@ -728,42 +729,6 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	public Vector listFieldOfficeAccounts(String hqAccountIdToUse)
 	{
 
-		class FieldOfficeAccountCollector implements Database.PacketVisitor
-		{
-			FieldOfficeAccountCollector(String hqAccountIdToUse)
-			{
-				hqAccountId = hqAccountIdToUse;
-				accounts = new Vector();
-				accounts.add(NetworkInterfaceConstants.OK);
-			}
-			
-			public void visit(DatabaseKey key)
-			{
-				try
-				{
-					BulletinHeaderPacket bhp = loadBulletinHeaderPacket(getDatabase(), key);
-					if(bhp.isHQAuthorizedToRead(hqAccountId))
-					{
-						String packetAccountId = bhp.getAccountId();
-						if(!accounts.contains(packetAccountId))
-							accounts.add(packetAccountId);
-					}
-				}
-				catch(Exception e)
-				{
-					logError("FieldOfficeAccountCollector:Visit " + e);
-					accounts.set(0, NetworkInterfaceConstants.SERVER_ERROR);
-				}
-			}
-			
-			public Vector getAccountsWithResultCode()
-			{
-				return accounts;
-			}
-			String hqAccountId;
-			Vector accounts;
-		}	
-
 		String clientAliasForLogging = getClientAliasForLogging(hqAccountIdToUse);
 		logInfo("listFieldOfficeAccounts " + clientAliasForLogging);
 			
@@ -773,14 +738,8 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		if( isShutdownRequested() )
 			return returnSingleErrorResponseAndLog("  returning SERVER_DOWN", NetworkInterfaceConstants.SERVER_DOWN);
 
-		FieldOfficeAccountCollector visitor = new FieldOfficeAccountCollector(hqAccountIdToUse);
-		
-		// TODO: I think the following should really be visitAllBulletins, 
-		// but there is a subtle difference in the way it throws exceptions 
-		// that breaks a (fragile) test. Eventually it should probably be switched over
-		getStore().visitAllBulletinRevisions(visitor);
+		Vector accountsWithResultCode  = getStore().getFieldOfficeAccountIdsWithResultCode(hqAccountIdToUse, getLogger());
 	
-		Vector accountsWithResultCode = visitor.getAccountsWithResultCode();
 		logNotice("listFieldOfficeAccounts: "+clientAliasForLogging+" Exit accounts=" + (accountsWithResultCode.size()-1));
 		return accountsWithResultCode;	
 	}

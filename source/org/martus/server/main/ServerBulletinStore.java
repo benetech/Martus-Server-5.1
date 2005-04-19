@@ -37,6 +37,7 @@ import java.util.zip.ZipFile;
 
 import org.martus.common.BulletinStore;
 import org.martus.common.ContactInfo;
+import org.martus.common.LoggerInterface;
 import org.martus.common.MartusUtilities;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MartusCrypto.CreateDigestException;
@@ -46,6 +47,7 @@ import org.martus.common.crypto.MartusCrypto.NoKeyPairException;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.Database.RecordHiddenException;
+import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.Packet;
 import org.martus.common.packet.UniversalId;
@@ -57,6 +59,49 @@ import org.martus.common.utilities.MartusServerUtilities;
 
 public class ServerBulletinStore extends BulletinStore
 {
+
+	public static class FieldOfficeAccountCollector implements Database.PacketVisitor
+	{
+		FieldOfficeAccountCollector(ServerBulletinStore storeToUse, String hqAccountIdToUse, LoggerInterface loggerToUse)
+		{
+			store = storeToUse;
+			hqAccountId = hqAccountIdToUse;
+			logger = loggerToUse;
+			
+			accounts = new Vector();
+			accounts.add(NetworkInterfaceConstants.OK);
+		}
+		
+		public void visit(DatabaseKey key)
+		{
+			try
+			{
+				BulletinHeaderPacket bhp = BulletinStore.loadBulletinHeaderPacket(store.getDatabase(), key, store.getSignatureVerifier());
+				if(bhp.isHQAuthorizedToRead(hqAccountId))
+				{
+					String packetAccountId = bhp.getAccountId();
+					if(!accounts.contains(packetAccountId))
+						accounts.add(packetAccountId);
+				}
+			}
+			catch(Exception e)
+			{
+				logger.logError("FieldOfficeAccountCollector:Visit " + e);
+				accounts.set(0, NetworkInterfaceConstants.SERVER_ERROR);
+			}
+		}
+		
+		public Vector getAccountsWithResultCode()
+		{
+			return accounts;
+		}
+		
+		ServerBulletinStore store;
+		String hqAccountId;
+		LoggerInterface logger;
+		
+		Vector accounts;
+	}
 
 	public void deleteBulletinRevision(DatabaseKey keyToDelete)
 			throws IOException, CryptoException, InvalidPacketException,
@@ -171,6 +216,15 @@ public class ServerBulletinStore extends BulletinStore
 		}
 		
 		return header;
+	}
+	
+	public Vector getFieldOfficeAccountIdsWithResultCode(String hqAccountId, LoggerInterface logger)
+	{
+		ServerBulletinStore.FieldOfficeAccountCollector visitor = new ServerBulletinStore.FieldOfficeAccountCollector(this, hqAccountId, logger);
+		
+		visitAllBulletins(visitor);
+	
+		return visitor.getAccountsWithResultCode();
 	}
 
 	public static class DuplicatePacketException extends Exception
