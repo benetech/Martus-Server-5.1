@@ -417,16 +417,23 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 	{
 		TRACE_BEGIN("testGetNews");
 
-		Vector noNews = testServer.getNews(clientAccountId, "1.0.2", "03/03/03");
+		MockMartusServer newsTestServer = new MockMartusServer();
+		newsTestServer.enterSecureMode();
+		newsTestServer.serverForClients.loadBannedClients();
+		newsTestServer.setSecurity(serverSecurity);
+		newsTestServer.verifyAndLoadConfigurationFiles();
+		
+		
+		Vector noNews = newsTestServer.getNews(clientAccountId, "1.0.2", "03/03/03");
 		assertEquals(2, noNews.size());
 		assertEquals("ok", noNews.get(0));
 		assertEquals(0, ((Vector)noNews.get(1)).size());
 		
-		File newsDirectory = testServer.getNewsDirectory();
+		File newsDirectory = newsTestServer.getNewsDirectory();
 		newsDirectory.deleteOnExit();
-		newsDirectory.mkdir();
+		newsDirectory.mkdirs();
 		
-		noNews = testServer.getNews(clientAccountId, "1.0.2", "03/03/03");
+		noNews = newsTestServer.getNews(clientAccountId, "1.0.2", "03/03/03");
 		assertEquals(2, noNews.size());
 		assertEquals("ok", noNews.get(0));
 		assertEquals(0, ((Vector)noNews.get(1)).size());
@@ -447,24 +454,20 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		UnicodeWriter writer = new UnicodeWriter(newsFile2);
 		writer.write(newsText2);
 		writer.close();
-		Thread.sleep(1000);
+		Thread.sleep(1000); //Important to sleep to ensure order of files Most Recent News First
 		
 		writer = new UnicodeWriter(newsFile3);
 		writer.write(newsText3);
 		writer.close();
-		Thread.sleep(1000);
-		
-		File tmpDirectory = new File(newsDirectory, "$$$TempDirectory");
-		tmpDirectory.deleteOnExit();
-		tmpDirectory.mkdir();
+		Thread.sleep(1000);//Important to sleep to ensure order of files Most Recent News First
 		
 		writer = new UnicodeWriter(newsFile1);
 		writer.write(newsText1);
 		writer.close();
 		
-		testServer.serverForClients.clientsBanned.add(clientAccountId);
-		Vector newsItems = testServer.getNews(clientAccountId, "1.0.2", "03/03/03");
-		testServer.serverForClients.clientsBanned.remove(clientAccountId);
+		newsTestServer.serverForClients.clientsBanned.add(clientAccountId);
+		Vector newsItems = newsTestServer.getNews(clientAccountId, "1.0.2", "03/03/03");
+		newsTestServer.serverForClients.clientsBanned.remove(clientAccountId);
 		
 		Date fileDate = new Date(newsFile1.lastModified());
 		SimpleDateFormat format = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
@@ -475,21 +478,20 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 
 		fileDate = new Date(newsFile3.lastModified());
 		String NewsFileText3 = format.format(fileDate) + System.getProperty("line.separator") + UnicodeReader.getFileContents(newsFile3); 
+		newsTestServer.verifyAndLoadConfigurationFiles();
+		newsTestServer.deleteStartupFiles();
 		
-		newsFile1.delete();
-		newsFile2.delete();
-		newsFile3.delete();
-		tmpDirectory.delete();
-		newsDirectory.delete();
-		
+		newsItems = newsTestServer.getNews(clientAccountId, "1.0.2", "03/03/03");
 		assertEquals(2, newsItems.size());
 		assertEquals("ok", newsItems.get(0));
 		Vector news = (Vector)newsItems.get(1);
-		assertEquals(4, news.size());
+		assertEquals(3, news.size());
 		
-		assertEquals(NewsFileText2, news.get(1));
-		assertEquals(NewsFileText3, news.get(2));
-		assertEquals(NewsFileText1, news.get(3));
+		assertEquals(NewsFileText2, news.get(0));
+		assertEquals(NewsFileText3, news.get(1));
+		assertEquals(NewsFileText1, news.get(2));
+		
+		newsTestServer.deleteAllFiles();
 		TRACE_END();
 	}
 	
