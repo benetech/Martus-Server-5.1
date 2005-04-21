@@ -36,14 +36,11 @@ import java.io.OutputStream;
 import java.io.StringReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.TimerTask;
 import java.util.Vector;
 import java.util.zip.ZipFile;
-
 import org.martus.amplifier.ServerCallbackInterface;
 import org.martus.amplifier.main.MartusAmplifier;
 import org.martus.common.BulletinStore;
@@ -193,7 +190,6 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	{
 		dataDirectory = dir;
 		setLogger(loggerToUse);
-		newsItems = new Vector();
 		store = new ServerBulletinStore();
 		store.setSignatureGenerator(securityToUse);
 		MartusSecureWebServer.security = getSecurity();
@@ -285,7 +281,6 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 
 	public void loadConfigurationFiles() throws Exception
 	{
-		loadNews();
 		if(isClientListenerEnabled())
 			serverForClients.loadConfigurationFiles();
 		if(isMirrorListenerEnabled())
@@ -834,61 +829,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			return results;
 		}
 	}
-
-	private void loadNews()
-	{
-		newsItems = new Vector();
-		Vector newsItemSortedFileList = DirectoryUtils.getAllFilesLeastRecentFirst(getNewsDirectory());
-		for(int i = 0; i < newsItemSortedFileList.size(); i++)
-		{
-			File newsFile = (File)newsItemSortedFileList.get(i);
-			try
-			{
-				String fileContents = UnicodeReader.getFileContents(newsFile);
-				Date fileDate = new Date(newsFile.lastModified());
-				SimpleDateFormat format = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-				String dateAndData = format.format(fileDate) + System.getProperty("line.separator") + fileContents; 
-				newsItems.add(dateAndData);
-			}
-			catch(IOException e)
-			{
-				logError("getNews:Error reading File:" + newsFile.getAbsolutePath());
-				e.printStackTrace();
-			}
-		}
-	}
 	
-	public int getNumberOfNewsItems()
-	{
-		return newsItems.size();
-	}
-
-	public Vector getNews(String accountId, String versionLabel, String versionBuildDate)
-	{
-		Vector result = new Vector();
-		Vector items = new Vector();
-		{
-			String loggingData = "getNews: " + getClientAliasForLogging(accountId);
-			if(versionLabel.length() > 0 && versionBuildDate.length() > 0)
-				loggingData = loggingData +", " + versionLabel + ", " + versionBuildDate;
-
-			logInfo(loggingData);
-		}		
-
-		if(isClientBanned(accountId))
-		{
-			final String bannedText = "Your account has been blocked from accessing this server. " + 
-					"Please contact the Server Policy Administrator for more information.";
-			items.add(bannedText);
-		}
-		
-		items.addAll(newsItems);
-		result.add(OK);
-		result.add(items);
-		return result;
-	}
-
-
 	public void setComplianceStatement(String statement)
 	{
 		complianceStatement = statement;
@@ -1351,7 +1292,6 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	private Vector getMainServersDeleteOnStartupFolders()
 	{
 		Vector startupFolders = new Vector();
-		startupFolders.add(getNewsDirectory());
 		return startupFolders;
 			
 	}
@@ -1371,6 +1311,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	{
 		Vector startupFolders = new Vector();
 		startupFolders.addAll(getMainServersDeleteOnStartupFolders());
+		startupFolders.addAll(serverForClients.getDeleteOnStartupFolders());
 		startupFolders.addAll(amp.getDeleteOnStartupFolders());
 		startupFolders.addAll(serverForAmplifiers.getDeleteOnStartupFolders());
 		startupFolders.addAll(serverForMirroring.getDeleteOnStartupFolders());
@@ -1786,11 +1727,6 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	{
 		return new File(getDataDirectory(),ADMINSTARTUPCONFIGDIRECTORY);
 	}
-	
-	public File getNewsDirectory()
-	{
-		return new File(getStartupConfigDirectory(), CLIENTNEWSDIRECTORY);
-	}
 
 	private File getHiddenPacketsFile()
 	{
@@ -1905,7 +1841,6 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	private File dataDirectory;
 	private ServerBulletinStore store;
 	private String complianceStatement; 
-	private Vector newsItems;
 	
 	Hashtable failedUploadRequestsPerIp;
 	
@@ -1934,8 +1869,6 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	public static final String HIDDENPACKETSFILENAME = "isHidden.txt";
 	private static final String COMPLIANCESTATEMENTFILENAME = "compliance.txt";
 	private static final String MARTUSSHUTDOWNFILENAME = "exit";
-	
-	private static final String CLIENTNEWSDIRECTORY = "news";
 	
 	private static final String ADMINTRIGGERDIRECTORY = "adminTriggers";
 	private static final String ADMINSTARTUPCONFIGDIRECTORY = "deleteOnStartup";

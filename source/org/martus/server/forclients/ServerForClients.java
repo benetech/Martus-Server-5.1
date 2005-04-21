@@ -31,6 +31,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Vector;
 import org.martus.amplifier.ServerCallbackInterface;
 import org.martus.common.MagicWordEntry;
@@ -49,6 +51,8 @@ import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.common.xmlrpc.WebServerWithClientId;
 import org.martus.server.main.MartusServer;
 import org.martus.server.main.ServerBulletinStore;
+import org.martus.util.DirectoryUtils;
+import org.martus.util.UnicodeReader;
 import org.martus.util.UnicodeWriter;
 import org.martus.util.inputstreamwithseek.InputStreamWithSeek;
 
@@ -62,6 +66,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		clientsThatCanUpload = new Vector();
 		activeWebServers = new Vector();
 		loggedNumberOfActiveClients = 0;
+		newsItems = new Vector();
 	}
 	
 	public Vector getDeleteOnStartupFiles()
@@ -73,9 +78,23 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		return startupFiles;
 	}
 	
+	public Vector getDeleteOnStartupFolders()
+	{
+		Vector startupFolders = new Vector();
+		startupFolders.add(getNewsDirectory());
+		return startupFolders;
+	}
+
+	public File getNewsDirectory()
+	{
+		return new File(coreServer.getStartupConfigDirectory(), CLIENTNEWSDIRECTORY);
+	}
+
+	
 	public void deleteStartupFiles()
 	{
 		MartusUtilities.deleteAllFiles(getDeleteOnStartupFiles());
+		DirectoryUtils.deleteEntireDirectoryTree(getDeleteOnStartupFolders());
 	}
 	
 	public ServerBulletinStore getStore()
@@ -183,7 +202,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		System.out.println(magicWords.getNumberOfActiveWords() + " active magic word(s)");
 		System.out.println(magicWords.getNumberOfInactiveWords() + " inactive magic word(s)");
 		System.out.println(getNumberOfTestAccounts() + " client(s) are known test accounts");
-		System.out.println(coreServer.getNumberOfNewsItems() +" News items");
+		System.out.println(getNumberOfNewsItems() +" News items");
 		System.out.println();
 	}
 
@@ -218,6 +237,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		loadCanUploadFile();
 		loadMagicWordsFile();
 		loadTestAccounts();
+		loadNews();
 	}
 
 	public void prepareToShutdown()
@@ -330,9 +350,29 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		return coreServer.getBulletinChunk(myAccountId, authorAccountId, bulletinLocalId, chunkOffset, maxChunkSize);
 	}
 
-	public Vector getNews(String myAccountId, String versionLabel, String versionBuildDate)
+	public Vector getNews(String accountId, String versionLabel, String versionBuildDate)
 	{
-		return coreServer.getNews(myAccountId, versionLabel, versionBuildDate);
+		Vector result = new Vector();
+		Vector items = new Vector();
+		{
+			String loggingData = "getNews: " + coreServer.getClientAliasForLogging(accountId);
+			if(versionLabel.length() > 0 && versionBuildDate.length() > 0)
+				loggingData = loggingData +", " + versionLabel + ", " + versionBuildDate;
+
+			logInfo(loggingData);
+		}		
+
+		if(isClientBanned(accountId))
+		{
+			final String bannedText = "Your account has been blocked from accessing this server. " + 
+					"Please contact the Server Policy Administrator for more information.";
+			items.add(bannedText);
+		}
+		
+		items.addAll(newsItems);
+		result.add(NetworkInterfaceConstants.OK);
+		result.add(items);
+		return result;
 	}
 
 	public Vector getPacket(String myAccountId, String authorAccountId, String bulletinLocalId, String packetLocalId)
@@ -524,6 +564,34 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	{
 		testAccounts = MartusUtilities.loadClientListAndExitOnError(testAccountsFile);
 	}	
+	
+	private void loadNews()
+	{
+		newsItems = new Vector();
+		Vector newsItemSortedFileList = DirectoryUtils.getAllFilesLeastRecentFirst(getNewsDirectory());
+		for(int i = 0; i < newsItemSortedFileList.size(); i++)
+		{
+			File newsFile = (File)newsItemSortedFileList.get(i);
+			try
+			{
+				String fileContents = UnicodeReader.getFileContents(newsFile);
+				Date fileDate = new Date(newsFile.lastModified());
+				SimpleDateFormat format = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+				String dateAndData = format.format(fileDate) + System.getProperty("line.separator") + fileContents; 
+				newsItems.add(dateAndData);
+			}
+			catch(IOException e)
+			{
+				logError("getNews:Error reading File:" + newsFile.getAbsolutePath());
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	public int getNumberOfNewsItems()
+	{
+		return newsItems.size();
+	}
 	
 	public String getGroupNameForMagicWord(String tryMagicWord)
 	{
@@ -731,9 +799,13 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	public Vector clientsBanned;
 	public Vector testAccounts;
 	private Vector activeWebServers;
+	private Vector newsItems;
+	
 	public static final String TESTACCOUNTSFILENAME = "isTester.txt";
 	public static final String BANNEDCLIENTSFILENAME = "banned.txt";
 	public static final String UPLOADSOKFILENAME = "uploadsok.txt";
 	public static final String AUTHORIZELOGFILENAME = "authorizelog.txt";
 	private static final String MAGICWORDSFILENAME = "magicwords.txt";
+	private static final String CLIENTNEWSDIRECTORY = "news";
+	
 }

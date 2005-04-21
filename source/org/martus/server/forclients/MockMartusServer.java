@@ -282,16 +282,6 @@ public class MockMartusServer extends MartusServer
 			throw new IOException("dataDirectory: " + getDataDirectory().getPath());
 	}
 
-	public Vector getNews(String accountId, String versionLabel, String versionBuildDate)
-	{
-		if(newsResponse != null)
-		{	
-			if(versionLabel.equals(newsVersionLabelToCheck) ||
-			   versionBuildDate.equals(newsVersionBuildDateToCheck))
-				return newsResponse;
-		}
-		return super.getNews(accountId, versionLabel, versionBuildDate);
-	}
 	
 	public Vector getServerCompliance()
 	{
@@ -359,9 +349,6 @@ public class MockMartusServer extends MartusServer
 
 	
 	public int countDownToGetPacketFailure;
-	public Vector newsResponse;
-	public String newsVersionLabelToCheck;
-	public String newsVersionBuildDateToCheck;
 	public Vector infoResponse;
 	public String uploadResponse;
 	public Vector downloadResponse;

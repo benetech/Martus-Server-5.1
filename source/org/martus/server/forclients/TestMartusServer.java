@@ -39,15 +39,12 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Enumeration;
 import java.util.Vector;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
-
 import org.martus.common.BulletinStore;
 import org.martus.common.ContactInfo;
 import org.martus.common.HQKey;
@@ -80,7 +77,6 @@ import org.martus.server.main.ServerBulletinStore;
 import org.martus.util.Base64;
 import org.martus.util.TestCaseEnhanced;
 import org.martus.util.UnicodeReader;
-import org.martus.util.UnicodeWriter;
 import org.martus.util.Base64.InvalidBase64Exception;
 import org.martus.util.inputstreamwithseek.InputStreamWithSeek;
 
@@ -390,111 +386,6 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		server.deleteAllFiles();
 	}
 	
-	public void testGetNewsBannedClient() throws Exception
-	{
-		TRACE_BEGIN("testGetNewsBannedClient");
-
-		Vector noNews = testServer.getNews(clientAccountId, "1.0.2", "03/03/03");
-		assertEquals(2, noNews.size());
-		assertEquals("ok", noNews.get(0));
-		assertEquals(0, ((Vector)noNews.get(1)).size());
-
-		testServer.serverForClients.clientsBanned.add(clientAccountId);
-		Vector bannedNews = testServer.getNews(clientAccountId, "1.0.1", "01/01/03");
-		testServer.serverForClients.clientsBanned.remove(clientAccountId);
-		assertEquals(2, bannedNews.size());
-		assertEquals("ok", bannedNews.get(0));
-		Vector newsItems = (Vector)bannedNews.get(1);
-		assertEquals(1, newsItems.size());
-		assertContains("account", (String)newsItems.get(0));
-		assertContains("blocked", (String)newsItems.get(0));
-		assertContains("Administrator", (String)newsItems.get(0));
-
-		TRACE_END();
-	}
-
-	public void testGetNews() throws Exception
-	{
-		TRACE_BEGIN("testGetNews");
-
-		MockMartusServer newsTestServer = new MockMartusServer();
-		newsTestServer.enterSecureMode();
-		newsTestServer.serverForClients.loadBannedClients();
-		newsTestServer.setSecurity(serverSecurity);
-		newsTestServer.verifyAndLoadConfigurationFiles();
-		
-		
-		Vector noNews = newsTestServer.getNews(clientAccountId, "1.0.2", "03/03/03");
-		assertEquals(2, noNews.size());
-		assertEquals("ok", noNews.get(0));
-		assertEquals(0, ((Vector)noNews.get(1)).size());
-		
-		File newsDirectory = newsTestServer.getNewsDirectory();
-		newsDirectory.deleteOnExit();
-		newsDirectory.mkdirs();
-		
-		noNews = newsTestServer.getNews(clientAccountId, "1.0.2", "03/03/03");
-		assertEquals(2, noNews.size());
-		assertEquals("ok", noNews.get(0));
-		assertEquals(0, ((Vector)noNews.get(1)).size());
-		
-		
-		File newsFile1 = new File(newsDirectory, "$$$news1.txt");
-		newsFile1.deleteOnExit();
-		File newsFile2 = new File(newsDirectory, "$$$news2_notice.info");
-		newsFile2.deleteOnExit();
-		File newsFile3 = new File(newsDirectory, "$$$news3.message");
-		newsFile3.deleteOnExit();
-		
-		String newsText1 = "This is news item #1";
-		String newsText2 = "This is news item #2";
-		String newsText3 = "This is news item #3";
-		
-		//Order is important #2, then #3, then #1.
-		UnicodeWriter writer = new UnicodeWriter(newsFile2);
-		writer.write(newsText2);
-		writer.close();
-		Thread.sleep(1000); //Important to sleep to ensure order of files Most Recent News First
-		
-		writer = new UnicodeWriter(newsFile3);
-		writer.write(newsText3);
-		writer.close();
-		Thread.sleep(1000);//Important to sleep to ensure order of files Most Recent News First
-		
-		writer = new UnicodeWriter(newsFile1);
-		writer.write(newsText1);
-		writer.close();
-		
-		newsTestServer.serverForClients.clientsBanned.add(clientAccountId);
-		Vector newsItems = newsTestServer.getNews(clientAccountId, "1.0.2", "03/03/03");
-		newsTestServer.serverForClients.clientsBanned.remove(clientAccountId);
-		
-		Date fileDate = new Date(newsFile1.lastModified());
-		SimpleDateFormat format = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-		String NewsFileText1 = format.format(fileDate) + System.getProperty("line.separator") + UnicodeReader.getFileContents(newsFile1); 
-		
-		fileDate = new Date(newsFile2.lastModified());
-		String NewsFileText2 = format.format(fileDate) + System.getProperty("line.separator") + UnicodeReader.getFileContents(newsFile2); 
-
-		fileDate = new Date(newsFile3.lastModified());
-		String NewsFileText3 = format.format(fileDate) + System.getProperty("line.separator") + UnicodeReader.getFileContents(newsFile3); 
-		newsTestServer.verifyAndLoadConfigurationFiles();
-		newsTestServer.deleteStartupFiles();
-		
-		newsItems = newsTestServer.getNews(clientAccountId, "1.0.2", "03/03/03");
-		assertEquals(2, newsItems.size());
-		assertEquals("ok", newsItems.get(0));
-		Vector news = (Vector)newsItems.get(1);
-		assertEquals(3, news.size());
-		
-		assertEquals(NewsFileText2, news.get(0));
-		assertEquals(NewsFileText3, news.get(1));
-		assertEquals(NewsFileText1, news.get(2));
-		
-		newsTestServer.deleteAllFiles();
-		TRACE_END();
-	}
-	
 	public void testGetServerCompliance() throws Exception
 	{
 		TRACE_BEGIN("testGetServerCompliance");
@@ -508,61 +399,6 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		assertEquals(serverComplianceString, result.get(0));
 		TRACE_END();
 	}
-
-
-	public void testGetNewsWithVersionInformation() throws Exception
-	{
-		TRACE_BEGIN("testGetNewsWithVersionInformation");
-
-		final String firstNewsItem = "first news item";
-		final String secondNewsItem = "second news item";
-		final String thridNewsItem = "third news item";
-		Vector twoNews = new Vector();
-		twoNews.add(NetworkInterfaceConstants.OK);
-		Vector resultNewsItems = new Vector();
-		resultNewsItems.add(firstNewsItem);
-		resultNewsItems.add(secondNewsItem);
-		twoNews.add(resultNewsItems);
-		testServer.newsResponse = twoNews;
-	
-
-		Vector noNewsForThisVersion = testServer.getNews(clientAccountId, "wrong version label" , "wrong version build date");
-		assertEquals(2, noNewsForThisVersion.size());
-		Vector noNewsItems = (Vector)noNewsForThisVersion.get(1);
-		assertEquals(0, noNewsItems.size());
-		
-
-		String versionToUse = "2.3.4";
-		testServer.newsVersionLabelToCheck = versionToUse;
-		testServer.newsVersionBuildDateToCheck = "";
-		Vector twoNewsItemsForThisClientsVersion = testServer.getNews(clientAccountId, versionToUse , "some version build date");
-		Vector twoNewsItems = (Vector)twoNewsItemsForThisClientsVersion.get(1);
-		assertEquals(2, twoNewsItems.size());
-		assertEquals(firstNewsItem, twoNewsItems.get(0));
-		assertEquals(secondNewsItem, twoNewsItems.get(1));
-
-
-		String versionBuildDateToUse = "02/01/03";
-		testServer.newsVersionLabelToCheck = "";
-		testServer.newsVersionBuildDateToCheck = versionBuildDateToUse;
-
-		Vector threeNews = new Vector();
-		threeNews.add(NetworkInterfaceConstants.OK);
-		resultNewsItems.add(thridNewsItem);
-		threeNews.add(resultNewsItems);
-		testServer.newsResponse = threeNews;
-
-		Vector threeNewsItemsForThisClientsBuildVersion = testServer.getNews(clientAccountId, "some version label" , versionBuildDateToUse);
-		Vector threeNewsItems = (Vector)threeNewsItemsForThisClientsBuildVersion.get(1);
-		assertEquals(3, threeNewsItems.size());
-		assertEquals(firstNewsItem, threeNewsItems.get(0));
-		assertEquals(secondNewsItem, threeNewsItems.get(1));
-		assertEquals(thridNewsItem, threeNewsItems.get(2));
-
-		TRACE_END();
-	}
-
-
 	
 	public void testLegacyApiMethodNamesNonSSL()
 	{
