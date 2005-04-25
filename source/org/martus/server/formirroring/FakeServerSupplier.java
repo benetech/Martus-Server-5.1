@@ -159,6 +159,7 @@ class FakeServerSupplier implements ServerSupplierInterface
 	
 	public void log(String message){}
 	public void logError(String message){}
+	public void logError(Exception e){}
 	public void logInfo(String message){}
 	public void logNotice(String message){}
 	public void logWarning(String message){}

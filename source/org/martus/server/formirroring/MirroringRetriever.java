@@ -44,6 +44,7 @@ import org.martus.common.network.mirroring.CallerSideMirroringGatewayInterface;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
 import org.martus.server.main.ServerBulletinStore;
+import org.martus.util.LoggerUtil;
 import org.martus.util.Base64.InvalidBase64Exception;
 
 public class MirroringRetriever implements LoggerInterface
@@ -247,6 +248,11 @@ public class MirroringRetriever implements LoggerInterface
 	public void logError(String message)
 	{
 		logger.logError(createLogString(message));
+	}
+	
+	public void logError(Exception e)
+	{
+		logError(LoggerUtil.getStackTrace(e));
 	}
 	
 	public void logInfo(String message)

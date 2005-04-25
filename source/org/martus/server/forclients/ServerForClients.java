@@ -52,6 +52,7 @@ import org.martus.common.xmlrpc.WebServerWithClientId;
 import org.martus.server.main.MartusServer;
 import org.martus.server.main.ServerBulletinStore;
 import org.martus.util.DirectoryUtils;
+import org.martus.util.LoggerUtil;
 import org.martus.util.UnicodeReader;
 import org.martus.util.UnicodeWriter;
 import org.martus.util.inputstreamwithseek.InputStreamWithSeek;
@@ -170,6 +171,12 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	public synchronized void logError(String message)
 	{
 		coreServer.logError(createLogString(message));
+	}
+	
+	
+	public void logError(Exception e)
+	{
+		logError(LoggerUtil.getStackTrace(e));
 	}
 	
 	public synchronized void logInfo(String message)

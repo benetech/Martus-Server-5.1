@@ -38,6 +38,7 @@ import org.martus.common.database.ReadableDatabase;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.server.main.BulletinUploadRecord;
+import org.martus.util.LoggerUtil;
 
 public class ServerSideAmplifierHandler implements AmplifierNetworkInterface, LoggerInterface
 {
@@ -249,6 +250,11 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface, Lo
 	public void logError(String message)
 	{
 		server.logError(createLogString(message));
+	}
+	
+	public void logError(Exception e)
+	{
+		logError(LoggerUtil.getStackTrace(e));
 	}
 	
 	public void logInfo(String message)

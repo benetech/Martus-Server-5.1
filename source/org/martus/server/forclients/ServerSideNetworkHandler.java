@@ -34,6 +34,7 @@ import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.network.NetworkInterface;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.util.Base64;
+import org.martus.util.LoggerUtil;
 
 
 public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterfaceConstants, LoggerInterface
@@ -54,6 +55,11 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 		server.logError(createLogString(message));
 	}
 	
+	public void logError(Exception e)
+	{
+		logError(LoggerUtil.getStackTrace(e));
+	}
+
 	public void logInfo(String message)
 	{
 		server.logInfo(createLogString(message));

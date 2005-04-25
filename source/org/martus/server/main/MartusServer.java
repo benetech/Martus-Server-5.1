@@ -90,6 +90,7 @@ import org.martus.server.main.ServerBulletinStore.DuplicatePacketException;
 import org.martus.server.main.ServerBulletinStore.SealedPacketExistsException;
 import org.martus.util.Base64;
 import org.martus.util.DirectoryUtils;
+import org.martus.util.LoggerUtil;
 import org.martus.util.UnicodeReader;
 import org.martus.util.Base64.InvalidBase64Exception;
 
@@ -1455,6 +1456,11 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	public synchronized void logError(String message)
 	{
 		getLogger().logError(createLogString(message));
+	}
+	
+	public void logError(Exception e)
+	{
+		logError(LoggerUtil.getStackTrace(e));
 	}
 	
 	public synchronized void logInfo(String message)

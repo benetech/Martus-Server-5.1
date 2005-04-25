@@ -52,6 +52,7 @@ import org.martus.server.main.MartusServer;
 import org.martus.server.main.ServerBulletinStore;
 import org.martus.util.Base64;
 import org.martus.util.DirectoryUtils;
+import org.martus.util.LoggerUtil;
 import org.martus.util.inputstreamwithseek.InputStreamWithSeek;
 
 
@@ -97,6 +98,11 @@ public class ServerForMirroring implements ServerSupplierInterface
 	public void logError(String message)
 	{
 		logger.logError(createLogString(message));
+	}
+	
+	public void logError(Exception e)
+	{
+		logError(LoggerUtil.getStackTrace(e));
 	}
 	
 	public void logInfo(String message)

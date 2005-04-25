@@ -32,6 +32,7 @@ import org.martus.common.LoggerInterface;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.network.mirroring.MirroringInterface;
+import org.martus.util.LoggerUtil;
 
 public class SupplierSideMirroringHandler implements MirroringInterface, NetworkInterfaceConstants, LoggerInterface
 {
@@ -239,6 +240,11 @@ public class SupplierSideMirroringHandler implements MirroringInterface, Network
 	public void logError(String message)
 	{
 		supplier.logError(createLogString(message));
+	}
+	
+	public void logError(Exception e)
+	{
+		logError(LoggerUtil.getStackTrace(e));
 	}
 	
 	public void logInfo(String message)
