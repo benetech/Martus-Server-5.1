@@ -247,6 +247,12 @@ public class SupplierSideMirroringHandler implements MirroringInterface, Network
 		logError(LoggerUtil.getStackTrace(e));
 	}
 	
+	public void logError(String message, Exception e)
+	{
+		logError(message);
+		logError(e);
+	}
+
 	public void logInfo(String message)
 	{
 		supplier.logInfo(createLogString(message));

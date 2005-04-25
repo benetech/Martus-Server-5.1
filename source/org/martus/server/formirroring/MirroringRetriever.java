@@ -255,6 +255,12 @@ public class MirroringRetriever implements LoggerInterface
 		logError(LoggerUtil.getStackTrace(e));
 	}
 	
+	public void logError(String message, Exception e)
+	{
+		logError(message);
+		logError(e);
+	}
+
 	public void logInfo(String message)
 	{
 		logger.logInfo(createLogString(message));

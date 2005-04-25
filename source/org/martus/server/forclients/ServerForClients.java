@@ -173,12 +173,17 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		coreServer.logError(createLogString(message));
 	}
 	
-	
 	public void logError(Exception e)
 	{
 		logError(LoggerUtil.getStackTrace(e));
 	}
 	
+	public void logError(String message, Exception e)
+	{
+		logError(message);
+		logError(e);
+	}
+
 	public synchronized void logInfo(String message)
 	{
 		coreServer.logInfo(createLogString(message));
