@@ -264,7 +264,7 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants, LoggerInt
 		{
 			result.add(NetworkInterfaceConstants.SERVER_ERROR);
 			result.add(e.toString());
-			logError("getServerInformation SERVER_ERROR" + e);			
+			logError("getServerInformation SERVER_ERROR", e);			
 		}
 		return result;
 	}
@@ -314,12 +314,12 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants, LoggerInt
 		} 
 		catch(MartusSignatureException e) 
 		{
-			logError("SERVER_ERROR: " + e);
+			logError("SERVER_ERROR", e);
 			return NetworkInterfaceConstants.SERVER_ERROR;
 		} 
 		catch(InvalidBase64Exception e) 
 		{
-			logError("INVALID_DATA: " + e);
+			logError("INVALID_DATA", e);
 			return NetworkInterfaceConstants.INVALID_DATA;
 		}
 	}
@@ -382,7 +382,8 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants, LoggerInt
 		}
 		catch(Exception e)
 		{
-			return returnSingleResponseErrorAndLog("getBulletinChunkWithoutVerifyingCaller:  SERVER_ERROR " + e, NetworkInterfaceConstants.SERVER_ERROR);
+			logError(e);
+			return returnSingleResponseErrorAndLog("getBulletinChunkWithoutVerifyingCaller:  SERVER_ERROR ", NetworkInterfaceConstants.SERVER_ERROR);
 		}
 	}
 
@@ -484,7 +485,7 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants, LoggerInt
 		} 
 		catch (MartusUtilities.FileVerificationException e) 
 		{
-			logError("    verifyBulletinInterimFile: " + e);
+			logError("verifyBulletinInterimFile:", e);
 		}
 		return false;	
 	}

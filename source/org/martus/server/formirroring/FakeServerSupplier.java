@@ -95,7 +95,7 @@ class FakeServerSupplier implements ServerSupplierInterface
 		}
 		catch (Exception e)
 		{
-			e.printStackTrace();
+			logError(e);
 			return null;
 		}
 	}

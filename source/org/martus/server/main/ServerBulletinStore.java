@@ -189,6 +189,7 @@ public class ServerBulletinStore extends BulletinStore
 		}
 		catch(Exception e)
 		{
+			logger.logError(e);
 			results.add(NetworkInterfaceConstants.SERVER_ERROR);
 		}
 

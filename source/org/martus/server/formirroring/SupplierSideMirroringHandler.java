@@ -61,6 +61,7 @@ public class SupplierSideMirroringHandler implements MirroringInterface, Network
 		}
 		catch (RuntimeException e)
 		{
+			logError(e);
 			Vector result = new Vector();
 			result.add(INVALID_DATA);
 			return result;

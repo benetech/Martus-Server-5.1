@@ -438,7 +438,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		{
 			result.add(NetworkInterfaceConstants.SERVER_ERROR);
 			result.add(e.toString());
-			logError("getServerInformation SERVER ERROR" + e);			
+			logError("getServerInformation SERVER ERROR", e);			
 		}
 		return result;
 	}
@@ -519,7 +519,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		} 
 		catch (IOException e) 
 		{
-			logError("putBulletinChunk Error creating interim file." + e.getMessage());
+			logError("putBulletinChunk Error creating interim file.", e);
 			return NetworkInterfaceConstants.SERVER_ERROR;
 		} 
 		catch (RecordHiddenException e)
@@ -580,7 +580,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			if(reader != null)
 				reader.close();
 			interimZipFile.delete();
-			logError("putBulletinChunk INVALID_DATA " + e);
+			logError("putBulletinChunk INVALID_DATA ", e);
 			return NetworkInterfaceConstants.INVALID_DATA;
 		}
 		
@@ -604,8 +604,8 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			{
 				if(!isAuthorizedToUpload(uploaderAccountId, authorAccountId, interimZipFile))
 				{
-					logError("putBulletinChunk NOTYOURBULLETIN isAuthorizedToUpload uploaderAccountId");
 					result = NetworkInterfaceConstants.NOTYOURBULLETIN;
+					logError("putBulletinChunk NOTYOURBULLETIN isAuthorizedToUpload uploaderAccountId");
 				}
 				else
 				{
@@ -615,40 +615,37 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			catch (InvalidPacketException e1)
 			{
 				result = NetworkInterfaceConstants.INVALID_DATA;
-				logError("putBulletinChunk InvalidPacketException: " + e1);
-				e1.printStackTrace();
+				logError("putBulletinChunk InvalidPacketException: ", e1);
 			}
 			catch (SignatureVerificationException e1)
 			{
 				result = NetworkInterfaceConstants.SIG_ERROR;
-				logError("putBulletinChunk SignatureVerificationException: " + e1);
+				logError("putBulletinChunk SignatureVerificationException: ", e1);
 			}
 			catch (DecryptionException e1)
 			{
 				result = NetworkInterfaceConstants.INVALID_DATA;
-				logError("putBulletinChunk DecryptionException: " + e1);
-				e1.printStackTrace();
+				logError("putBulletinChunk DecryptionException: ", e1);
 			}
 			catch (IOException e1)
 			{
 				result = NetworkInterfaceConstants.SERVER_ERROR;
-				logError("putBulletinChunk IOException: " + e1);
-				e1.printStackTrace();
+				logError("putBulletinChunk IOException: ", e1);
 			}
 			catch (SealedPacketExistsException e1)
 			{
-				logError("putBulletinChunk SealedPacketExistsException: " + e1);
 				result = NetworkInterfaceConstants.DUPLICATE;
+				logError("putBulletinChunk SealedPacketExistsException: ", e1);
 			}
 			catch (DuplicatePacketException e1)
 			{
-				logError("putBulletinChunk DuplicatePacketException: " + e1);
 				result = NetworkInterfaceConstants.DUPLICATE;
+				logError("putBulletinChunk DuplicatePacketException: ", e1);
 			}
 			catch (WrongAccountException e1)
 			{
-				logError("putBulletinChunk WrongAccountException: " + e1);
 				result = NetworkInterfaceConstants.INVALID_DATA;
+				logError("putBulletinChunk WrongAccountException: ", e1);
 			}
 
 			//log("returned from saveUploadedBulletinZipFile result =" + result);
@@ -710,7 +707,8 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			} 
 			catch (Exception e) 
 			{
-				return returnSingleErrorResponseAndLog( " returning SERVER_ERROR: " + e, NetworkInterfaceConstants.SERVER_ERROR );
+				logError(e);
+				return returnSingleErrorResponseAndLog( " returning SERVER_ERROR: ", NetworkInterfaceConstants.SERVER_ERROR );
 			} 
 		}
 
@@ -763,6 +761,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		}
 		catch (Exception e1)
 		{
+			logError(e1);
 			return result;
 		}
 		
@@ -782,7 +781,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		}
 		catch (IOException e)
 		{
-			logError("putContactInfo" + e);
+			logError("putContactInfo", e);
 			return NetworkInterfaceConstants.SERVER_ERROR;
 		}
 		return NetworkInterfaceConstants.OK;
@@ -801,8 +800,8 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		}
 		catch (IOException e)
 		{
-			e.printStackTrace();
 			results.add(NetworkInterfaceConstants.NOT_FOUND);
+			logError(e);
 			return results;
 		}
 		
@@ -824,9 +823,8 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		}
 		catch (Exception e1)
 		{
-			logError(e1.getMessage());
-			e1.printStackTrace();
 			results.add(NetworkInterfaceConstants.SERVER_ERROR);
+			logError(e1);
 			return results;
 		}
 	}
@@ -938,7 +936,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		catch(Exception e)
 		{
 			//TODO: Make sure this has a test!
-			logError("  error loading " + e);
+			logError("error loading", e);
 			result.clear();
 			result.add(NetworkInterfaceConstants.SERVER_ERROR);
 			return result;
@@ -956,12 +954,12 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		} 
 		catch(MartusSignatureException e) 
 		{
-			logError("SERVER_ERROR: " + e);
+			logError("SERVER_ERROR:", e);
 			return NetworkInterfaceConstants.SERVER_ERROR;
 		} 
 		catch(InvalidBase64Exception e) 
 		{
-			logError("INVALID_DATA: " + e);
+			logError("INVALID_DATA:", e);
 			return NetworkInterfaceConstants.INVALID_DATA;
 		}
 	}
@@ -1001,7 +999,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		}
 		catch (IOException e)
 		{
-			logError("Missing or unable to read file: " + getComplianceFile().getAbsolutePath());
+			logError("Missing or unable to read file: " + getComplianceFile().getAbsolutePath(), e);
 			throw e;
 		}
 	}
@@ -1081,11 +1079,13 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		catch(RecordHiddenException e)
 		{
 			// TODO: Should return more specific error code
-			return returnSingleErrorResponseAndLog("getBulletinChunkWithoutVerifyingCaller:  SERVER_ERROR " + e, NetworkInterfaceConstants.SERVER_ERROR);
+			logError(e);
+			return returnSingleErrorResponseAndLog("getBulletinChunkWithoutVerifyingCaller:  SERVER_ERROR", NetworkInterfaceConstants.SERVER_ERROR);
 		}
 		catch(Exception e)
 		{
-			return returnSingleErrorResponseAndLog("getBulletinChunkWithoutVerifyingCaller:  SERVER_ERROR " + e, NetworkInterfaceConstants.SERVER_ERROR);
+			logError(e);
+			return returnSingleErrorResponseAndLog("getBulletinChunkWithoutVerifyingCaller:  SERVER_ERROR ", NetworkInterfaceConstants.SERVER_ERROR);
 		}
 	}
 
@@ -1115,27 +1115,27 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		}
 		catch (DuplicatePacketException e)
 		{
-			logError("saveUpload DUPLICATE: " + e.getMessage());
+			logError("saveUpload DUPLICATE: ", e);
 			result =  NetworkInterfaceConstants.DUPLICATE;
 		}
 		catch (SealedPacketExistsException e)
 		{
-			logError("saveUpload SEALED_EXISTS: " + e.getMessage());
+			logError("saveUpload SEALED_EXISTS: ", e);
 			result =  NetworkInterfaceConstants.SEALED_EXISTS;
 		}
 		catch (Packet.SignatureVerificationException e)
 		{
-			logError("saveUpload SIG_ERROR: " + e);
+			logError("saveUpload SIG_ERROR: ", e);
 			result =  NetworkInterfaceConstants.SIG_ERROR;
 		}
 		catch (Packet.WrongAccountException e)
 		{
-			logError("saveUpload NOTYOURBULLETIN: ");
+			logError("saveUpload NOTYOURBULLETIN: WrongAccountException");
 			result =  NetworkInterfaceConstants.NOTYOURBULLETIN;
 		}
 		catch (Exception e)
 		{
-			logError("saveUpload INVALID_DATA: " + e);
+			logError("saveUpload INVALID_DATA: ", e);
 			result =  NetworkInterfaceConstants.INVALID_DATA;
 		}
 		if(result != NetworkInterfaceConstants.OK)
@@ -1147,7 +1147,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		}
 		catch (Exception e)
 		{
-			logError("saveUpload SERVER_ERROR: " + e);
+			logError("saveUpload SERVER_ERROR: ",  e);
 			result =  NetworkInterfaceConstants.SERVER_ERROR;
 		} 
 		
@@ -1249,7 +1249,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			} 
 			catch (MartusUtilities.FileVerificationException e) 
 			{
-				logError("    verifyBulletinInterimFile: " + e);
+				logError("verifyBulletinInterimFile:", e);
 			}
 		return false;	
 	}
@@ -1263,7 +1263,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		}
 		catch(Exception e)
 		{
-			logError("  isSigCorrect exception: " + e);
+			logError("isSigCorrect exception:", e);
 			return false;
 		}
 	}
@@ -1697,20 +1697,17 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		}
 		catch(FileDatabase.MissingAccountMapException e)
 		{
-			e.printStackTrace();
-			System.out.println("Missing Account Map File");
+			logError("Missing Account Map File", e);
 			System.exit(7);
 		}
 		catch(FileDatabase.MissingAccountMapSignatureException e)
 		{
-			e.printStackTrace();
-			System.out.println("Missing Account Map Signature File");
+			logError("Missing Account Map Signature File", e);
 			System.exit(7);
 		}
 		catch(FileVerificationException e)
 		{
-			e.printStackTrace();
-			System.out.println("Account Map did not verify against signature file");
+			logError("Account Map did not verify against signature file", e);
 			System.exit(7);
 		}
 	}
@@ -1800,7 +1797,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 				}
 				catch (Exception e)
 				{
-					e.printStackTrace();
+					logError(e);
 				}
 			}
 		}

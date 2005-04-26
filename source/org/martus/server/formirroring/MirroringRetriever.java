@@ -91,7 +91,7 @@ public class MirroringRetriever implements LoggerInterface
 		}
 		catch(ServerErrorException e)
 		{
-			logError("Supplier server: " + e);
+			logError("Supplier server:", e);
 		}
 		catch(ServerNotAvailableException e)
 		{
@@ -99,7 +99,7 @@ public class MirroringRetriever implements LoggerInterface
 		}
 		catch (Exception e)
 		{
-			e.printStackTrace();
+			logError(e);
 		}
 		
 	}
@@ -150,8 +150,7 @@ public class MirroringRetriever implements LoggerInterface
 		}
 		catch (Exception e)
 		{
-			logError("MirroringRetriever.getNextUidToRetrieve: " + e);
-			e.printStackTrace();
+			logError("MirroringRetriever.getNextUidToRetrieve: ",e);
 		}
 
 		return null;
@@ -207,8 +206,7 @@ public class MirroringRetriever implements LoggerInterface
 		}
 		catch (Exception e)
 		{
-			logError("getNextAccountToRetrieve: " + e);
-			e.printStackTrace();
+			logError("getNextAccountToRetrieve: ", e);
 		}
 		return null;
 	}

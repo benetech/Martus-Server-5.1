@@ -104,7 +104,7 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 				}
 				catch (InterruptedException e)
 				{
-					e.printStackTrace();
+					logError(e);
 				}
 			}
 			
@@ -352,7 +352,7 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 		}
 		catch (UnsupportedEncodingException e)
 		{
-			logError("UnsupportedEncodingException:" +e.getMessage());
+			logError("UnsupportedEncodingException:", e);
 			Vector errorResult = new Vector();
 			errorResult.add(INVALID_DATA);
 			return errorResult;

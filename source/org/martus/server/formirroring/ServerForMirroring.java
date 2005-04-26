@@ -188,7 +188,7 @@ public class ServerForMirroring implements ServerSupplierInterface
 		}
 		catch (Exception e)
 		{
-			e.printStackTrace();
+			logError(e);
 			return new Vector();
 		}
 	}
@@ -238,7 +238,7 @@ public class ServerForMirroring implements ServerSupplierInterface
 				}
 				catch (Exception e)
 				{
-					logError("listBulletins " + e);
+					logError("listBulletins ", e);
 				}
 			}
 			
@@ -262,7 +262,7 @@ public class ServerForMirroring implements ServerSupplierInterface
 		}
 		catch (Exception e)
 		{
-			e.printStackTrace();
+			logError(e);
 		}
 		return null;
 	}

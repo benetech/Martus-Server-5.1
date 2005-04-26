@@ -228,16 +228,14 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		}
 		catch(FileVerificationException e)
 		{
-			e.printStackTrace();
-			System.out.println(UPLOADSOKFILENAME + " did not verify against signature file");
+			logError(UPLOADSOKFILENAME + " did not verify against signature file", e);
 			System.exit(7);
 		}
 		catch(Exception e)
 		{
 			if(getAllowUploadFile().exists())
 			{
-				e.printStackTrace();
-				System.out.println("Unable to verify " + UPLOADSOKFILENAME + " against a signature file");
+				logError("Unable to verify " + UPLOADSOKFILENAME + " against a signature file", e);
 				System.exit(7);
 			}
 		}
@@ -247,9 +245,9 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	{
 		loadBannedClients();
 		loadCanUploadFile();
-		loadMagicWordsFile();
 		loadTestAccounts();
 		loadNews();
+		loadMagicWordsFile();
 	}
 
 	public void prepareToShutdown()
@@ -458,8 +456,8 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			}
 			catch (Exception e)
 			{
-				logError("deleteDraftBulletins: " + e);
 				result = NetworkInterfaceConstants.INCOMPLETE;
+				logError("deleteDraftBulletins:", e);
 			}
 		}
 		return result;
@@ -594,8 +592,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			}
 			catch(IOException e)
 			{
-				logError("getNews:Error reading File:" + newsFile.getAbsolutePath());
-				e.printStackTrace();
+				logError("getNews:Error reading File:" + newsFile.getAbsolutePath(), e);
 			}
 		}
 	}
@@ -665,9 +662,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		}
 		catch(Exception e)
 		{
-			logError("allowUploads " + e);
-			//System.out.println("MartusServer.allowUploads: " + e);
-			
+			logError("allowUploads", e);
 			//TODO: Should report error back to user. Shouldn't update in-memory list
 			// (clientsThatCanUpload) until AFTER the file has been written
 		}
@@ -699,8 +694,8 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		}
 		catch (IOException e)
 		{
-			logError("loadCanUploadList -- Error loading can-upload list: " + e);
 			clientsThatCanUpload = new Vector();
+			logError("loadCanUploadList -- Error loading can-upload list: ", e);
 		}
 		
 		logNotice("loadCanUploadList : Exit OK");
