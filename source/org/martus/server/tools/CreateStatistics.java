@@ -34,6 +34,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Vector;
+import org.martus.amplifier.main.MartusAmplifier;
 import org.martus.common.BulletinStore;
 import org.martus.common.ContactInfo;
 import org.martus.common.CustomFields;
@@ -163,7 +164,8 @@ public class CreateStatistics
 		UnicodeReader reader = new UnicodeReader(new File(adminStartupDir, MartusServer.HIDDENPACKETSFILENAME));
 		hiddenBulletinIds = MartusServerUtilities.getHiddenPacketsList(reader);
 		
-		clientsNotToAmplify = MartusUtilities.loadClientListAndExitOnError(new File(adminStartupDir, ServerForAmplifiers.CLIENTS_NOT_TO_AMPLIFY_FILENAME));
+		clientsNotToAmplifyFromServer = MartusUtilities.loadClientListAndExitOnError(new File(adminStartupDir, ServerForAmplifiers.CLIENTS_NOT_TO_AMPLIFY_FILENAME));
+		clientsNotToAmplifyFromAmp = MartusUtilities.loadClientListAndExitOnError(new File(adminStartupDir, MartusAmplifier.ACCOUNTS_NOT_AMPLIFIED_FILE));
 		authorizeLog = new AuthorizeLog(security, new LoggerToNull(), new File(packetsDir.getParentFile(), ServerForClients.AUTHORIZELOGFILENAME));  		
 		authorizeLog.loadFile();
 
@@ -194,7 +196,12 @@ public class CreateStatistics
 					String uploadOk = isAllowedToUpload(accountId);
 					String banned = isBanned(accountId);
 					String testAccount = isTestAccount(accountId);
-					String notToAmplify = canAmplify(accountId);
+					String canServerAmplify = canServerAmplify(accountId);
+					String canAmpAmplify = canAmpAmplify(accountId);
+					String canAmplify = ACCOUNT_TESTER_FALSE;
+					if(canServerAmplify.equals(ACCOUNT_TESTER_TRUE) || 
+							canAmpAmplify.equals(ACCOUNT_TESTER_TRUE))
+						canAmplify = ACCOUNT_TESTER_TRUE;
 					
 					String accountInfo = 
 						getNormalizedStringAndCheckForErrors(serverName) + DELIMITER +
@@ -202,7 +209,9 @@ public class CreateStatistics
 						getNormalizedStringAndCheckForErrors(testAccount) + DELIMITER +						
 						getNormalizedStringAndCheckForErrors(uploadOk) + DELIMITER +
 						getNormalizedStringAndCheckForErrors(banned) + DELIMITER +
-						getNormalizedStringAndCheckForErrors(notToAmplify) + DELIMITER +
+						getNormalizedStringAndCheckForErrors(canServerAmplify) + DELIMITER +
+						getNormalizedStringAndCheckForErrors(canAmpAmplify) + DELIMITER +
+						getNormalizedStringAndCheckForErrors(canAmplify) + DELIMITER +
 						getNormalizedStringAndCheckForErrors(clientAuthorizedDate) + DELIMITER +
 						getNormalizedStringAndCheckForErrors(clientGroup) + DELIMITER +
 						getNormalizedStringAndCheckForErrors(author) + DELIMITER +
@@ -331,9 +340,15 @@ public class CreateStatistics
 					return ACCOUNT_TESTER_TRUE;
 				return ACCOUNT_TESTER_FALSE;
 			}
-			private String canAmplify(String accountId)
+			private String canServerAmplify(String accountId)
 			{
-				if(clientsNotToAmplify.contains(accountId))
+				if(clientsNotToAmplifyFromServer.contains(accountId))
+					return ACCOUNT_AMPLIFY_FALSE;
+				return ACCOUNT_AMPLIFY_TRUE;
+			}
+			private String canAmpAmplify(String accountId)
+			{
+				if(clientsNotToAmplifyFromAmp.contains(accountId))
 					return ACCOUNT_AMPLIFY_FALSE;
 				return ACCOUNT_AMPLIFY_TRUE;
 			}
@@ -884,7 +899,8 @@ public class CreateStatistics
 	Vector clientsThatCanUpload;
 	Vector bannedClients;
 	Vector testClients;
-	Vector clientsNotToAmplify;
+	Vector clientsNotToAmplifyFromServer;
+	Vector clientsNotToAmplifyFromAmp;
 	Vector hiddenBulletinIds;
 	AuthorizeLog authorizeLog;
 	
@@ -902,7 +918,9 @@ public class CreateStatistics
 	final String ACCOUNT_UPLOAD_OK = "can upload";
 	final String ACCOUNT_TESTER = "tester";
 	final String ACCOUNT_BANNED = "banned";
-	final String ACCOUNT_AMPLIFY = "can amplify";
+	final String ACCOUNT_SERVER_AMPLIFY = "server amplify";
+	final String ACCOUNT_AMP_AMPLIFY = "amp amplify";
+	final String ACCOUNT_CAN_AMPLIFY = "can amplify";
 	final String ACCOUNT_DATE_AUTHORIZED = "date authorized";
 	final String ACCOUNT_GROUP = "group";
 	final String ACCOUNT_AUTHOR = "author name";
@@ -928,7 +946,9 @@ public class CreateStatistics
 		getNormalizedStringAndCheckForErrors(ACCOUNT_TESTER) + DELIMITER + 
 		getNormalizedStringAndCheckForErrors(ACCOUNT_UPLOAD_OK) + DELIMITER + 
 		getNormalizedStringAndCheckForErrors(ACCOUNT_BANNED) + DELIMITER + 
-		getNormalizedStringAndCheckForErrors(ACCOUNT_AMPLIFY) + DELIMITER + 
+		getNormalizedStringAndCheckForErrors(ACCOUNT_SERVER_AMPLIFY) + DELIMITER + 
+		getNormalizedStringAndCheckForErrors(ACCOUNT_AMP_AMPLIFY) + DELIMITER + 
+		getNormalizedStringAndCheckForErrors(ACCOUNT_CAN_AMPLIFY) + DELIMITER + 
 		getNormalizedStringAndCheckForErrors(ACCOUNT_DATE_AUTHORIZED) + DELIMITER + 
 		getNormalizedStringAndCheckForErrors(ACCOUNT_GROUP) + DELIMITER + 
 		getNormalizedStringAndCheckForErrors(ACCOUNT_AUTHOR) + DELIMITER + 
