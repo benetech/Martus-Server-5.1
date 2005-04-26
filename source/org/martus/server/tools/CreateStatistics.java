@@ -115,6 +115,12 @@ public class CreateStatistics
 				System.exit(2);
 			}
 			
+			if(!dataDir.exists())
+			{
+				System.err.println("The packets data directory " + dataDir.getAbsolutePath()+ " does not exist.\n");
+				System.exit(3);
+			}
+			
 			destinationDir.mkdirs();
 			if(prompt)
 			{
