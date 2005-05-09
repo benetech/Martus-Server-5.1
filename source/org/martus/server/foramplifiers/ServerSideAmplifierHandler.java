@@ -121,7 +121,7 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface, Lo
 		else
 			resultString = "none";
 		
-		logNotice("getContactInfo: account: " + MartusCrypto.formatAccountIdForLog(accountIdToRetrieve) + " had " + resultString);
+		logInfo("getContactInfo: account: " + MartusCrypto.formatAccountIdForLog(accountIdToRetrieve) + " had " + resultString);
 		return result;
 	}
 	
@@ -144,7 +144,7 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface, Lo
 		
 		result.add(NetworkInterfaceConstants.OK);
 		result.add(collector.infos);
-		logNotice("getPublicBulletinLocalIds: account:"+ MartusCrypto.formatAccountIdForLog(accountString) + " = "+collector.infos.size());
+		logInfo("getPublicBulletinLocalIds: account:"+ MartusCrypto.formatAccountIdForLog(accountString) + " = "+collector.infos.size());
 		
 		return result;
 	}
