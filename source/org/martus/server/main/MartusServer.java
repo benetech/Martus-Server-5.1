@@ -41,6 +41,7 @@ import java.util.Iterator;
 import java.util.TimerTask;
 import java.util.Vector;
 import java.util.zip.ZipFile;
+
 import org.martus.amplifier.ServerCallbackInterface;
 import org.martus.amplifier.main.MartusAmplifier;
 import org.martus.common.BulletinStore;
@@ -1534,7 +1535,10 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		return BulletinStore.loadBulletinHeaderPacket(db, key, getSecurity());
 	}
 	
-	public class UnexpectedExitException extends Exception{}
+	public class UnexpectedExitException extends Exception
+	{
+		private static final long serialVersionUID = 1;
+	}
 	
 	public void serverExit(int exitCode) throws UnexpectedExitException 
 	{

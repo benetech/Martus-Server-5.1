@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Vector;
+
 import org.martus.common.LoggerToNull;
 import org.martus.common.MartusUtilities;
 import org.martus.common.crypto.MartusCrypto;
@@ -241,6 +242,8 @@ public class MockMartusServer extends MartusServer
 			delete();
 			mkdir();
 		}
+
+		private static final long serialVersionUID = 1;
 	}
 	
 	public void deleteAllFiles() throws IOException

@@ -34,6 +34,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Vector;
+
 import org.martus.amplifier.main.MartusAmplifier;
 import org.martus.common.BulletinStore;
 import org.martus.common.ContactInfo;
@@ -253,8 +254,17 @@ public class CreateStatistics
 					//clientIPAddress = clientEntry.getIp();
 				}
 			}
-			class NoContactInfo extends IOException{};
-			class ContactInfoException extends IOException{};
+			
+			class NoContactInfo extends IOException
+			{
+				private static final long serialVersionUID = 1;
+			}
+
+			class ContactInfoException extends IOException
+			{
+				private static final long serialVersionUID = 1;
+			}
+			
 			private void getContactInfo(String accountId)
 			{
 				author = ERROR_MSG;

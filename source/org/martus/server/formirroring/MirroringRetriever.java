@@ -61,7 +61,10 @@ public class MirroringRetriever implements LoggerInterface
 		accountsToRetrieve = new Vector();
 	}
 	
-	static class MissingBulletinUploadRecordException extends Exception {}
+	static class MissingBulletinUploadRecordException extends Exception
+	{
+		private static final long serialVersionUID = 1;
+	}
 	
 	public void retrieveNextBulletin()
 	{
@@ -104,7 +107,10 @@ public class MirroringRetriever implements LoggerInterface
 		
 	}
 	
-	static class ServerNotAvailableException extends Exception {}
+	static class ServerNotAvailableException extends Exception 
+	{
+		private static final long serialVersionUID = 1;
+	}
 
 	private String retrieveBurFromMirror(UniversalId uid)
 		throws MartusSignatureException, MissingBulletinUploadRecordException, ServerNotAvailableException

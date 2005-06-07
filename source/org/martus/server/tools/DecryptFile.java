@@ -46,9 +46,20 @@ import org.martus.util.inputstreamwithseek.ByteArrayInputStreamWithSeek;
 
 public class DecryptFile
 {
-	public static class IncorrectEncryptedFileIdentifierException extends Exception {}
-	public static class IncorrectPublicKeyException extends Exception {}
-	public static class DigestFailedException extends Exception {}
+	public static class IncorrectEncryptedFileIdentifierException extends Exception 
+	{
+		private static final long serialVersionUID = 1;
+	}
+	
+	public static class IncorrectPublicKeyException extends Exception 
+	{
+		private static final long serialVersionUID = 1;
+	}
+	
+	public static class DigestFailedException extends Exception 
+	{
+		private static final long serialVersionUID = 1;
+	}
 	
 	public static void main(String[] args) throws IOException
 	{

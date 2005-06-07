@@ -274,7 +274,10 @@ public class SupplierSideMirroringHandler implements MirroringInterface, Network
 		supplier.logDebug(createLogString(message));
 	}
 
-	public static class UnknownCommandException extends Exception {}
+	public static class UnknownCommandException extends Exception 
+	{
+		private static final long serialVersionUID = 1;
+	}
 
 	final static int cmdUnknown = 0;
 	final static int cmdPing = 1;
