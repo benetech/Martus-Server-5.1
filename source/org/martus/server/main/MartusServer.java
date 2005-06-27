@@ -1537,7 +1537,6 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	
 	public class UnexpectedExitException extends Exception
 	{
-		private static final long serialVersionUID = 1;
 	}
 	
 	public void serverExit(int exitCode) throws UnexpectedExitException 

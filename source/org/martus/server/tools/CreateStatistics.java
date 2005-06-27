@@ -257,12 +257,10 @@ public class CreateStatistics
 			
 			class NoContactInfo extends IOException
 			{
-				private static final long serialVersionUID = 1;
 			}
 
 			class ContactInfoException extends IOException
 			{
-				private static final long serialVersionUID = 1;
 			}
 			
 			private void getContactInfo(String accountId)

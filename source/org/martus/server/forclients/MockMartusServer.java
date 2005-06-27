@@ -243,7 +243,6 @@ public class MockMartusServer extends MartusServer
 			mkdir();
 		}
 
-		private static final long serialVersionUID = 1;
 	}
 	
 	public void deleteAllFiles() throws IOException

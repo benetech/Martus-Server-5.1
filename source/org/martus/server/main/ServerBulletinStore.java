@@ -203,7 +203,6 @@ public class ServerBulletinStore extends BulletinStore
 			super(message);
 		}
 
-		private static final long serialVersionUID = 1;
 	}
 	
 	public static class SealedPacketExistsException extends Exception
@@ -213,7 +212,6 @@ public class ServerBulletinStore extends BulletinStore
 			super(message);
 		}
 
-		private static final long serialVersionUID = 1;
 	}
 	
 }

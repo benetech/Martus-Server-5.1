@@ -276,7 +276,6 @@ public class SupplierSideMirroringHandler implements MirroringInterface, Network
 
 	public static class UnknownCommandException extends Exception 
 	{
-		private static final long serialVersionUID = 1;
 	}
 
 	final static int cmdUnknown = 0;

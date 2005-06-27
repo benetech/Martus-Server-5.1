@@ -61,7 +61,6 @@ public class CreateMissingBURs
 
 	static class BurAlreadyExistedException extends Exception 
 	{
-		private static final long serialVersionUID = 1;
 	}
 	
 	void createBulletinUploadRecord(ServerFileDatabase db, DatabaseKey key, MartusCrypto security)
