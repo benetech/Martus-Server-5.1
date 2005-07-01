@@ -33,6 +33,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.Vector;
 
 import org.martus.amplifier.main.MartusAmplifier;
@@ -84,6 +85,7 @@ public class CreateStatistics
 			File destinationDir = null;
 			File keyPairFile = null;
 			File adminStartupDir = null;
+			File magicMapFile = null;
 			String serverName = "";
 
 			for (int i = 0; i < args.length; i++)
@@ -109,6 +111,8 @@ public class CreateStatistics
 				
 				if(args[i].startsWith("--server-name"))
 					serverName = value;
+				if(args[i].startsWith("--magic-map"))
+					magicMapFile = new File(value);
 			}
 			
 			if(destinationDir == null || dataDir == null || keyPairFile == null || adminStartupDir == null)
@@ -135,7 +139,7 @@ public class CreateStatistics
 			String passphrase = reader.readLine();
 			MartusCrypto security = MartusServerUtilities.loadCurrentMartusSecurity(keyPairFile, passphrase.toCharArray());
 
-			new CreateStatistics(security, dataDir, destinationDir, adminStartupDir, deletePrevious, serverName);
+			new CreateStatistics(security, dataDir, destinationDir, adminStartupDir, deletePrevious, serverName, magicMapFile);
 		}
 		catch(Exception e)
 		{
@@ -146,7 +150,7 @@ public class CreateStatistics
 		System.out.println("Done!");
 		System.exit(0);
 	}
-	public CreateStatistics(MartusCrypto securityToUse, File dataDirToUse, File destinationDirToUse, File adminStartupDirToUse, boolean deletePreviousToUse, String serverNameToUse) throws Exception
+	public CreateStatistics(MartusCrypto securityToUse, File dataDirToUse, File destinationDirToUse, File adminStartupDirToUse, boolean deletePreviousToUse, String serverNameToUse, File magicMapFileToUse) throws Exception
 	{
 		security = securityToUse;
 		deletePrevious = deletePreviousToUse;
@@ -154,6 +158,7 @@ public class CreateStatistics
 		destinationDir = destinationDirToUse;
 		adminStartupDir = adminStartupDirToUse;
 		serverName = serverNameToUse;
+		UpdateMagicWordToGroup(magicMapFileToUse);
 		fileDatabase = new ServerFileDatabase(dataDirToUse, security);
 		fileDatabase.initialize();
 		store = new ServerBulletinStore();
@@ -172,6 +177,59 @@ public class CreateStatistics
 
 		CreateAccountStatistics();
 		CreateBulletinStatistics();
+	}
+	
+	private void UpdateMagicWordToGroup(File magicWordMapFile) throws Exception
+	{
+		magicWordMap = new HashMap();
+		if(magicWordMapFile == null)
+			return;
+		UnicodeReader reader = new UnicodeReader(magicWordMapFile);
+		reader.readLine(); //header
+		
+		while (true)
+		{
+			String lineIn  = reader.readLine();
+			if(lineIn == null)
+				break;
+			String columns[] = lineIn.split(",",6);
+			String magicWord = columns[0];
+			String placeHolder = columns[1];
+			String groupName = columns[3];
+			if(magicWord.length() == 0)
+			{
+				System.out.println("Error: magic word empty :" + lineIn);
+				throw new Exception("magic word empty?");
+			}
+			if(placeHolder.length() == 0 && groupName.length() == 0)
+			{
+				System.out.println("Error: placeholder and group empty :" + lineIn);
+				throw new Exception("placeholder and group empty?");
+			}
+			if(groupName.length() != 0)
+			{
+				AddMagicMapping(groupName, groupName);
+				AddMagicMapping(magicWord, groupName);
+				if(placeHolder.length() != 0)
+					AddMagicMapping(placeHolder, groupName);
+			}
+			else
+			{
+				AddMagicMapping(magicWord, placeHolder);
+				AddMagicMapping(placeHolder, placeHolder);
+			}
+		}
+	
+	}
+	
+	private void AddMagicMapping(String key, String value) throws Exception
+	{
+		if(magicWordMap.containsKey(key))
+		{
+			System.out.println("Error magic word key already exists: " + key);
+			throw new Exception("Duplicate Key");
+		}
+		magicWordMap.put(key, value);
 	}
 
 	private void CreateAccountStatistics() throws Exception
@@ -250,8 +308,14 @@ public class CreateStatistics
 				if(clientEntry != null)
 				{
 					clientAuthorizedDate = clientEntry.getDate();
-					clientGroup = clientEntry.getGroupName();
+					String clientGroupWhenAuthorized = clientEntry.getGroupName();
 					//clientIPAddress = clientEntry.getIp();
+					clientGroup = (String)magicWordMap.get(clientGroupWhenAuthorized);
+					if(clientGroup == null)
+					{
+						System.out.println("Warning unkown Group :" + clientGroupWhenAuthorized);
+						clientGroup = clientGroupWhenAuthorized;
+					}
 				}
 			}
 			
@@ -904,6 +968,7 @@ public class CreateStatistics
 	boolean errorOccured;
 	ServerBulletinStore store;
 	FileDatabase fileDatabase;
+	HashMap magicWordMap;
 	Vector clientsThatCanUpload;
 	Vector bannedClients;
 	Vector testClients;
