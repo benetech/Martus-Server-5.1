@@ -158,7 +158,7 @@ public class CreateStatistics
 		destinationDir = destinationDirToUse;
 		adminStartupDir = adminStartupDirToUse;
 		serverName = serverNameToUse;
-		UpdateMagicWordToGroup(magicMapFileToUse);
+		updateMagicWordToGroup(magicMapFileToUse);
 		fileDatabase = new ServerFileDatabase(dataDirToUse, security);
 		fileDatabase.initialize();
 		store = new ServerBulletinStore();
@@ -175,64 +175,84 @@ public class CreateStatistics
 		authorizeLog = new AuthorizeLog(security, new LoggerToNull(), new File(packetsDir.getParentFile(), ServerForClients.AUTHORIZELOGFILENAME));  		
 		authorizeLog.loadFile();
 
-		CreateAccountStatistics();
-		CreateBulletinStatistics();
+		createAccountStatistics();
+		createBulletinStatistics();
 	}
 	
-	private void UpdateMagicWordToGroup(File magicWordMapFile) throws Exception
+	private void updateMagicWordToGroup(File magicWordMapFile) throws Exception
 	{
 		magicWordMap = new HashMap();
 		if(magicWordMapFile == null)
 			return;
 		UnicodeReader reader = new UnicodeReader(magicWordMapFile);
 		reader.readLine(); //header
-		
+		boolean errorOccured = false;
 		while (true)
 		{
 			String lineIn  = reader.readLine();
 			if(lineIn == null)
 				break;
-			String columns[] = lineIn.split(",",6);
-			String magicWord = columns[0];
-			String placeHolder = columns[1];
-			String groupName = columns[3];
+			String columns[] = lineIn.split("\t",6);
+			String magicWord = removeQuotesAndTrim(columns[0]);
+			String placeHolder = removeQuotesAndTrim(columns[1]);
+			String groupName = removeQuotesAndTrim(columns[3]);
+			
 			if(magicWord.length() == 0)
 			{
-				System.out.println("Error: magic word empty :" + lineIn);
-				throw new Exception("magic word empty?");
+				System.err.println("Error: magic word empty :" + lineIn);
+				errorOccured = true;	
 			}
 			if(placeHolder.length() == 0 && groupName.length() == 0)
 			{
-				System.out.println("Error: placeholder and group empty :" + lineIn);
-				throw new Exception("placeholder and group empty?");
+				System.err.println("Error: placeholder and group empty :" + lineIn);
+				errorOccured = true;
 			}
 			if(groupName.length() != 0)
 			{
-				AddMagicMapping(groupName, groupName);
-				AddMagicMapping(magicWord, groupName);
+				if(!addMagicMapping(groupName, groupName))
+					errorOccured = true;
+					
+				if(!addMagicMapping(magicWord, groupName))
+					errorOccured = true;
 				if(placeHolder.length() != 0)
-					AddMagicMapping(placeHolder, groupName);
+				{
+					if(!addMagicMapping(placeHolder, groupName))
+						errorOccured = true;
+				}
 			}
 			else
 			{
-				AddMagicMapping(magicWord, placeHolder);
-				AddMagicMapping(placeHolder, placeHolder);
+				if(!addMagicMapping(magicWord, placeHolder))
+					errorOccured = true;
+					
+				if(!addMagicMapping(placeHolder, placeHolder))
+					errorOccured = true;
 			}
 		}
-	
+		if(errorOccured)
+			System.exit(4);
 	}
 	
-	private void AddMagicMapping(String key, String value) throws Exception
+	private String removeQuotesAndTrim(String data)
+	{
+		if(data.length() == 0)
+			return data;
+		String strippedData = data.substring(1, data.length()-1);
+		return strippedData.trim();
+	}
+	
+	private boolean addMagicMapping(String key, String value) 
 	{
 		if(magicWordMap.containsKey(key))
 		{
-			System.out.println("Error magic word key already exists: " + key);
-			throw new Exception("Duplicate Key");
+			System.err.println("Error magic word key already exists: " + key);
+			return false;
 		}
 		magicWordMap.put(key, value);
+		return true;
 	}
 
-	private void CreateAccountStatistics() throws Exception
+	private void createAccountStatistics() throws Exception
 	{
 		final File accountStatsError = new File(destinationDir,ACCOUNT_STATS_FILE_NAME + ERR_EXT + CSV_EXT);
 		class AccountVisitor implements Database.AccountVisitor 
@@ -308,7 +328,7 @@ public class CreateStatistics
 				if(clientEntry != null)
 				{
 					clientAuthorizedDate = clientEntry.getDate();
-					String clientGroupWhenAuthorized = clientEntry.getGroupName();
+					String clientGroupWhenAuthorized = clientEntry.getGroupName().trim();
 					//clientIPAddress = clientEntry.getIp();
 					clientGroup = (String)magicWordMap.get(clientGroupWhenAuthorized);
 					if(clientGroup == null)
@@ -463,7 +483,7 @@ public class CreateStatistics
 		}
 	}
 
-	private void CreateBulletinStatistics() throws Exception
+	private void createBulletinStatistics() throws Exception
 	{
 		final File bulletinStatsError = new File(destinationDir, BULLETIN_STATS_FILE_NAME + ERR_EXT + CSV_EXT);
 		class BulletinVisitor implements Database.PacketVisitor
