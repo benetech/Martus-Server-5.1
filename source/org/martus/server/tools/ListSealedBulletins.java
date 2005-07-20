@@ -29,7 +29,7 @@ package org.martus.server.tools;
 import java.io.File;
 import java.util.Vector;
 
-import org.martus.common.BulletinStore;
+import org.martus.common.bulletinstore.BulletinStore;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;

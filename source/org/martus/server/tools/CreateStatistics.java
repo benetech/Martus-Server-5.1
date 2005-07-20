@@ -37,7 +37,6 @@ import java.util.HashMap;
 import java.util.Vector;
 
 import org.martus.amplifier.main.MartusAmplifier;
-import org.martus.common.BulletinStore;
 import org.martus.common.ContactInfo;
 import org.martus.common.FieldCollection;
 import org.martus.common.HQKey;
@@ -46,6 +45,7 @@ import org.martus.common.LoggerToNull;
 import org.martus.common.MartusUtilities;
 import org.martus.common.MartusXml;
 import org.martus.common.bulletin.BulletinConstants;
+import org.martus.common.bulletinstore.BulletinStore;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;

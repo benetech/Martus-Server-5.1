@@ -28,8 +28,8 @@ package org.martus.server.forclients;
 
 import java.util.Vector;
 
-import org.martus.common.BulletinStore;
 import org.martus.common.bulletin.Bulletin;
+import org.martus.common.bulletinstore.BulletinStore;
 import org.martus.common.crypto.MockMartusSecurity;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.MockServerDatabase;

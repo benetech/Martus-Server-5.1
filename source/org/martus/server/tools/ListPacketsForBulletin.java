@@ -29,8 +29,8 @@ package org.martus.server.tools;
 import java.io.BufferedReader;
 import java.io.File;
 
-import org.martus.common.BulletinStore;
 import org.martus.common.bulletin.BulletinZipUtilities;
+import org.martus.common.bulletinstore.BulletinStore;
 import org.martus.common.crypto.MartusSecurity;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.ServerFileDatabase;

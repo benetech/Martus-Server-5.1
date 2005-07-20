@@ -29,13 +29,13 @@ package org.martus.server.main;
 import java.io.File;
 import java.util.Vector;
 
-import org.martus.common.BulletinStore;
 import org.martus.common.HQKey;
 import org.martus.common.HQKeys;
 import org.martus.common.LoggerInterface;
 import org.martus.common.LoggerToNull;
 import org.martus.common.bulletin.Bulletin;
 import org.martus.common.bulletin.BulletinZipUtilities;
+import org.martus.common.bulletinstore.BulletinStore;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MockMartusSecurity;
 import org.martus.common.database.DatabaseKey;
