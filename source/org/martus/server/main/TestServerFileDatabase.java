@@ -81,7 +81,6 @@ public class TestServerFileDatabase extends TestCaseEnhanced
 		{
 			PacketVisitor(Database databaseToUse)
 			{
-				dbase = databaseToUse;
 			}
 			
 			public void visit(DatabaseKey key)
@@ -89,8 +88,6 @@ public class TestServerFileDatabase extends TestCaseEnhanced
 				String localId = key.getLocalId();
 				assertFalse("should not be a BUR packet", localId.startsWith("BUR-"));
 			}
-			
-			Database dbase;
 		}
 
 		PacketVisitor visitor = new PacketVisitor(db);
