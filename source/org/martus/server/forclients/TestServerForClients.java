@@ -262,44 +262,44 @@ public class TestServerForClients extends TestCaseEnhanced
 	{
 		TRACE_BEGIN("testDeleteDraftBulletinsThroughHandler");
 
-		BulletinStore store = mockServer.getStore();
+		BulletinStore testStoreDeleteDrafts = mockServer.getStore();
 
 		String[] allIds = uploadSampleDrafts();
 		String resultAllOk = testServer.deleteDraftBulletins(clientAccountId, allIds);
 		assertEquals("Good 3 not ok?", NetworkInterfaceConstants.OK, resultAllOk);
-		assertEquals("Didn't delete all?", 0, store.getBulletinCount());
+		assertEquals("Didn't delete all?", 0, testStoreDeleteDrafts.getBulletinCount());
 		
 		String[] twoGoodOneBad = uploadSampleDrafts();
 		twoGoodOneBad[1] = "Not a valid local id";
 		String resultOneBad = testServer.deleteDraftBulletins(clientAccountId, twoGoodOneBad);
 		assertEquals("Two good one bad not incomplete?", NetworkInterfaceConstants.INCOMPLETE, resultOneBad);
-		assertEquals("Didn't delete two?", 1, store.getBulletinCount());
+		assertEquals("Didn't delete two?", 1, testStoreDeleteDrafts.getBulletinCount());
 		
 		uploadSampleBulletin();
-		int newRecordCount = store.getBulletinCount();
+		int newRecordCount = testStoreDeleteDrafts.getBulletinCount();
 		assertNotEquals("Didn't upload?", 1, newRecordCount);
 		String[] justSealed = new String[] {b1.getLocalId()};
 		testServer.deleteDraftBulletins(clientAccountId, justSealed);
 		assertEquals("Sealed not ok?", NetworkInterfaceConstants.OK, resultAllOk);
-		assertEquals("Deleted sealed?", newRecordCount, store.getBulletinCount());
+		assertEquals("Deleted sealed?", newRecordCount, testStoreDeleteDrafts.getBulletinCount());
 
 		TRACE_END();
 	}
 
 	String[] uploadSampleDrafts() throws Exception
 	{
-		BulletinStore store = mockServer.getStore();
+		BulletinStore testStoreUploadDrafts = mockServer.getStore();
 
-		assertEquals("db not empty?", 0, store.getBulletinCount());
+		assertEquals("db not empty?", 0, testStoreUploadDrafts.getBulletinCount());
 		Bulletin draft1 = new Bulletin(clientSecurity);
 		uploadSampleDraftBulletin(draft1);
-		assertEquals("Didn't save 1?", 1, store.getBulletinCount());
+		assertEquals("Didn't save 1?", 1, testStoreUploadDrafts.getBulletinCount());
 		Bulletin draft2 = new Bulletin(clientSecurity);
 		uploadSampleDraftBulletin(draft2);
-		assertEquals("Didn't save 2?", 2, store.getBulletinCount());
+		assertEquals("Didn't save 2?", 2, testStoreUploadDrafts.getBulletinCount());
 		Bulletin draft3 = new Bulletin(clientSecurity);
 		uploadSampleDraftBulletin(draft3);
-		assertEquals("Didn't save 3?", 3, store.getBulletinCount());
+		assertEquals("Didn't save 3?", 3, testStoreUploadDrafts.getBulletinCount());
 
 		return new String[] {draft1.getLocalId(), draft2.getLocalId(), draft3.getLocalId()};
 	}
@@ -721,14 +721,14 @@ public class TestServerForClients extends TestCaseEnhanced
 		mockServer.uploadBulletin(clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipString);
 	}
 	
-	String uploadSampleDraftBulletin(Bulletin draft) throws Exception
+	String uploadSampleDraftBulletin(Bulletin draftBulletin) throws Exception
 	{
 		mockServer.setSecurity(serverSecurity);
 		testServer.clearCanUploadList();
 		mockServer.allowUploads(clientSecurity.getPublicKeyString());
 		
-		String draftZipString = BulletinForTesting.saveToZipString(getClientDatabase(), draft, clientSecurity);
-		String result = mockServer.uploadBulletin(clientSecurity.getPublicKeyString(), draft.getLocalId(), draftZipString);
+		String draftZipString = BulletinForTesting.saveToZipString(getClientDatabase(), draftBulletin, clientSecurity);
+		String result = mockServer.uploadBulletin(clientSecurity.getPublicKeyString(), draftBulletin.getLocalId(), draftZipString);
 		assertEquals("upload failed?", NetworkInterfaceConstants.OK, result);
 		return draftZipString;
 	}

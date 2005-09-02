@@ -250,8 +250,8 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 	{
 		TRACE_BEGIN("testHQProxyUploadBulletin");
 		testServer.serverForClients.clearCanUploadList();
-		String clientAccountId = clientSecurity.getPublicKeyString();
-		testServer.allowUploads(clientAccountId);
+		String allowedToUploadAccountId = clientSecurity.getPublicKeyString();
+		testServer.allowUploads(allowedToUploadAccountId);
 		String hqAccountId = hqSecurity.getPublicKeyString();
 		testServer.allowUploads(hqAccountId);
 
@@ -271,11 +271,11 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		String draft1ZipString = BulletinForTesting.saveToZipString(getClientDatabase(), b, clientSecurity);
 		byte[] draft1ZipBytes = Base64.decode(draft1ZipString);
 
-		String result = testServer.putBulletinChunk(hqAccountId, clientAccountId, b.getLocalId(), draft1ZipBytes.length, 0, 
+		String result = testServer.putBulletinChunk(hqAccountId, allowedToUploadAccountId, b.getLocalId(), draft1ZipBytes.length, 0, 
 				draft1ZipBytes.length, draft1ZipString);
 		assertEquals(NetworkInterfaceConstants.OK, result);
 
-		result = testServer.putBulletinChunk(clientAccountId, clientAccountId, b.getLocalId(), draft1ZipBytes.length, 0, 
+		result = testServer.putBulletinChunk(allowedToUploadAccountId, allowedToUploadAccountId, b.getLocalId(), draft1ZipBytes.length, 0, 
 			draft1ZipBytes.length, draft1ZipString);
 		assertEquals(NetworkInterfaceConstants.DUPLICATE, result);
 		
@@ -522,12 +522,12 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		String incorrectAccoutResult = testServer.putContactInfo("differentAccountID", contactInfo);
 		assertEquals("Incorrect Accout ", INVALID_DATA, incorrectAccoutResult);		
 
-		ServerBulletinStore store = testServer.getStore();
-		assertFalse("Contact File already exists?", store.doesContactInfoExist(clientId));		
+		ServerBulletinStore serverStore = testServer.getStore();
+		assertFalse("Contact File already exists?", serverStore.doesContactInfoExist(clientId));		
 		String correctResult = testServer.putContactInfo(clientId, contactInfo);
 		assertEquals("Correct Signature", OK, correctResult);		
 
-		assertTrue("File Doesn't exist?", store.doesContactInfoExist(clientId));
+		assertTrue("File Doesn't exist?", serverStore.doesContactInfoExist(clientId));
 		Database db = testServer.getWriteableDatabase();
 		File contactFile = db.getContactInfoFile(clientId);
 		assertTrue("Size too small", contactFile.length() > 200);
@@ -930,17 +930,17 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 	{
 		TRACE_BEGIN("testUploadDraft");
 
-		Bulletin draft = new Bulletin(clientSecurity);
-		draft.set(Bulletin.TAGTITLE, "Title1");
-		draft.set(Bulletin.TAGPUBLICINFO, "Details1");
-		draft.set(Bulletin.TAGPRIVATEINFO, "PrivateDetails1");
+		Bulletin draftBulletin = new Bulletin(clientSecurity);
+		draftBulletin.set(Bulletin.TAGTITLE, "Title1");
+		draftBulletin.set(Bulletin.TAGPUBLICINFO, "Details1");
+		draftBulletin.set(Bulletin.TAGPRIVATEINFO, "PrivateDetails1");
 		HQKeys keys = new HQKeys();
 		HQKey key1 = new HQKey(hqSecurity.getPublicKeyString());
 		keys.add(key1);
-		draft.setAuthorizedToReadKeys(keys);
-		store.saveEncryptedBulletinForTesting(draft);
-		draft = BulletinLoader.loadFromDatabase(getClientDatabase(), DatabaseKey.createDraftKey(draft.getUniversalId()), clientSecurity);
-		String draftZipString = BulletinForTesting.saveToZipString(getClientDatabase(), draft, clientSecurity);
+		draftBulletin.setAuthorizedToReadKeys(keys);
+		store.saveEncryptedBulletinForTesting(draftBulletin);
+		draftBulletin = BulletinLoader.loadFromDatabase(getClientDatabase(), DatabaseKey.createDraftKey(draftBulletin.getUniversalId()), clientSecurity);
+		String draftZipString = BulletinForTesting.saveToZipString(getClientDatabase(), draftBulletin, clientSecurity);
 		byte[] draftZipBytes = Base64.decode(draftZipString);
 
 		MockMartusServer tempServer = new MockMartusServer(new MockDraftDatabase());
@@ -949,7 +949,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 			tempServer.setSecurity(serverSecurity);
 			tempServer.serverForClients.loadBannedClients();
 			tempServer.allowUploads(clientSecurity.getPublicKeyString());
-			assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(tempServer, clientSecurity.getPublicKeyString(), draft.getLocalId(), draftZipBytes.length, 0, draftZipBytes.length, draftZipString, clientSecurity));
+			assertEquals(NetworkInterfaceConstants.OK, uploadBulletinChunk(tempServer, clientSecurity.getPublicKeyString(), draftBulletin.getLocalId(), draftZipBytes.length, 0, draftZipBytes.length, draftZipString, clientSecurity));
 		}
 		finally
 		{
@@ -1160,8 +1160,8 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		ZipException 
 	{
 		String result = "";
-		File tempFile = Base64.decodeToTempFile(zipString);
-		ZipFile zip = new ZipFile(tempFile);
+		File tempZipFile = Base64.decodeToTempFile(zipString);
+		ZipFile zip = new ZipFile(tempZipFile);
 		Enumeration entries = zip.entries();
 		while(entries.hasMoreElements())
 		{
@@ -1657,14 +1657,14 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		testServer.uploadBulletin(clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipString);
 	}
 	
-	String uploadSampleDraftBulletin(Bulletin draft) throws Exception
+	String uploadSampleDraftBulletin(Bulletin draftBulletin) throws Exception
 	{
 		testServer.setSecurity(serverSecurity);
 		testServer.serverForClients.clearCanUploadList();
 		testServer.allowUploads(clientSecurity.getPublicKeyString());
 		
-		String draftZipString = BulletinForTesting.saveToZipString(getClientDatabase(), draft, clientSecurity);
-		String result = testServer.uploadBulletin(clientSecurity.getPublicKeyString(), draft.getLocalId(), draftZipString);
+		String draftZipString = BulletinForTesting.saveToZipString(getClientDatabase(), draftBulletin, clientSecurity);
+		String result = testServer.uploadBulletin(clientSecurity.getPublicKeyString(), draftBulletin.getLocalId(), draftZipString);
 		assertEquals("upload failed?", OK, result);
 		return draftZipString;
 	}

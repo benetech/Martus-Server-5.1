@@ -237,7 +237,6 @@ public class TestServerForAmplifiers extends TestCaseEnhanced
 
 	public void testCanAccountBeAmplified() throws Exception
 	{
-		MockMartusServer coreServer = new MockMartusServer();
 		ServerForAmplifiers ampServer = new ServerForAmplifiers(coreServer, logger);
 		ampServer.loadConfigurationFiles();
 		assertTrue("client not authorized?", ampServer.canAccountBeAmplified(clientSecurity.getPublicKeyString()));

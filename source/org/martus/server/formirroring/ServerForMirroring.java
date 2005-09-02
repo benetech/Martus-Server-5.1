@@ -330,8 +330,7 @@ public class ServerForMirroring implements ServerSupplierInterface
 	{
 		String ip = MartusUtilities.extractIpFromFileName(publicKeyFile.getName());
 		CallerSideMirroringGateway gateway = createGatewayToCall(ip, publicKeyFile);
-		MirroringRetriever retriever = new MirroringRetriever(getStore(), gateway, ip, logger);
-		return retriever;
+		return new MirroringRetriever(getStore(), gateway, ip, logger);
 	}
 	
 	CallerSideMirroringGateway createGatewayToCall(String ip, File publicKeyFile) throws 

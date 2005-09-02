@@ -63,7 +63,7 @@ public class CreateMissingBURs
 	{
 	}
 	
-	void createBulletinUploadRecord(ServerFileDatabase db, DatabaseKey key, MartusCrypto security)
+	void createBulletinUploadRecord(DatabaseKey key)
 		throws CreateDigestException, BurAlreadyExistedException, 
 		IOException, RecordHiddenException, TooManyAccountsException
 	{
@@ -95,7 +95,7 @@ public class CreateMissingBURs
 				String timeStamp = db.getTimeStamp(key);
 				if(noisy)
 					System.out.println(key.getLocalId() + ": " + timeStamp);
-				createBulletinUploadRecord(db, key, security);
+				createBulletinUploadRecord(key);
 			}
 			if(noisy)
 				System.out.println();

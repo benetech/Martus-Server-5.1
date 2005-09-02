@@ -83,9 +83,9 @@ public class TestServerFileDatabase extends TestCaseEnhanced
 			{
 			}
 			
-			public void visit(DatabaseKey key)
+			public void visit(DatabaseKey dbKey)
 			{
-				String localId = key.getLocalId();
+				String localId = dbKey.getLocalId();
 				assertFalse("should not be a BUR packet", localId.startsWith("BUR-"));
 			}
 		}
