@@ -186,7 +186,7 @@ public class CreateStatistics
 			return;
 		UnicodeReader reader = new UnicodeReader(magicWordMapFile);
 		reader.readLine(); //header
-		boolean errorOccuredMagicWordUpdate = false;
+		boolean errorOccured = false;
 		while (true)
 		{
 			String lineIn  = reader.readLine();
@@ -200,36 +200,36 @@ public class CreateStatistics
 			if(magicWord.length() == 0)
 			{
 				System.err.println("Error: magic word empty :" + lineIn);
-				errorOccuredMagicWordUpdate = true;	
+				errorOccured = true;	
 			}
 			if(placeHolder.length() == 0 && groupName.length() == 0)
 			{
 				System.err.println("Error: placeholder and group empty :" + lineIn);
-				errorOccuredMagicWordUpdate = true;
+				errorOccured = true;
 			}
 			if(groupName.length() != 0)
 			{
 				if(!addMagicMapping(groupName, groupName))
-					errorOccuredMagicWordUpdate = true;
+					errorOccured = true;
 					
 				if(!addMagicMapping(magicWord, groupName))
-					errorOccuredMagicWordUpdate = true;
+					errorOccured = true;
 				if(placeHolder.length() != 0)
 				{
 					if(!addMagicMapping(placeHolder, groupName))
-						errorOccuredMagicWordUpdate = true;
+						errorOccured = true;
 				}
 			}
 			else
 			{
 				if(!addMagicMapping(magicWord, placeHolder))
-					errorOccuredMagicWordUpdate = true;
+					errorOccured = true;
 					
 				if(!addMagicMapping(placeHolder, placeHolder))
-					errorOccuredMagicWordUpdate = true;
+					errorOccured = true;
 			}
 		}
-		if(errorOccuredMagicWordUpdate)
+		if(errorOccured)
 			System.exit(4);
 	}
 	
@@ -271,7 +271,7 @@ public class CreateStatistics
 				{
 					getPublicCode(accountId);
 					getContactInfo(accountId);
-					getAuthorizedInfo();
+					getAuthorizedInfo(publicCode);
 					String uploadOk = isAllowedToUpload(accountId);
 					String banned = isBanned(accountId);
 					String testAccount = isTestAccount(accountId);
@@ -320,7 +320,7 @@ public class CreateStatistics
 				}
 			}
 			
-			private void getAuthorizedInfo()
+			private void getAuthorizedInfo(String publicCode)
 			{
 				AuthorizeLogEntry clientEntry = authorizeLog.getAuthorizedClientEntry(publicCode);
 				clientAuthorizedDate = "";
