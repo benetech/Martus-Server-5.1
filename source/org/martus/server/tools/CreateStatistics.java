@@ -186,7 +186,7 @@ public class CreateStatistics
 			return;
 		UnicodeReader reader = new UnicodeReader(magicWordMapFile);
 		reader.readLine(); //header
-		boolean errorOccured = false;
+		boolean errorOccuredMagicWordUpdate = false;
 		while (true)
 		{
 			String lineIn  = reader.readLine();
@@ -200,36 +200,36 @@ public class CreateStatistics
 			if(magicWord.length() == 0)
 			{
 				System.err.println("Error: magic word empty :" + lineIn);
-				errorOccured = true;	
+				errorOccuredMagicWordUpdate = true;	
 			}
 			if(placeHolder.length() == 0 && groupName.length() == 0)
 			{
 				System.err.println("Error: placeholder and group empty :" + lineIn);
-				errorOccured = true;
+				errorOccuredMagicWordUpdate = true;
 			}
 			if(groupName.length() != 0)
 			{
 				if(!addMagicMapping(groupName, groupName))
-					errorOccured = true;
+					errorOccuredMagicWordUpdate = true;
 					
 				if(!addMagicMapping(magicWord, groupName))
-					errorOccured = true;
+					errorOccuredMagicWordUpdate = true;
 				if(placeHolder.length() != 0)
 				{
 					if(!addMagicMapping(placeHolder, groupName))
-						errorOccured = true;
+						errorOccuredMagicWordUpdate = true;
 				}
 			}
 			else
 			{
 				if(!addMagicMapping(magicWord, placeHolder))
-					errorOccured = true;
+					errorOccuredMagicWordUpdate = true;
 					
 				if(!addMagicMapping(placeHolder, placeHolder))
-					errorOccured = true;
+					errorOccuredMagicWordUpdate = true;
 			}
 		}
-		if(errorOccured)
+		if(errorOccuredMagicWordUpdate)
 			System.exit(4);
 	}
 	
@@ -320,9 +320,9 @@ public class CreateStatistics
 				}
 			}
 			
-			private void getAuthorizedInfo(String publicCode)
+			private void getAuthorizedInfo(String clientPublicCode)
 			{
-				AuthorizeLogEntry clientEntry = authorizeLog.getAuthorizedClientEntry(publicCode);
+				AuthorizeLogEntry clientEntry = authorizeLog.getAuthorizedClientEntry(clientPublicCode);
 				clientAuthorizedDate = "";
 				clientGroup = "";
 				if(clientEntry != null)

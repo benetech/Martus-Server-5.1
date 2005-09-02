@@ -237,8 +237,8 @@ public class TestServerForAmplifiers extends TestCaseEnhanced
 
 	public void testCanAccountBeAmplified() throws Exception
 	{
-		MockMartusServer coreServer = new MockMartusServer();
-		ServerForAmplifiers ampServer = new ServerForAmplifiers(coreServer, logger);
+		MockMartusServer localCoreServer = new MockMartusServer();
+		ServerForAmplifiers ampServer = new ServerForAmplifiers(localCoreServer, logger);
 		ampServer.loadConfigurationFiles();
 		assertTrue("client not authorized?", ampServer.canAccountBeAmplified(clientSecurity.getPublicKeyString()));
 		String anotherAccountId = "any other account";
@@ -254,7 +254,7 @@ public class TestServerForAmplifiers extends TestCaseEnhanced
 		ampServer.loadClientsNotAmplified(tempNotAmplified);
 		assertFalse("client still authorized?", ampServer.canAccountBeAmplified(clientSecurity.getPublicKeyString()));
 		assertTrue("another client should be authorized?", ampServer.canAccountBeAmplified(anotherAccountId));
-		coreServer.deleteAllFiles();
+		localCoreServer.deleteAllFiles();
 	}
 	
 	public void testAmplifierServer() throws Exception
