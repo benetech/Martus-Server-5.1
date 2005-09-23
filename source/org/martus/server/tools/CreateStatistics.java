@@ -33,10 +33,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Vector;
-
 import org.martus.amplifier.main.MartusAmplifier;
 import org.martus.common.ContactInfo;
-import org.martus.common.FieldCollection;
 import org.martus.common.HQKey;
 import org.martus.common.HQKeys;
 import org.martus.common.LoggerToNull;
@@ -642,12 +640,11 @@ public class CreateStatistics
 					}
 					
 					FieldSpec[] fieldSpecs = fdp.getFieldSpecs();
-					FieldCollection customFields = new FieldCollection(fieldSpecs);
-					if(FieldDataPacket.isNonCustomFieldSpecs(customFields))
-						bulletinHasCustomFields = BULLETIN_HAS_CUSTOM_FIELDS_FALSE;
-					else
+					if(fdp.hasCustomFields())
 						bulletinHasCustomFields = BULLETIN_HAS_CUSTOM_FIELDS_TRUE;
-					
+					else
+						bulletinHasCustomFields = BULLETIN_HAS_CUSTOM_FIELDS_FALSE;
+										
 					bulletinCustomFieldTypes = "";
 					for(int i = 0 ; i < fieldSpecs.length; ++i)
 					{
