@@ -25,9 +25,10 @@ Boston, MA 02111-1307, USA.
 */
 package org.martus.server.forclients;
 
-import java.util.GregorianCalendar;
+import java.util.Calendar;
 
 import org.martus.common.LoggerToConsole;
+import org.martus.util.MartusCalendar;
 
 
 public class AuthorizeLogEntry
@@ -103,10 +104,10 @@ public class AuthorizeLogEntry
 	
 	static public String getISODate()
 	{
-		GregorianCalendar today = new GregorianCalendar();
-		String year = new Integer(today.get(GregorianCalendar.YEAR)).toString();
-		String month = new Integer(today.get(GregorianCalendar.MONTH)+1).toString();
-		String day = new Integer(today.get(GregorianCalendar.DAY_OF_MONTH)).toString();
+		MartusCalendar today = new MartusCalendar();
+		String year = new Integer(today.get(Calendar.YEAR)).toString();
+		String month = new Integer(today.get(Calendar.MONTH)+1).toString();
+		String day = new Integer(today.get(Calendar.DAY_OF_MONTH)).toString();
 		if(month.length()==1)
 			month = "0" + month;
 		if(day.length()==1)

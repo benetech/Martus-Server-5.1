@@ -30,9 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Vector;
 
@@ -66,6 +64,7 @@ import org.martus.server.forclients.ServerForClients;
 import org.martus.server.main.BulletinUploadRecord;
 import org.martus.server.main.MartusServer;
 import org.martus.server.main.ServerBulletinStore;
+import org.martus.util.MartusCalendar;
 import org.martus.util.UnicodeReader;
 import org.martus.util.UnicodeWriter;
 import org.martus.util.Base64.InvalidBase64Exception;
@@ -688,7 +687,7 @@ public class CreateStatistics
 					BulletinHeaderPacket bhp = BulletinStore.loadBulletinHeaderPacket(fileDatabase, key, security);
 					bulletinVersionNumber = bhp.getVersionNumber();
 					originalBulletinLocalId = bhp.getOriginalRevisionId();
-					Calendar cal = new GregorianCalendar();
+					MartusCalendar cal = new MartusCalendar();
 					cal.setTimeInMillis(bhp.getLastSavedTime());		
 					try
 					{
