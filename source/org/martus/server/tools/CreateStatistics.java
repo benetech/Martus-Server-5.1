@@ -640,7 +640,7 @@ public class CreateStatistics
 					}
 					
 					FieldSpec[] fieldSpecs = fdp.getFieldSpecs();
-					if(fdp.hasCustomFields())
+					if(fdp.hasCustomFieldTemplate())
 						bulletinHasCustomFields = BULLETIN_HAS_CUSTOM_FIELDS_TRUE;
 					else
 						bulletinHasCustomFields = BULLETIN_HAS_CUSTOM_FIELDS_FALSE;
