@@ -103,7 +103,13 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		{
 			displayVersion();
 			System.out.println("Initializing...this will take a few seconds...");
-			MartusServer server = new MartusServer(getDefaultDataDirectory());
+			final File directory = getDefaultDataDirectory();
+			if(!directory.exists())
+			{
+				System.out.println("ERROR: Missing directory: " + directory);
+				System.exit(EXIT_MISSING_DATA_DIRECTORY);
+			}
+			MartusServer server = new MartusServer(directory);
 
 			server.processCommandLine(args);
 			server.deleteRunningFile();
@@ -1873,6 +1879,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	private static final int EXIT_UNEXPECTED_EXCEPTION = 3;
 	private static final int EXIT_UNEXPECTED_FILE_STARTUP = 4;
 	private static final int EXIT_STARTUP_DIRECTORY_NOT_EMPTY = 5;
+	private static final int EXIT_MISSING_DATA_DIRECTORY = 6;
 	private static final int EXIT_NO_LISTENERS = 20;
 	private static final int EXIT_INVALID_IPADDRESS = 23;
 	private static final int EXIT_INVALID_PASSWORD = 73;
