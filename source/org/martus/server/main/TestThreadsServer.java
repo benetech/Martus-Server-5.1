@@ -1,7 +1,7 @@
 /*
 
 The Martus(tm) free, social justice documentation and
-monitoring software. Copyright (C) 2002-2004, Beneficent
+monitoring software. Copyright (C) 2005, Beneficent
 Technology, Inc. (Benetech).
 
 Martus is free software; you can redistribute it and/or
@@ -26,32 +26,17 @@ Boston, MA 02111-1307, USA.
 
 package org.martus.server.main;
 
+import org.martus.util.TestCaseEnhanced;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
-
-public class TestServerCore
+public class TestThreadsServer extends TestCaseEnhanced
 {
-	public static void main(String[] args)
+	public TestThreadsServer(String name)
 	{
-		runTests();
+		super(name);
 	}
 
-	public static void runTests () 
+	public void testBasics()
 	{
-		junit.textui.TestRunner.run (suite());
-	}
-
-	public static Test suite ( ) 
-	{
-		TestSuite suite= new TestSuite("All Server Core Martus Tests");
-
-		suite.addTest(new TestSuite(TestBulletinUploadRecord.class));
-		suite.addTest(new TestSuite(TestServerBulletinStore.class));
-		suite.addTest(new TestSuite(TestServerDeleteStartupFilesAndFolders.class));
-		suite.addTest(new TestSuite(TestServerFileDatabase.class));
-		suite.addTest(new TestSuite(TestThreadsServer.class));
-
-	    return suite;
+		System.out.println("Warning: TestThreadsServer has no tests yet!");
 	}
 }
