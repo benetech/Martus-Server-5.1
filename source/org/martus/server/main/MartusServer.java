@@ -242,10 +242,10 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	
 	protected void startBackgroundTimers()
 	{
-		WatchDogTimer shutdownRequestMonitor = new ShutdownRequestMonitor();
-		WatchDogTimer uploadRequestsMonitor = new UploadRequestsMonitor();
-		WatchDogTimer backgroundTimerTick = new BackgroundTimerTick();
-		WatchDogTimer syncAmplifierWithServersMonitor = new SyncAmplifierWithServersMonitor();
+		BackgroundServerTimerTask shutdownRequestMonitor = new ShutdownRequestMonitor();
+		BackgroundServerTimerTask uploadRequestsMonitor = new UploadRequestsMonitor();
+		BackgroundServerTimerTask backgroundTimerTick = new BackgroundTimerTick();
+		BackgroundServerTimerTask syncAmplifierWithServersMonitor = new SyncAmplifierWithServersMonitor();
 		
 		MartusUtilities.startTimer(shutdownRequestMonitor, shutdownRequestIntervalMillis);
 		MartusUtilities.startTimer(uploadRequestsMonitor, magicWordsGuessIntervalMillis);
@@ -259,7 +259,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		timers.add(backgroundTimerTick);
 		timers.add(syncAmplifierWithServersMonitor);
 
-		MartusUtilities.startTimer(new TimerWatchDogMonitor(timers), timerWatchDogIntervalMillis);
+		MartusUtilities.startTimer(new TimerWatchDogTask(timers), timerWatchDogIntervalMillis);
 	}
 
 	private void displayServerPublicCode() throws InvalidBase64Exception
@@ -1694,7 +1694,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		if(isAmplifierEnabled())
 		{
 			System.out.println("Web Amplifier is Enabled on " + getAmpIpAddress());
-			amplifierDataSynchIntervalMillis = indexEveryXMinutes * MINUTES_TO_MILLI;
+			amplifierDataSynchIntervalMillis = indexEveryXMinutes * MILLIS_PER_MINUTE;
 			System.out.println(amplifierIndexingMessage);
 		}
 		System.out.println("");
@@ -1789,67 +1789,84 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		return Version.isRunningUnderWindows();
 	}
 	
-	long verifyTimerAliveHourly(String timerName, long lastHourlyCheckInvokedAtMillis)
+	boolean hasTimeExpired(long previousTime, long elapsedTimeInMillisToCheck)
 	{
-		long currentTimeMillis = System.currentTimeMillis();
-		if((currentTimeMillis - lastHourlyCheckInvokedAtMillis) > HOURS_TO_MILLI)
-		{
-			logDebug(timerName + ": Alive");
-			return currentTimeMillis;
-		}
-		return lastHourlyCheckInvokedAtMillis;
+		return (System.currentTimeMillis() - previousTime) > elapsedTimeInMillisToCheck;
 	}
 
-	abstract private class WatchDogTimer extends TimerTask
+	abstract private class BackgroundServerTimerTask extends TimerTask
 	{
-		WatchDogTimer(String threadNameToUse)
+		BackgroundServerTimerTask(String threadNameToUse)
 		{
 			threadName = threadNameToUse;
 		}
 
-		public void updateLastInvokedTime()
+		void verifyTimerAlive()
 		{
-			lastInvokedAt = System.currentTimeMillis();
+			updateLastInvokedTime();
+
+			if(hasTimeExpired(getLastHourlyInvokedTime(), MILLIS_IN_ONE_HOUR))
+			{
+				logDebug(getThreadName() + ": Alive");
+				updateLastHourlyInvokedTime();
+			}
 		}
-		
-		public long getLastInvokedAtTimeMillis()
+
+		long getLastHourlyInvokedTime()
+		{
+			return lastHourlyCheckInvokedAtMillis;
+		}
+
+		long getLastInvokedAtTimeMillis()
 		{
 			return lastInvokedAt;
 		}
 		
-		public String getThreadName()
+		String getThreadName()
 		{
 			return threadName;
 		}
 		
+		private void updateLastInvokedTime()
+		{
+			lastInvokedAt = System.currentTimeMillis();
+		}
+		
+		private void updateLastHourlyInvokedTime()
+		{
+			lastHourlyCheckInvokedAtMillis = System.currentTimeMillis();
+		}
+		
 		private long lastInvokedAt;
 		private String threadName;
+		private long lastHourlyCheckInvokedAtMillis = 0;
 	}
 	
-	private class TimerWatchDogMonitor extends TimerTask
+	private class TimerWatchDogTask extends TimerTask
 	{
-		TimerWatchDogMonitor(Vector timers)
+		TimerWatchDogTask(Vector timers)
 		{
 			timersToWatch = timers;
 		}
+		
 		public void run()
 		{
 			for(int i = 0; i < timersToWatch.size(); ++i)
 			{
-				WatchDogTimer timerToCheck = (WatchDogTimer)timersToWatch.get(i);
+				BackgroundServerTimerTask timerToCheck = (BackgroundServerTimerTask)timersToWatch.get(i);
 				long timerLastInvoked = timerToCheck.getLastInvokedAtTimeMillis();
-				if(System.currentTimeMillis() - timerLastInvoked > HOURS_TO_MILLI)
+				if(hasTimeExpired(timerLastInvoked, MILLIS_IN_ONE_HOUR))
 				{
 					Timestamp stamp = new Timestamp(timerLastInvoked);
 					SimpleDateFormat formatDate = new SimpleDateFormat(LoggerToConsole.LOG_DATE_FORMAT);
-					logError(timerToCheck.getThreadName() + ": Timer may we wedged, last invoked " +formatDate.format(stamp));
+					logError(timerToCheck.getThreadName() + ": Timer may be wedged, last invoked " +formatDate.format(stamp));
 				}
 			}
 		}
 		Vector timersToWatch;
 	}
 
-	private class UploadRequestsMonitor extends WatchDogTimer
+	private class UploadRequestsMonitor extends BackgroundServerTimerTask
 	{
 		UploadRequestsMonitor()
 		{
@@ -1858,8 +1875,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		
 		public void run()
 		{
-			updateLastInvokedTime();
-			lastHourlyCheckInvokedAtMillis = verifyTimerAliveHourly(getThreadName(), lastHourlyCheckInvokedAtMillis);
+			verifyTimerAlive();
 			Iterator failedUploadReqIps = failedUploadRequestsPerIp.keySet().iterator();
 			while(failedUploadReqIps.hasNext())
 			{
@@ -1867,10 +1883,9 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 				subtractMaxFailedUploadRequestsForIp(ip);
 			}
 		}
-		private long lastHourlyCheckInvokedAtMillis = 0;
 	}
 	
-	private class ShutdownRequestMonitor extends WatchDogTimer
+	private class ShutdownRequestMonitor extends BackgroundServerTimerTask
 	{
 		ShutdownRequestMonitor()
 		{
@@ -1879,8 +1894,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		
 		public void run()
 		{
-			updateLastInvokedTime();
-			lastHourlyCheckInvokedAtMillis = verifyTimerAliveHourly(getThreadName(), lastHourlyCheckInvokedAtMillis);
+			verifyTimerAlive();
 			if( isShutdownRequested() && canExitNow() )
 			{
 				logNotice("Shutdown request acknowledged, preparing to shutdown.");
@@ -1898,10 +1912,9 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 				}
 			}
 		}
-		private long lastHourlyCheckInvokedAtMillis=0;
 	}
 	
-	class SyncAmplifierWithServersMonitor extends WatchDogTimer
+	class SyncAmplifierWithServersMonitor extends BackgroundServerTimerTask
 	{	
 		SyncAmplifierWithServersMonitor()
 		{
@@ -1910,14 +1923,12 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		
 		public void run()
 		{
-			updateLastInvokedTime();
-			lastHourlyCheckInvokedAtMillis = verifyTimerAliveHourly(getThreadName(), lastHourlyCheckInvokedAtMillis);
+			verifyTimerAlive();
 			MartusServer.needsAmpSync = true;
 		}
-		private long lastHourlyCheckInvokedAtMillis;
 	}
 
-	private class BackgroundTimerTick extends WatchDogTimer
+	private class BackgroundTimerTick extends BackgroundServerTimerTask
 	{
 		BackgroundTimerTick()
 		{
@@ -1926,8 +1937,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 
 		public void run()
 		{
-			updateLastInvokedTime();
-			lastHourlyCheckInvokedAtMillis = verifyTimerAliveHourly(getThreadName(), lastHourlyCheckInvokedAtMillis);
+			verifyTimerAlive();
 			protectedRun();
 		}
 		
@@ -1947,7 +1957,6 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 				logDebug("amp.pullNewDataFromServers(): End Pull");
 			}
 		}
-		private long lastHourlyCheckInvokedAtMillis;
 	}
 	
 
@@ -1998,10 +2007,14 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	private static final String ADMINSTARTUPCONFIGDIRECTORY = "deleteOnStartup";
 	
 	private final int MAX_FAILED_UPLOAD_ATTEMPTS = 100;
-	private static final long magicWordsGuessIntervalMillis = 60 * 1000;
-	private static final long shutdownRequestIntervalMillis = 1000;
-	private static final long timerWatchDogIntervalMillis = 60 * 1000;
-	private static final long MINUTES_TO_MILLI = 60 * 1000;
-	private static final long HOURS_TO_MILLI = 60 * 60 * 1000;
+	
+	private static final long MILLIS_IN_ONE_SECOND = 1000;
+	private static final long MILLIS_PER_MINUTE = 60 * MILLIS_IN_ONE_SECOND;
+	private static final long MILLIS_IN_ONE_MINUTE = 1 * MILLIS_PER_MINUTE;
+	private static final long MILLIS_PER_HOUR = 60 * MILLIS_PER_MINUTE;
+	private static final long MILLIS_IN_ONE_HOUR = 1 * MILLIS_PER_HOUR;
 
+	private static final long shutdownRequestIntervalMillis = MILLIS_IN_ONE_SECOND;
+	private static final long magicWordsGuessIntervalMillis = MILLIS_IN_ONE_MINUTE;
+	private static final long timerWatchDogIntervalMillis = MILLIS_IN_ONE_MINUTE;
 }
