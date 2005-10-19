@@ -1618,7 +1618,6 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	public void processCommandLine(String[] args)
 	{
 		long indexEveryXMinutes = 0;
-		String indexEveryXHourTag = "--amplifier-indexing-hours=";
 		String indexEveryXMinutesTag = "--amplifier-indexing-minutes=";
 		String ampipTag = "--amplifier-ip=";
 		String listenersIpTag = "--listeners-ip=";
@@ -1654,25 +1653,19 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			if(argument.startsWith(ampipTag))
 				setAmpIpAddress(argument.substring(ampipTag.length()));
 
-			if(argument.startsWith(indexEveryXHourTag))
-			{	
-				String hours = argument.substring(indexEveryXHourTag.length());
-				amplifierIndexingMessage = "Amplifier indexing every " + hours + " hours";
-				long indexEveryXHours = new Integer(hours).longValue();
-				indexEveryXMinutes = indexEveryXHours * 60;
-			}
 			if(argument.startsWith(indexEveryXMinutesTag))
 			{	
 				String minutes = argument.substring(indexEveryXMinutesTag.length());
-				amplifierIndexingMessage = "Amplifier indexing every " + minutes + " minutes";
 				indexEveryXMinutes = new Integer(minutes).longValue();
+				if(indexEveryXMinutes > 60)
+					indexEveryXMinutes = 60;
+				amplifierIndexingMessage = "Amplifier indexing every " + indexEveryXMinutes + " minutes";
 			}
 		}
 		if(indexEveryXMinutes==0)
 		{
-			long defaultSyncHours = MartusAmplifier.DEFAULT_HOURS_TO_SYNC;
-			indexEveryXMinutes = defaultSyncHours * 60;
-			amplifierIndexingMessage = "Amplifier indexing every " + defaultSyncHours + " hours";
+			indexEveryXMinutes = MartusAmplifier.DEFAULT_MINUTES_TO_SYNC;
+			amplifierIndexingMessage = "Amplifier indexing every " + indexEveryXMinutes + " minutes";
 		}
 		
 		
@@ -2016,5 +2009,5 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 
 	private static final long shutdownRequestIntervalMillis = MILLIS_IN_ONE_SECOND;
 	private static final long magicWordsGuessIntervalMillis = MILLIS_IN_ONE_MINUTE;
-	private static final long timerWatchDogIntervalMillis = MILLIS_IN_ONE_MINUTE;
+	private static final long timerWatchDogIntervalMillis = (long)(1.5 * MILLIS_IN_ONE_HOUR);
 }
