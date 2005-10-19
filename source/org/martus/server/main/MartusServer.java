@@ -241,11 +241,11 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	
 	protected void startBackgroundTimers()
 	{
-		MartusUtilities.startTimer(new ShutdownRequestMonitor(), shutdownRequestIntervalMillis);
-		MartusUtilities.startTimer(new UploadRequestsMonitor(), magicWordsGuessIntervalMillis);
-		MartusUtilities.startTimer(new BackgroundTimerTick(), ServerForMirroring.mirroringIntervalMillis);
+		MartusUtilities.startTimer(new ShutdownRequestMonitor(shutdownRequestIntervalMillis), shutdownRequestIntervalMillis);
+		MartusUtilities.startTimer(new UploadRequestsMonitor(magicWordsGuessIntervalMillis), magicWordsGuessIntervalMillis);
+		MartusUtilities.startTimer(new BackgroundTimerTick(ServerForMirroring.mirroringIntervalMillis), ServerForMirroring.mirroringIntervalMillis);
 		if(isAmplifierEnabled())
-			MartusUtilities.startTimer(new SyncAmplifierWithServersMonitor(), amplifierDataSynchIntervalMillis);
+			MartusUtilities.startTimer(new SyncAmplifierWithServersMonitor(amplifierDataSynchIntervalMillis), amplifierDataSynchIntervalMillis);
 	}
 
 	private void displayServerPublicCode() throws InvalidBase64Exception
@@ -1775,11 +1775,27 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		return Version.isRunningUnderWindows();
 	}
 	
+	long verifyTimerAliveHourly(String timerName, long tickIntervalMilliSeconds, long tickCount)
+	{
+		if((++tickCount * tickIntervalMilliSeconds) > HOURS_TO_MILLI)
+		{
+			logDebug(timerName + ": Alive");
+			return RESET_TICKCOUNT;
+		}
+		return tickCount;
+	}
 
 	private class UploadRequestsMonitor extends TimerTask
 	{
+		UploadRequestsMonitor(long timerIntervalUsed)
+		{
+			timerIntervalUsedMilliSeconds = timerIntervalUsed;
+			tickCount = timerIntervalUsedMilliSeconds * HOURS_TO_MILLI;
+		}
+		
 		public void run()
 		{
+			tickCount = verifyTimerAliveHourly("UploadRequestsMonitor", timerIntervalUsedMilliSeconds, tickCount);
 			Iterator failedUploadReqIps = failedUploadRequestsPerIp.keySet().iterator();
 			while(failedUploadReqIps.hasNext())
 			{
@@ -1787,12 +1803,21 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 				subtractMaxFailedUploadRequestsForIp(ip);
 			}
 		}
+		private long tickCount;
+		private long timerIntervalUsedMilliSeconds;
 	}
 	
 	private class ShutdownRequestMonitor extends TimerTask
 	{
+		ShutdownRequestMonitor(long timerIntervalUsed)
+		{
+			timerIntervalUsedMilliSeconds = timerIntervalUsed;
+			tickCount = timerIntervalUsedMilliSeconds * HOURS_TO_MILLI;
+		}
+
 		public void run()
 		{
+			tickCount = verifyTimerAliveHourly("ShutdownRequestMonitor", timerIntervalUsedMilliSeconds, tickCount);
 			if( isShutdownRequested() && canExitNow() )
 			{
 				logNotice("Shutdown request acknowledged, preparing to shutdown.");
@@ -1810,39 +1835,64 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 				}
 			}
 		}
+		private long tickCount;
+		private long timerIntervalUsedMilliSeconds;
 	}
 	
 	class SyncAmplifierWithServersMonitor extends TimerTask
 	{	
+		SyncAmplifierWithServersMonitor(long timerIntervalUsed)
+		{
+			timerIntervalUsedMilliSeconds = timerIntervalUsed;
+			tickCount = timerIntervalUsedMilliSeconds * HOURS_TO_MILLI;
+		}
+
 		public void run()
 		{
+			tickCount = verifyTimerAliveHourly("SyncAmplifierWithServersMonitor", timerIntervalUsedMilliSeconds, tickCount);
 			MartusServer.needsAmpSync = true;
 		}
+		private long tickCount;
+		private long timerIntervalUsedMilliSeconds;
 	}
 
 	private class BackgroundTimerTick extends TimerTask
 	{
-		BackgroundTimerTick()
+		BackgroundTimerTick(long timerIntervalUsed)
 		{
+			timerIntervalUsedMilliSeconds = timerIntervalUsed;
+			tickCount = timerIntervalUsedMilliSeconds * HOURS_TO_MILLI;
 		}
 		
 		public void run()
 		{
-			protectedRun();
+			tickCount = verifyTimerAliveHourly("BackgroundTimerTick-Mirroring/Amp data pull", timerIntervalUsedMilliSeconds, tickCount);
+			boolean hourlyAliveTimerReached = tickCount == RESET_TICKCOUNT;
+			protectedRun(hourlyAliveTimerReached);
 		}
 		
-		synchronized void protectedRun()
+		synchronized void protectedRun(boolean hourlyAliveTimerReached)
 		{
 			if(isShutdownRequested())
+			{
+				if(hourlyAliveTimerReached)
+					logWarning("BackgroundTimerTick: Hourly Timer: ShutdownRequested");
 				return;
+			}
 			if(isMirrorListenerEnabled())
+			{
 				serverForMirroring.doBackgroundTick();
+			}
 			if(MartusServer.needsAmpSync)
 			{
+				logDebug("amp.pullNewDataFromServers():Begin Pull");
 				amp.pullNewDataFromServers();
 				MartusServer.needsAmpSync = false;
+				logDebug("amp.pullNewDataFromServers():End Pull");
 			}
 		}
+		private long tickCount;
+		private long timerIntervalUsedMilliSeconds;
 	}
 	
 
@@ -1896,4 +1946,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	private static final long magicWordsGuessIntervalMillis = 60 * 1000;
 	private static final long shutdownRequestIntervalMillis = 1000;
 	private static final long MINUTES_TO_MILLI = 60 * 1000;
+	private static final long HOURS_TO_MILLI = 60 * 60 * 1000;
+	private final long RESET_TICKCOUNT = 0;
+
 }
