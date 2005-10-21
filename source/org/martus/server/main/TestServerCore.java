@@ -50,7 +50,6 @@ public class TestServerCore
 		suite.addTest(new TestSuite(TestServerBulletinStore.class));
 		suite.addTest(new TestSuite(TestServerDeleteStartupFilesAndFolders.class));
 		suite.addTest(new TestSuite(TestServerFileDatabase.class));
-		suite.addTest(new TestSuite(TestThreadsServer.class));
 
 	    return suite;
 	}
