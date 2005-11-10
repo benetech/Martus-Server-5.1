@@ -627,7 +627,7 @@ public class CreateStatistics
 					bulletinKeywords = fdp.get(BulletinConstants.TAGKEYWORDS);
 					bulletinDateCreated = fdp.get(BulletinConstants.TAGENTRYDATE);
 					String eventDate = fdp.get(BulletinConstants.TAGEVENTDATE);
-					MartusFlexidate mfd = MartusFlexidate.createFromMartusDateString(eventDate);
+					MartusFlexidate mfd = MartusFlexidate.createFromBulletinFlexidateFormat(eventDate);
 					String rawBeginDate = MartusFlexidate.toStoredDateFormat(mfd.getBeginDate());
 					if(mfd.hasDateRange())
 					{
