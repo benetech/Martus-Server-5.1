@@ -33,6 +33,7 @@ import java.util.Vector;
 
 import org.martus.common.LoggerInterface;
 import org.martus.common.ProgressMeterInterface;
+import org.martus.common.MartusUtilities.NotYourBulletinErrorException;
 import org.martus.common.MartusUtilities.ServerErrorException;
 import org.martus.common.bulletin.BulletinZipUtilities;
 import org.martus.common.crypto.MartusCrypto;
@@ -220,7 +221,7 @@ public class MirroringRetriever implements LoggerInterface
 		return System.currentTimeMillis() < sleepUntil;
 	}
 	
-	void retrieveOneBulletin(File destFile, UniversalId uid) throws InvalidBase64Exception, IOException, MartusSignatureException, ServerErrorException
+	void retrieveOneBulletin(File destFile, UniversalId uid) throws InvalidBase64Exception, IOException, MartusSignatureException, ServerErrorException, NotYourBulletinErrorException
 	{
 		FileOutputStream out = new FileOutputStream(destFile);
 
