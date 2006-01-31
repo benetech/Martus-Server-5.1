@@ -26,7 +26,7 @@ Boston, MA 02111-1307, USA.
 package org.martus.server.forclients;
 
 import org.martus.common.LoggerToConsole;
-import org.martus.util.MartusCalendar;
+import org.martus.util.MultiCalendar;
 
 
 public class AuthorizeLogEntry
@@ -102,7 +102,7 @@ public class AuthorizeLogEntry
 	
 	static public String getISODate()
 	{
-		MartusCalendar today = new MartusCalendar();
+		MultiCalendar today = new MultiCalendar();
 		String year = new Integer(today.getGregorianYear()).toString();
 		String month = new Integer(today.getGregorianMonth()).toString();
 		String day = new Integer(today.getGregorianDay()).toString();
