@@ -104,7 +104,7 @@ public class AuthorizeLogEntry
 	{
 		MartusCalendar today = new MartusCalendar();
 		String year = new Integer(today.getGregorianYear()).toString();
-		String month = new Integer(today.getGregorianMonth()+1).toString();
+		String month = new Integer(today.getGregorianMonth()).toString();
 		String day = new Integer(today.getGregorianDay()).toString();
 		if(month.length()==1)
 			month = "0" + month;
