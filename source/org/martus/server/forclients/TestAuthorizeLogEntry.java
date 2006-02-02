@@ -25,6 +25,7 @@ Boston, MA 02111-1307, USA.
 */
 package org.martus.server.forclients;
 
+import org.martus.util.MultiCalendar;
 import org.martus.util.TestCaseEnhanced;
 
 
@@ -53,7 +54,7 @@ public class TestAuthorizeLogEntry extends TestCaseEnhanced
 
 		AuthorizeLogEntry entry2 = new AuthorizeLogEntry(code, group);
 		
-		date = AuthorizeLogEntry.getISODate();
+		date = new MultiCalendar().toIsoDateString();
 		assertEquals("date2 not found?", date, entry2.getDate());
 		assertEquals("code2 not found?", code, entry2.getPublicCode());
 		assertEquals("ip can not be found since we have no xmlrpc thread running", null, entry2.getIp());
@@ -81,5 +82,11 @@ public class TestAuthorizeLogEntry extends TestCaseEnhanced
 		String ipThread = ip + ":" + threadId;
 		assertEquals("Should just return ip address", ip, AuthorizeLogEntry.extractIpAddressOnly(ipThread));
 		assertNull("Should return null", AuthorizeLogEntry.extractIpAddressOnly(null));
+	}
+	
+	public void testDate() throws Exception
+	{
+		AuthorizeLogEntry entry = new AuthorizeLogEntry("one", "two");
+		assertEquals("date wrong?", new MultiCalendar().toIsoDateString(), entry.getDate());
 	}
 }

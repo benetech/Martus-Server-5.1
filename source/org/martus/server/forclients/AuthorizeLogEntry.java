@@ -42,7 +42,7 @@ public class AuthorizeLogEntry
 	
 	public AuthorizeLogEntry(String publicCodeToUse, String groupNameToUse)
 	{
-		date = getISODate();
+		date = new MultiCalendar().toIsoDateString();
 		publicCode = publicCodeToUse;
 		groupName = groupNameToUse;
 		ip = getIpAddress();
@@ -100,19 +100,6 @@ public class AuthorizeLogEntry
 		return getField(3, lineEntry);
 	}
 	
-	static public String getISODate()
-	{
-		MultiCalendar today = new MultiCalendar();
-		String year = new Integer(today.getGregorianYear()).toString();
-		String month = new Integer(today.getGregorianMonth()).toString();
-		String day = new Integer(today.getGregorianDay()).toString();
-		if(month.length()==1)
-			month = "0" + month;
-		if(day.length()==1)
-			day = "0" + day;
-		return year + "-" + month + "-" + day;
-	}
-
 	static public String extractIpAddressOnly(String rawIp)
 	{
 		if(rawIp != null)
