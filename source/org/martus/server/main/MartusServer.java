@@ -43,6 +43,7 @@ import java.util.Iterator;
 import java.util.TimerTask;
 import java.util.Vector;
 import java.util.zip.ZipFile;
+
 import org.martus.amplifier.ServerCallbackInterface;
 import org.martus.amplifier.main.MartusAmplifier;
 import org.martus.common.ContactInfo;
@@ -1039,7 +1040,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	}
 	
 	void writeKeyPair(OutputStream out, char[] passphrase) throws 
-		IOException
+		Exception
 	{
 		getSecurity().writeKeyPair(out, passphrase);
 	}

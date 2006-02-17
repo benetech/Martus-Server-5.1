@@ -30,7 +30,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.utilities.MartusServerUtilities;
@@ -102,7 +101,7 @@ public class ChangeKeypairPassphrase
 	}
 	
 	private static void updateKeypairPassphrase(File keyPairFile, char[] newPassphrase, MartusCrypto security)
-		throws FileNotFoundException, IOException
+		throws FileNotFoundException, Exception
 	{
 		FileOutputStream out = new FileOutputStream(keyPairFile);
 		security.writeKeyPair(out, newPassphrase);
