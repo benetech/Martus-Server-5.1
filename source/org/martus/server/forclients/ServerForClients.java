@@ -426,7 +426,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	public Vector listMyDraftBulletinIds(String authorAccountId, Vector retrieveTags)
 	{
 		SummaryCollector summaryCollector = new MyDraftSummaryCollector(coreServer, authorAccountId, retrieveTags);
-		return collectBulletinSummaries(summaryCollector, "listMyDraftBulletinIds");
+		return collectBulletinSummaries(summaryCollector, "listMyDraftBulletinIds ");
 	}
 
 	public String deleteDraftBulletins(String accountId, String[] localIds)
