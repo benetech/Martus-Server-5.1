@@ -41,6 +41,7 @@ import org.martus.common.HQKeys;
 import org.martus.common.LoggerToNull;
 import org.martus.common.MartusUtilities;
 import org.martus.common.MartusXml;
+import org.martus.common.MiniLocalization;
 import org.martus.common.bulletin.BulletinConstants;
 import org.martus.common.bulletinstore.BulletinStore;
 import org.martus.common.crypto.MartusCrypto;
@@ -627,7 +628,8 @@ public class CreateStatistics
 					bulletinKeywords = fdp.get(BulletinConstants.TAGKEYWORDS);
 					bulletinDateCreated = fdp.get(BulletinConstants.TAGENTRYDATE);
 					String eventDate = fdp.get(BulletinConstants.TAGEVENTDATE);
-					MartusFlexidate mfd = MartusFlexidate.createFromBulletinFlexidateFormat(eventDate);
+					MiniLocalization localization = new MiniLocalization();
+					MartusFlexidate mfd = localization.createFlexidateFromStoredData(eventDate);
 					String rawBeginDate = MartusFlexidate.toStoredDateFormat(mfd.getBeginDate());
 					if(mfd.hasDateRange())
 					{
