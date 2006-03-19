@@ -33,6 +33,7 @@ import java.util.Vector;
 
 import org.martus.common.LoggerInterface;
 import org.martus.common.ProgressMeterInterface;
+import org.martus.common.MartusUtilities.BulletinNotFoundException;
 import org.martus.common.MartusUtilities.NotYourBulletinErrorException;
 import org.martus.common.MartusUtilities.ServerErrorException;
 import org.martus.common.bulletin.BulletinZipUtilities;
@@ -221,17 +222,21 @@ public class MirroringRetriever implements LoggerInterface
 		return System.currentTimeMillis() < sleepUntil;
 	}
 	
-	void retrieveOneBulletin(File destFile, UniversalId uid) throws InvalidBase64Exception, IOException, MartusSignatureException, ServerErrorException, NotYourBulletinErrorException
+	void retrieveOneBulletin(File destFile, UniversalId uid)
+			throws InvalidBase64Exception, IOException,
+			MartusSignatureException, ServerErrorException,
+			NotYourBulletinErrorException, BulletinNotFoundException
 	{
 		FileOutputStream out = new FileOutputStream(destFile);
 
 		int chunkSize = MIRRORING_MAX_CHUNK_SIZE;
 		ProgressMeterInterface nullProgressMeter = null;
-		int totalLength = BulletinZipUtilities.retrieveBulletinZipToStream(uid, out, chunkSize, gateway, getSecurity(), nullProgressMeter);
+		int totalLength = BulletinZipUtilities.retrieveBulletinZipToStream(uid,
+				out, chunkSize, gateway, getSecurity(), nullProgressMeter);
 
 		out.close();
 
-		if(destFile.length() != totalLength)
+		if (destFile.length() != totalLength)
 		{
 			logError("file=" + destFile.length() + ", returned=" + totalLength);
 			throw new ServerErrorException("totalSize didn't match data length");
