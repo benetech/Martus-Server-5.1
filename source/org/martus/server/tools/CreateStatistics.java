@@ -115,7 +115,7 @@ public class CreateStatistics
 			
 			if(destinationDir == null || dataDir == null || keyPairFile == null || adminStartupDir == null)
 			{
-				System.err.println("Incorrect arguments: CreateStatistics [--no-prompt] [--delete-previous] [--server-name=\"name of this server\"] --packet-directory=<packetdir> --keypair-file=<keypair> --destination-directory=<destinationDir> --admin-startup-directory=<adminStartupConfigDir>\n");
+				System.err.println("Incorrect arguments: CreateStatistics [--no-prompt] [--delete-previous] [--server-name=\"name of this server\"] [--magic-map=<magicGroupTranslationFile>] --packet-directory=<packetdir> --keypair-file=<keypair> --destination-directory=<destinationDir> --admin-startup-directory=<adminStartupConfigDir>\n");
 				System.exit(2);
 			}
 			
