@@ -26,6 +26,8 @@ Boston, MA 02111-1307, USA.
 
 package org.martus.server.forclients;
 
+import java.util.Iterator;
+import java.util.Set;
 import java.util.Vector;
 
 import org.martus.common.bulletin.Bulletin;
@@ -104,7 +106,7 @@ public class TestSummaryCollector extends TestCaseEnhanced
 	public void testSummarCollectorOmitsOldVersions() throws Exception
 	{
 		
-		Vector leafUids = server.getStore().getAllBulletinLeafUids();
+		Set leafUids = server.getStore().getAllBulletinLeafUids();
 		assertEquals(1, leafUids.size());
 		
 		String authorId = authorSecurity.getPublicKeyString();
@@ -117,16 +119,19 @@ public class TestSummaryCollector extends TestCaseEnhanced
 	public void testIsLeaf() throws Exception
 	{
 		ServerBulletinStore store = server.getStore();
-		Vector leafUids = store.getAllBulletinLeafUids();
+		Set leafUids = store.getAllBulletinLeafUids();
 		assertTrue("Must have at least one leaf", leafUids.size() > 0);
-		for(int i = 0; i < leafUids.size(); ++i)
+		int i = 0;
+		for(Iterator iter = leafUids.iterator(); iter.hasNext();)
 		{
-			assertTrue("Should be leaf:"+i, store.isLeaf((UniversalId)leafUids.get(i)));
+			UniversalId leafUid = (UniversalId) iter.next();
+			assertTrue("Should be leaf:"+i, store.isLeaf(leafUid));
+			++i;
 		}
 		
 		Vector nonLeafUids = store.getNonLeafUids();
 		assertTrue("Must have at least one non leaf", nonLeafUids.size() > 0);
-		for(int i = 0; i < nonLeafUids.size(); ++i)
+		for(i = 0; i < nonLeafUids.size(); ++i)
 		{
 			assertFalse("Should not be a leaf:"+i, store.isLeaf((UniversalId)nonLeafUids.get(i)));
 		}
