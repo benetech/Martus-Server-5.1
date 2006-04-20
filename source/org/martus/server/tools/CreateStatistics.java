@@ -241,12 +241,12 @@ public class CreateStatistics
 	
 	private boolean addMagicMapping(String key, String value) 
 	{
-		if(magicWordMap.containsKey(key))
+		if(magicWordMap.containsKey(key.toLowerCase().trim()))
 		{
 			System.err.println("Error magic word key already exists: " + key);
 			return false;
 		}
-		magicWordMap.put(key, value);
+		magicWordMap.put(key.toLowerCase().trim(), value);
 		return true;
 	}
 
@@ -326,7 +326,7 @@ public class CreateStatistics
 				if(clientEntry != null)
 				{
 					clientAuthorizedDate = clientEntry.getDate();
-					String clientGroupWhenAuthorized = clientEntry.getGroupName().trim();
+					String clientGroupWhenAuthorized = clientEntry.getGroupName().toLowerCase().trim();
 					//clientIPAddress = clientEntry.getIp();
 					clientGroup = (String)magicWordMap.get(clientGroupWhenAuthorized);
 					if(clientGroup == null)
