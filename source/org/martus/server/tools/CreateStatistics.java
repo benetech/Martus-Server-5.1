@@ -613,7 +613,7 @@ public class CreateStatistics
 					String fieldDataPacketId = bhp.getFieldDataPacketId();
 					DatabaseKey fieldKey = DatabaseKey.createSealedKey(UniversalId.createFromAccountAndLocalId(
 						bhp.getAccountId(), fieldDataPacketId));
-					FieldSpec[] standardPublicFieldSpecs = StandardFieldSpecs.getDefaultPublicFieldSpecs();
+					FieldSpec[] standardPublicFieldSpecs = StandardFieldSpecs.getDefaultTopSectionFieldSpecs();
 					FieldDataPacket fdp = new FieldDataPacket(UniversalId.createFromAccountAndLocalId(
 						bhp.getAccountId(), fieldDataPacketId), standardPublicFieldSpecs);
 					FileInputStreamWithSeek in = new FileInputStreamWithSeek(fileDatabase.getFileForRecord(fieldKey));
