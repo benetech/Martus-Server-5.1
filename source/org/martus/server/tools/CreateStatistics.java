@@ -331,7 +331,7 @@ public class CreateStatistics
 					clientGroup = (String)magicWordMap.get(clientGroupWhenAuthorized);
 					if(clientGroup == null)
 					{
-						System.out.println("Warning unkown Group :" + clientGroupWhenAuthorized);
+						System.out.println("Warning unknown Group :" + clientGroupWhenAuthorized);
 						clientGroup = clientGroupWhenAuthorized;
 					}
 				}
