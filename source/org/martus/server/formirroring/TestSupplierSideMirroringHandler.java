@@ -230,7 +230,7 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 		Vector result2 = writeSampleHeaderPacket(bhp2);
 
 		BulletinHeaderPacket bhpDraft = new BulletinHeaderPacket(authorSecurity);
-		bhp2.setStatus(BulletinConstants.STATUSDRAFT);
+		bhpDraft.setStatus(BulletinConstants.STATUSDRAFT);
 		Vector result3 = writeSampleHeaderPacket(bhpDraft);
 		
 		supplier.authorizedCaller = callerAccountId;
@@ -242,10 +242,10 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 		Vector result = handler.request(callerAccountId, parameters, sig);
 		assertEquals(NetworkInterfaceConstants.OK, result.get(0));
 		Vector infos = (Vector)result.get(1);
-		assertEquals(3, infos.size());
+		assertEquals(2, infos.size());
 		assertContains(result1, infos);
 		assertContains(result2, infos);
-		assertContains(result3, infos);
+		assertNull(result3);
 	}
 	
 	public void testGetBulletinUploadRecordNotFound() throws Exception
@@ -356,7 +356,9 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 	{
 		StringWriter writer = new StringWriter();
 		byte[] sigBytes = bhp.writeXml(writer, authorSecurity);
-		DatabaseKey key = DatabaseKey.createDraftKey(bhp.getUniversalId());
+		DatabaseKey key = DatabaseKey.createSealedKey(bhp.getUniversalId());
+		if(bhp.getStatus().equals(BulletinConstants.STATUSDRAFT))
+			return null;
 		String sigString = Base64.encode(sigBytes);
 		supplier.addBulletinToMirror(key, sigString);
 		
