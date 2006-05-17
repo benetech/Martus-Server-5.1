@@ -248,17 +248,18 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		BackgroundServerTimerTask backgroundTimerTick = new BackgroundTimerTick();
 		BackgroundServerTimerTask syncAmplifierWithServersMonitor = new SyncAmplifierWithServersMonitor();
 		
-		MartusUtilities.startTimer(shutdownRequestMonitor, shutdownRequestIntervalMillis);
-		MartusUtilities.startTimer(uploadRequestsMonitor, magicWordsGuessIntervalMillis);
-		MartusUtilities.startTimer(backgroundTimerTick, ServerForMirroring.mirroringIntervalMillis);
-		if(isAmplifierEnabled())
-			MartusUtilities.startTimer(syncAmplifierWithServersMonitor, amplifierDataSynchIntervalMillis);
-		
 		Vector timers = new Vector();
+		MartusUtilities.startTimer(shutdownRequestMonitor, shutdownRequestIntervalMillis);
 		timers.add(shutdownRequestMonitor);
+		MartusUtilities.startTimer(uploadRequestsMonitor, magicWordsGuessIntervalMillis);
 		timers.add(uploadRequestsMonitor);
+		MartusUtilities.startTimer(backgroundTimerTick, ServerForMirroring.mirroringIntervalMillis);
 		timers.add(backgroundTimerTick);
-		timers.add(syncAmplifierWithServersMonitor);
+		if(isAmplifierEnabled())
+		{
+			MartusUtilities.startTimer(syncAmplifierWithServersMonitor, amplifierDataSynchIntervalMillis);
+			timers.add(syncAmplifierWithServersMonitor);
+		}
 
 		MartusUtilities.startTimer(new TimerWatchDogTask(timers), timerWatchDogIntervalMillis);
 	}
