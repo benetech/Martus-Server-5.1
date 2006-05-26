@@ -1246,32 +1246,42 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			NoKeyPairException,
 			MartusUtilities.FileVerificationException, IOException, RecordHiddenException
 	{
-		File tempInterimFile = getStore().getOutgoingInterimFile(headerKey.getUniversalId());
-		File tempInterimFileSignature = MartusUtilities.getSignatureFileFromFile(tempInterimFile);
-		if(tempInterimFile.exists() && tempInterimFileSignature.exists())
+		File interimFile = getStore().getOutgoingInterimFile(headerKey.getUniversalId());
+		File interimFileSignature = MartusUtilities.getSignatureFileFromFile(interimFile);
+		if(interimFile.exists() && interimFileSignature.exists())
 		{
-			if(verifyBulletinInterimFile(tempInterimFile, tempInterimFileSignature, getSecurity().getPublicKeyString()))
-				return tempInterimFile;
+			if(verifyBulletinInterimFile(interimFile, interimFileSignature, getSecurity().getPublicKeyString()))
+				return interimFile;
 		}
-		MartusUtilities.deleteInterimFileAndSignature(tempInterimFile);
+		MartusUtilities.deleteInterimFileAndSignature(interimFile);
 
-		File tempFile = File.createTempFile(tempInterimFile.getName(), ".tmp");
+		File tempFile = File.createTempFile(interimFile.getName(), ".tmp");
 		BulletinZipUtilities.exportBulletinPacketsFromDatabaseToZipFile(getDatabase(), headerKey, tempFile, getSecurity());
 		File tempFileSignature = MartusUtilities.createSignatureFileFromFile(tempFile, getSecurity());
 
-		if(!verifyBulletinInterimFile(tempFile, tempFileSignature, getSecurity().getPublicKeyString()))
+		boolean tempRenameWorked = false;
+		boolean tempSignatureWorked = false;
+		
+		if(!interimFile.exists())
+			tempRenameWorked = tempFile.renameTo(interimFile);
+		if(!interimFileSignature.exists())
+			tempSignatureWorked = tempFileSignature.renameTo(interimFileSignature);
+
+		if(!verifyBulletinInterimFile(interimFile, interimFileSignature, getSecurity().getPublicKeyString()))
 		{
 			tempFile.delete();
 			tempFileSignature.delete();
+			logError("    createInterimBulletinFile failed verifyBulletinInterimFile:" + interimFile.getName());
 			throw new MartusUtilities.FileVerificationException();
 		}
-
-		if(!tempInterimFile.exists())
-			tempFile.renameTo(tempInterimFile);
-		if(!tempInterimFileSignature.exists())
-			tempFileSignature.renameTo(tempInterimFileSignature);
-		logDebug("    Total file size =" + tempInterimFile.length());
-		return tempInterimFile;
+		
+		if(!tempRenameWorked)
+			tempFile.delete();
+		if(!tempSignatureWorked)
+			tempFileSignature.delete();
+		
+		logDebug("    Total file size =" + interimFile.length());
+		return interimFile;
 	}
 
 	public boolean verifyBulletinInterimFile(File bulletinZipFile, File bulletinSignatureFile, String accountId)
