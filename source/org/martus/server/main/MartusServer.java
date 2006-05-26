@@ -1246,21 +1246,32 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			NoKeyPairException,
 			MartusUtilities.FileVerificationException, IOException, RecordHiddenException
 	{
-		File tempFile = getStore().getOutgoingInterimFile(headerKey.getUniversalId());
-		File tempFileSignature = MartusUtilities.getSignatureFileFromFile(tempFile);
-		if(tempFile.exists() && tempFileSignature.exists())
+		File tempInterimFile = getStore().getOutgoingInterimFile(headerKey.getUniversalId());
+		File tempInterimFileSignature = MartusUtilities.getSignatureFileFromFile(tempInterimFile);
+		if(tempInterimFile.exists() && tempInterimFileSignature.exists())
 		{
-			if(verifyBulletinInterimFile(tempFile, tempFileSignature, getSecurity().getPublicKeyString()))
-				return tempFile;
+			if(verifyBulletinInterimFile(tempInterimFile, tempInterimFileSignature, getSecurity().getPublicKeyString()))
+				return tempInterimFile;
 		}
-		MartusUtilities.deleteInterimFileAndSignature(tempFile);
+		MartusUtilities.deleteInterimFileAndSignature(tempInterimFile);
+
+		File tempFile = File.createTempFile(tempInterimFile.getName(), ".tmp");
 		BulletinZipUtilities.exportBulletinPacketsFromDatabaseToZipFile(getDatabase(), headerKey, tempFile, getSecurity());
-		tempFileSignature = MartusUtilities.createSignatureFileFromFile(tempFile, getSecurity());
+		File tempFileSignature = MartusUtilities.createSignatureFileFromFile(tempFile, getSecurity());
+
 		if(!verifyBulletinInterimFile(tempFile, tempFileSignature, getSecurity().getPublicKeyString()))
+		{
+			tempFile.delete();
+			tempFileSignature.delete();
 			throw new MartusUtilities.FileVerificationException();
-		logDebug("    Total file size =" + tempFile.length());
-		
-		return tempFile;
+		}
+
+		if(!tempInterimFile.exists())
+			tempFile.renameTo(tempInterimFile);
+		if(!tempInterimFileSignature.exists())
+			tempFileSignature.renameTo(tempInterimFileSignature);
+		logDebug("    Total file size =" + tempInterimFile.length());
+		return tempInterimFile;
 	}
 
 	public boolean verifyBulletinInterimFile(File bulletinZipFile, File bulletinSignatureFile, String accountId)
