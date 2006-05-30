@@ -38,4 +38,5 @@ public interface ServerSupplierInterface extends LoggerInterface
 	public String getBulletinUploadRecord(String authorAccountId, String bulletinLocalId);
 	public Vector getBulletinChunkWithoutVerifyingCaller(String authorAccountId, String bulletinLocalId,
 			int chunkOffset, int maxChunkSize);
+	public Vector listAvailableIdsForMirroring(String authorAccountId);
 }

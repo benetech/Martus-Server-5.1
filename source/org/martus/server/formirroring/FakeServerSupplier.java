@@ -29,6 +29,7 @@ package org.martus.server.formirroring;
 import java.util.Iterator;
 import java.util.Vector;
 
+import org.martus.common.bulletin.BulletinConstants;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MockMartusSecurity;
 import org.martus.common.database.DatabaseKey;
@@ -42,6 +43,7 @@ class FakeServerSupplier implements ServerSupplierInterface
 	{
 		accountsToMirror = new Vector();
 		bulletinsToMirror = new Vector();
+		availableIdsToMirror = new Vector();
 		security = MockMartusSecurity.createOtherServer();
 		
 		returnZipData = Base64.encode("zip data");
@@ -60,6 +62,19 @@ class FakeServerSupplier implements ServerSupplierInterface
 		bulletinsToMirror.add(data);
 	}
 	
+	void addAvailableIdsToMirror(DatabaseKey key, String sig)
+	{
+		Vector data = new Vector();
+		data.add(key.getUniversalId());
+		if(key.isDraft())
+			data.add(BulletinConstants.STATUSDRAFT);
+		else
+			data.add(BulletinConstants.STATUSSEALED);
+		//TODO add mtime
+		data.add(sig);
+		availableIdsToMirror.add(data);
+	}
+
 	void addBur(String accountId, String localId, String bur)
 	{
 		burAccountId = accountId;
@@ -128,6 +143,26 @@ class FakeServerSupplier implements ServerSupplierInterface
 		return bulletins;
 	}
 	
+	public Vector listAvailableIdsForMirroring(String authorAccountId)
+	{
+		Vector bulletins = new Vector();
+		for (Iterator b = availableIdsToMirror.iterator(); b.hasNext();)
+		{
+			Vector data = (Vector)b.next();
+			UniversalId uid = (UniversalId)data.get(0);
+			if(authorAccountId.equals(uid.getAccountId()))
+			{
+				Vector info = new Vector();
+				info.add(uid.getLocalId());
+				info.add(data.get(1));//status
+				info.add(data.get(2));//sig (will be mtime)
+				//info.add(data.get(3));//mtime (will be sig)
+				bulletins.add(info);
+			}
+		}
+		return bulletins;
+	}
+	
 	public String getBulletinUploadRecord(String authorAccountId, String bulletinLocalId)
 	{
 		if(!authorAccountId.equals(burAccountId))
@@ -177,6 +212,7 @@ class FakeServerSupplier implements ServerSupplierInterface
 	MartusCrypto security;
 	Vector accountsToMirror;
 	Vector bulletinsToMirror;
+	Vector availableIdsToMirror;
 	
 	String gotAccount;
 	String gotLocalId;

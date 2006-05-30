@@ -167,7 +167,7 @@ public class SupplierSideMirroringHandler implements MirroringInterface, Network
 					result.add(INVALID_DATA);
 					return result;
 				}
-				Vector infos = new Vector();//supplier.listBulletinsForMirroring(authorAccountId);
+				Vector infos = supplier.listAvailableIdsForMirroring(authorAccountId);
 
 				if(infos.size()>0)
 					logNotice("listAvailableIds: " + publicCode + " -> " + infos.size());

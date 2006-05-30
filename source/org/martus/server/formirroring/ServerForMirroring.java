@@ -36,6 +36,7 @@ import org.martus.common.LoggerInterface;
 import org.martus.common.MartusUtilities;
 import org.martus.common.MartusUtilities.InvalidPublicKeyFileException;
 import org.martus.common.MartusUtilities.PublicInformationInvalidException;
+import org.martus.common.bulletin.BulletinConstants;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
@@ -250,6 +251,44 @@ public class ServerForMirroring implements ServerSupplierInterface
 		return collector.infos;
 	}
 	
+	public Vector listAvailableIdsForMirroring(String authorAccountId)
+	{
+		class Collector implements Database.PacketVisitor
+		{
+			public void visit(DatabaseKey key)
+			{
+				try
+				{
+					if(!BulletinHeaderPacket.isValidLocalId(key.getLocalId()))
+						return;
+					InputStreamWithSeek in = getDatabase().openInputStream(key, null);
+					byte[] sigBytes = BulletinHeaderPacket.verifyPacketSignature(in, getSecurity());
+					in.close();
+					String sigString = Base64.encode(sigBytes);
+					Vector info = new Vector();
+					info.add(key.getLocalId());
+					if(key.isDraft())
+						info.add(BulletinConstants.STATUSDRAFT);
+					else
+						info.add(BulletinConstants.STATUSSEALED);
+					//TODO add mtime
+					info.add(sigString);
+					infos.add(info);
+				}
+				catch (Exception e)
+				{
+					logError("listAvailableIdsForMirroring ", e);
+				}
+			}
+			
+			Vector infos = new Vector();
+		}
+
+		Collector collector = new Collector();		
+		getDatabase().visitAllRecordsForAccount(collector, authorAccountId);
+		return collector.infos;
+	}
+
 	public String getBulletinUploadRecord(String authorAccountId, String bulletinLocalId)
 	{
 		UniversalId uid = UniversalId.createFromAccountAndLocalId(authorAccountId, bulletinLocalId);

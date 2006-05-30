@@ -254,15 +254,15 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 		
 		BulletinHeaderPacket bhp1 = new BulletinHeaderPacket(authorSecurity);
 		bhp1.setStatus(BulletinConstants.STATUSSEALED);
-		Vector result1 = writeSampleHeaderPacket(bhp1);
+		Vector result1 = writeSampleAvailableIDPacket(bhp1);
 		
 		BulletinHeaderPacket bhp2 = new BulletinHeaderPacket(authorSecurity);
 		bhp2.setStatus(BulletinConstants.STATUSSEALED);
-		Vector result2 = writeSampleHeaderPacket(bhp2);
+		Vector result2 = writeSampleAvailableIDPacket(bhp2);
 
 		BulletinHeaderPacket bhpDraft = new BulletinHeaderPacket(authorSecurity);
 		bhpDraft.setStatus(BulletinConstants.STATUSDRAFT);
-		Vector result3 = writeSampleHeaderPacket(bhpDraft);
+		Vector result3 = writeSampleAvailableIDPacket(bhpDraft);
 		
 		supplier.authorizedCaller = callerAccountId;
 
@@ -274,10 +274,9 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 		assertEquals(NetworkInterfaceConstants.OK, result.get(0));
 		Vector infos = (Vector)result.get(1);
 		assertEquals(3, infos.size());
-		assertContains(result1, infos);
-		assertContains(result2, infos);
-		assertContains(result3, infos);
-		assertNull(result3);
+		assertContains("result1 missing?", result1, infos);
+		assertContains("result2 missing?",result2, infos);
+		assertContains("result3 missing?",result3, infos);
 	}
 
 	public void testGetBulletinUploadRecordNotFound() throws Exception
@@ -432,6 +431,32 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 		return info;
 	}
 	
+	Vector writeSampleAvailableIDPacket(BulletinHeaderPacket bhp) throws Exception
+	{
+		Vector info = new Vector();
+		info.add(bhp.getLocalId());
+
+		StringWriter writer = new StringWriter();
+		byte[] sigBytes = bhp.writeXml(writer, authorSecurity);
+		DatabaseKey key = null;
+		if(bhp.getStatus().equals(BulletinConstants.STATUSDRAFT))
+		{
+			key = DatabaseKey.createDraftKey(bhp.getUniversalId());
+			info.add(BulletinConstants.STATUSDRAFT);
+		}
+		else
+		{
+			key = DatabaseKey.createSealedKey(bhp.getUniversalId());
+			info.add(BulletinConstants.STATUSSEALED);
+		}
+		//TODO info.add(mtime);
+		String sigString = Base64.encode(sigBytes);
+		supplier.addAvailableIdsToMirror(key, sigString);
+		
+		info.add(sigString);
+		return info;
+	}
+
 	String writeSealedRecord(Database db, String accountId) throws Exception
 	{
 		UniversalId uid = UniversalIdForTesting.createFromAccountAndPrefix(accountId, "x");
