@@ -32,13 +32,11 @@ import java.net.InetAddress;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Vector;
-
 import org.martus.amplifier.ServerCallbackInterface;
 import org.martus.common.LoggerInterface;
 import org.martus.common.MartusUtilities;
 import org.martus.common.MartusUtilities.InvalidPublicKeyFileException;
 import org.martus.common.MartusUtilities.PublicInformationInvalidException;
-import org.martus.common.bulletin.BulletinConstants;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
@@ -267,15 +265,8 @@ public class ServerForMirroring implements ServerSupplierInterface
 					byte[] sigBytes = BulletinHeaderPacket.verifyPacketSignature(in, getSecurity());
 					in.close();
 					String sigString = Base64.encode(sigBytes);
-					Vector info = new Vector();
-					info.add(key.getLocalId());
-					if(key.isDraft())
-						info.add(BulletinConstants.STATUSDRAFT);
-					else
-						info.add(BulletinConstants.STATUSSEALED);
-					//TODO add mtime
-					info.add(sigString);
-					infos.add(info);
+					BulletinMirroringInformation bulletinInfo = new BulletinMirroringInformation(getDatabase(), key, sigString);
+					infos.add(bulletinInfo.getInfoWithLocalId());
 				}
 				catch (Exception e)
 				{

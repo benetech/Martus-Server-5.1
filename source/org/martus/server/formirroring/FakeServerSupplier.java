@@ -26,15 +26,17 @@ Boston, MA 02111-1307, USA.
 
 package org.martus.server.formirroring;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
 
-import org.martus.common.bulletin.BulletinConstants;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MockMartusSecurity;
+import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
+import org.martus.common.database.Database.RecordHiddenException;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.packet.UniversalId;
 import org.martus.util.Base64;
@@ -64,16 +66,10 @@ class FakeServerSupplier implements ServerSupplierInterface
 		bulletinsToMirror.add(data);
 	}
 	
-	void addAvailableIdsToMirror(DatabaseKey key, String sig)
+	void addAvailableIdsToMirror(Database db, DatabaseKey key, String sig) throws IOException, RecordHiddenException
 	{
-		Vector data = new Vector();
-		data.add(key.getUniversalId());
-		if(key.isDraft())
-			data.add(BulletinConstants.STATUSDRAFT);
-		else
-			data.add(BulletinConstants.STATUSSEALED);
-		//TODO add mtime
-		data.add(sig);
+		BulletinMirroringInformation bulletinInfo = new BulletinMirroringInformation(db, key, sig);
+		Vector data = bulletinInfo.getInfoWithUniversalId();
 		availableIdsToMirror.add(data);
 	}
 

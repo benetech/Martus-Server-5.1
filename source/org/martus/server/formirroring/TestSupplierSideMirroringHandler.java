@@ -29,18 +29,17 @@ package org.martus.server.formirroring;
 import java.io.StringWriter;
 import java.util.Set;
 import java.util.Vector;
-
 import org.martus.common.MartusUtilities;
 import org.martus.common.bulletin.BulletinConstants;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MockMartusSecurity;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
+import org.martus.common.database.MockDatabase;
+import org.martus.common.database.MockServerDatabase;
 import org.martus.common.network.NetworkInterfaceConstants;
-import org.martus.common.network.mirroring.*;
+import org.martus.common.network.mirroring.MirroringInterface;
 import org.martus.common.packet.BulletinHeaderPacket;
-import org.martus.common.packet.UniversalId;
-import org.martus.common.test.UniversalIdForTesting;
 import org.martus.util.Base64;
 import org.martus.util.TestCaseEnhanced;
 
@@ -252,18 +251,19 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 	public void testListAvailableIds() throws Exception
 	{
 		String authorAccountId = authorSecurity.getPublicKeyString();
+		MockDatabase db = new MockServerDatabase();
 		
 		BulletinHeaderPacket bhp1 = new BulletinHeaderPacket(authorSecurity);
 		bhp1.setStatus(BulletinConstants.STATUSSEALED);
-		Vector result1 = writeSampleAvailableIDPacket(bhp1);
+		Vector result1 = writeSampleAvailableIDPacket(db, bhp1);
 		
 		BulletinHeaderPacket bhp2 = new BulletinHeaderPacket(authorSecurity);
 		bhp2.setStatus(BulletinConstants.STATUSSEALED);
-		Vector result2 = writeSampleAvailableIDPacket(bhp2);
+		Vector result2 = writeSampleAvailableIDPacket(db, bhp2);
 
 		BulletinHeaderPacket bhpDraft = new BulletinHeaderPacket(authorSecurity);
 		bhpDraft.setStatus(BulletinConstants.STATUSDRAFT);
-		Vector result3 = writeSampleAvailableIDPacket(bhpDraft);
+		Vector result3 = writeSampleAvailableIDPacket(db, bhpDraft);
 		
 		supplier.authorizedCaller = callerAccountId;
 
@@ -432,38 +432,23 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 		return info;
 	}
 	
-	Vector writeSampleAvailableIDPacket(BulletinHeaderPacket bhp) throws Exception
+	Vector writeSampleAvailableIDPacket(Database db, BulletinHeaderPacket bhp) throws Exception
 	{
-		Vector info = new Vector();
-		info.add(bhp.getLocalId());
 
 		StringWriter writer = new StringWriter();
 		byte[] sigBytes = bhp.writeXml(writer, authorSecurity);
 		DatabaseKey key = null;
 		if(bhp.getStatus().equals(BulletinConstants.STATUSDRAFT))
-		{
 			key = DatabaseKey.createDraftKey(bhp.getUniversalId());
-			info.add(BulletinConstants.STATUSDRAFT);
-		}
 		else
-		{
 			key = DatabaseKey.createSealedKey(bhp.getUniversalId());
-			info.add(BulletinConstants.STATUSSEALED);
-		}
-		//TODO info.add(mtime);
-		String sigString = Base64.encode(sigBytes);
-		supplier.addAvailableIdsToMirror(key, sigString);
-		
-		info.add(sigString);
-		return info;
-	}
 
-	String writeSealedRecord(Database db, String accountId) throws Exception
-	{
-		UniversalId uid = UniversalIdForTesting.createFromAccountAndPrefix(accountId, "x");
-		DatabaseKey key = DatabaseKey.createSealedKey(uid);
-		db.writeRecord(key, "just some sample data");
-		return key.getLocalId();
+		String sigString = Base64.encode(sigBytes);
+		supplier.addAvailableIdsToMirror(db, key, sigString);
+		
+		BulletinMirroringInformation bulletinInfo = new BulletinMirroringInformation(db, key, sigString);
+		Vector info = bulletinInfo.getInfoWithLocalId();
+		return info;
 	}
 
 	FakeServerSupplier supplier;
