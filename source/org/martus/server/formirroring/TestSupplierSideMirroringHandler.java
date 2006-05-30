@@ -217,7 +217,7 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 		assertEquals(NetworkInterfaceConstants.INVALID_DATA, result.get(0));
 	}
 	
-	public void testListBulletins() throws Exception
+	public void testListSealedBulletins() throws Exception
 	{
 		String authorAccountId = authorSecurity.getPublicKeyString();
 		
@@ -248,6 +248,38 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 		assertNull(result3);
 	}
 	
+	public void testListAvailableIds() throws Exception
+	{
+		String authorAccountId = authorSecurity.getPublicKeyString();
+		
+		BulletinHeaderPacket bhp1 = new BulletinHeaderPacket(authorSecurity);
+		bhp1.setStatus(BulletinConstants.STATUSSEALED);
+		Vector result1 = writeSampleHeaderPacket(bhp1);
+		
+		BulletinHeaderPacket bhp2 = new BulletinHeaderPacket(authorSecurity);
+		bhp2.setStatus(BulletinConstants.STATUSSEALED);
+		Vector result2 = writeSampleHeaderPacket(bhp2);
+
+		BulletinHeaderPacket bhpDraft = new BulletinHeaderPacket(authorSecurity);
+		bhpDraft.setStatus(BulletinConstants.STATUSDRAFT);
+		Vector result3 = writeSampleHeaderPacket(bhpDraft);
+		
+		supplier.authorizedCaller = callerAccountId;
+
+		Vector parameters = new Vector();
+		parameters.add(MirroringInterface.CMD_MIRRORING_LIST_AVAILABLE_IDS);
+		parameters.add(authorAccountId);
+		String sig = callerSecurity.createSignatureOfVectorOfStrings(parameters);
+		Vector result = handler.request(callerAccountId, parameters, sig);
+		assertEquals(NetworkInterfaceConstants.OK, result.get(0));
+		Vector infos = (Vector)result.get(1);
+		assertEquals(3, infos.size());
+		assertContains(result1, infos);
+		assertContains(result2, infos);
+		assertContains(result3, infos);
+		assertNull(result3);
+	}
+
 	public void testGetBulletinUploadRecordNotFound() throws Exception
 	{
 		supplier.authorizedCaller = callerAccountId;
@@ -351,7 +383,39 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 		assertEquals(new Integer(supplier.getChunkSize()), details.get(1));
 		assertEquals(supplier.returnZipData, details.get(2));
 	}
+
+	public void testGetBulletinChunkTypo() throws Exception
+	{
+		final String authorAccountId = "a";
+		final String bulletinLocalId = "b";
+		final int offset = 123;
+		final int maxChunkSize = 456;
+		
+		supplier.returnResultTag = NetworkInterfaceConstants.CHUNK_OK;
+		supplier.authorizedCaller = callerAccountId;
+
+		Vector parameters = new Vector();
+		parameters.add(MirroringInterface.CMD_MIRRORING_GET_BULLETIN_CHUNK_TYPO);
+		parameters.add(authorAccountId);
+		parameters.add(bulletinLocalId);
+		parameters.add(new Integer(offset));
+		parameters.add(new Integer(maxChunkSize));
+		String sig = callerSecurity.createSignatureOfVectorOfStrings(parameters);
+		Vector result = handler.request(callerAccountId, parameters, sig);
+
+		assertEquals(authorAccountId, supplier.gotAccount);
+		assertEquals(bulletinLocalId, supplier.gotLocalId);
+		assertEquals(offset, supplier.gotChunkOffset);
+		assertEquals(maxChunkSize, supplier.gotMaxChunkSize);
 	
+		assertEquals(2, result.size());
+		assertEquals(NetworkInterfaceConstants.CHUNK_OK, result.get(0));
+		Vector details = (Vector)result.get(1);
+		assertEquals(new Integer(supplier.getChunkSize() * 3), details.get(0));
+		assertEquals(new Integer(supplier.getChunkSize()), details.get(1));
+		assertEquals(supplier.returnZipData, details.get(2));
+	}
+
 	Vector writeSampleHeaderPacket(BulletinHeaderPacket bhp) throws Exception
 	{
 		StringWriter writer = new StringWriter();

@@ -143,6 +143,41 @@ public class SupplierSideMirroringHandler implements MirroringInterface, Network
 				result.add(infos);
 				return result;
 			}
+			case cmdListAvailableIdsForMirroring:
+			{
+				logInfo("listAvailableIds");
+				String authorAccountId = (String)parameters.get(1);
+				String publicCode;
+				try
+				{
+					publicCode = MartusCrypto.getFormattedPublicCode(authorAccountId);
+				}
+				catch (Exception e)
+				{
+					
+					String accountInfo = authorAccountId;
+					try
+					{
+						accountInfo = MartusCrypto.getFormattedPublicCode(authorAccountId);
+					}
+					catch (Exception justUseAccountIdInstead)
+					{
+					}
+					logError("listAvailableIds: Bad account:" + accountInfo);
+					result.add(INVALID_DATA);
+					return result;
+				}
+				Vector infos = new Vector();//supplier.listBulletinsForMirroring(authorAccountId);
+
+				if(infos.size()>0)
+					logNotice("listAvailableIds: " + publicCode + " -> " + infos.size());
+				else
+					logInfo("listAvailableIds: None");
+				
+				result.add(OK);
+				result.add(infos);
+				return result;
+			}
 			case cmdGetBulletinUploadRecordForMirroring:
 			{
 				String authorAccountId = (String)parameters.get(1);
@@ -219,10 +254,15 @@ public class SupplierSideMirroringHandler implements MirroringInterface, Network
 		if(cmdString.equals(CMD_MIRRORING_LIST_SEALED_BULLETINS))
 			return cmdListBulletinsForMirroring;
 		
+		if(cmdString.equals(CMD_MIRRORING_LIST_AVAILABLE_IDS))
+			return cmdListAvailableIdsForMirroring;
+
 		if(cmdString.equals(CMD_MIRRORING_GET_BULLETIN_UPLOAD_RECORD))
 			return cmdGetBulletinUploadRecordForMirroring;
 
 		if(cmdString.equals(CMD_MIRRORING_GET_BULLETIN_CHUNK))
+			return cmdGetBulletinChunkForMirroring;
+		if(cmdString.equals(CMD_MIRRORING_GET_BULLETIN_CHUNK_TYPO))
 			return cmdGetBulletinChunkForMirroring;
 
 		return cmdUnknown;
@@ -284,6 +324,7 @@ public class SupplierSideMirroringHandler implements MirroringInterface, Network
 	final static int cmdListBulletinsForMirroring = 3;
 	final static int cmdGetBulletinUploadRecordForMirroring = 4;
 	final static int cmdGetBulletinChunkForMirroring = 5;
+	final static int cmdListAvailableIdsForMirroring = 6;
 	
 	ServerSupplierInterface supplier;
 	MartusCrypto verifier;
