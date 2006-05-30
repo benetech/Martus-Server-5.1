@@ -33,7 +33,6 @@ import org.martus.common.MartusUtilities;
 import org.martus.common.bulletin.BulletinConstants;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MockMartusSecurity;
-import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.MockDatabase;
 import org.martus.common.database.MockServerDatabase;
@@ -251,19 +250,18 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 	public void testListAvailableIds() throws Exception
 	{
 		String authorAccountId = authorSecurity.getPublicKeyString();
-		MockDatabase db = new MockServerDatabase();
 		
 		BulletinHeaderPacket bhp1 = new BulletinHeaderPacket(authorSecurity);
 		bhp1.setStatus(BulletinConstants.STATUSSEALED);
-		Vector result1 = writeSampleAvailableIDPacket(db, bhp1);
+		Vector result1 = writeSampleAvailableIDPacket(bhp1);
 		
 		BulletinHeaderPacket bhp2 = new BulletinHeaderPacket(authorSecurity);
 		bhp2.setStatus(BulletinConstants.STATUSSEALED);
-		Vector result2 = writeSampleAvailableIDPacket(db, bhp2);
+		Vector result2 = writeSampleAvailableIDPacket(bhp2);
 
 		BulletinHeaderPacket bhpDraft = new BulletinHeaderPacket(authorSecurity);
 		bhpDraft.setStatus(BulletinConstants.STATUSDRAFT);
-		Vector result3 = writeSampleAvailableIDPacket(db, bhpDraft);
+		Vector result3 = writeSampleAvailableIDPacket(bhpDraft);
 		
 		supplier.authorizedCaller = callerAccountId;
 
@@ -432,7 +430,7 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 		return info;
 	}
 	
-	Vector writeSampleAvailableIDPacket(Database db, BulletinHeaderPacket bhp) throws Exception
+	Vector writeSampleAvailableIDPacket(BulletinHeaderPacket bhp) throws Exception
 	{
 
 		StringWriter writer = new StringWriter();
@@ -444,6 +442,7 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 			key = DatabaseKey.createSealedKey(bhp.getUniversalId());
 
 		String sigString = Base64.encode(sigBytes);
+		MockDatabase db = new MockServerDatabase();
 		supplier.addAvailableIdsToMirror(db, key, sigString);
 		
 		BulletinMirroringInformation bulletinInfo = new BulletinMirroringInformation(db, key, sigString);
