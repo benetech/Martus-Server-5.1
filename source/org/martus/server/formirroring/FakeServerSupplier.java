@@ -26,7 +26,9 @@ Boston, MA 02111-1307, USA.
 
 package org.martus.server.formirroring;
 
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.Vector;
 
 import org.martus.common.bulletin.BulletinConstants;
@@ -143,9 +145,9 @@ class FakeServerSupplier implements ServerSupplierInterface
 		return bulletins;
 	}
 	
-	public Vector listAvailableIdsForMirroring(String authorAccountId)
+	public Set listAvailableIdsForMirroring(String authorAccountId)
 	{
-		Vector bulletins = new Vector();
+		Set bulletins = new HashSet();
 		for (Iterator b = availableIdsToMirror.iterator(); b.hasNext();)
 		{
 			Vector data = (Vector)b.next();

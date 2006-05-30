@@ -26,6 +26,7 @@ Boston, MA 02111-1307, USA.
 
 package org.martus.server.formirroring;
 
+import java.util.Set;
 import java.util.Vector;
 
 import org.martus.common.LoggerInterface;
@@ -167,7 +168,7 @@ public class SupplierSideMirroringHandler implements MirroringInterface, Network
 					result.add(INVALID_DATA);
 					return result;
 				}
-				Vector infos = supplier.listAvailableIdsForMirroring(authorAccountId);
+				Set infos = supplier.listAvailableIdsForMirroring(authorAccountId);
 
 				if(infos.size()>0)
 					logNotice("listAvailableIds: " + publicCode + " -> " + infos.size());

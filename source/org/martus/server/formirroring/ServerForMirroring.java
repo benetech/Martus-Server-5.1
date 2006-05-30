@@ -29,6 +29,8 @@ package org.martus.server.formirroring;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Vector;
 
 import org.martus.amplifier.ServerCallbackInterface;
@@ -251,7 +253,7 @@ public class ServerForMirroring implements ServerSupplierInterface
 		return collector.infos;
 	}
 	
-	public Vector listAvailableIdsForMirroring(String authorAccountId)
+	public Set listAvailableIdsForMirroring(String authorAccountId)
 	{
 		class Collector implements Database.PacketVisitor
 		{
@@ -281,7 +283,7 @@ public class ServerForMirroring implements ServerSupplierInterface
 				}
 			}
 			
-			Vector infos = new Vector();
+			Set infos = new HashSet();
 		}
 
 		Collector collector = new Collector();		
