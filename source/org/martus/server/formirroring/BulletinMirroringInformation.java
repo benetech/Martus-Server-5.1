@@ -46,6 +46,30 @@ public class BulletinMirroringInformation
 			status = BulletinConstants.STATUSSEALED;
 	}
 	
+	public BulletinMirroringInformation(String accountId, Vector info)
+	{
+		String localId = (String)info.get(0);
+		uId = UniversalId.createFromAccountAndLocalId(accountId, localId);
+		status = (String)info.get(1);
+		mTime = ((Long)info.get(2)).longValue();
+		signature = (String)info.get(3);
+	}
+	
+	public UniversalId getUid()
+	{
+		return uId;
+	}
+	
+	public boolean isDraft()
+	{
+		return status.equals(BulletinConstants.STATUSDRAFT);
+	}
+	
+	public long getmTime()
+	{
+		return mTime;
+	}
+	
 	public Vector getInfoWithLocalId()
 	{
 		Vector info = new Vector();

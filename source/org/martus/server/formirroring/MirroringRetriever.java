@@ -59,7 +59,7 @@ public class MirroringRetriever implements LoggerInterface
 		ip = ipToUse;
 		logger = loggerToUse;
 		
-		uidsToRetrieve = new Vector();
+		itemsToRetrieve = new Vector();
 		accountsToRetrieve = new Vector();
 	}
 	
@@ -67,25 +67,25 @@ public class MirroringRetriever implements LoggerInterface
 	{
 	}
 	
-	public void retrieveNextBulletin()
+	public void processNextBulletin()
 	{
-		UniversalId uid = getNextUidToRetrieve();
-		if(uid == null)
+		BulletinMirroringInformation item = getNextItemToRetrieve();
+		if(item == null)
 			return;
 			
 		shouldSleepNextCycle = false;
 			
 		try
 		{
-			String publicCode = MartusCrypto.getFormattedPublicCode(uid.getAccountId());
-			logNotice("Getting bulletin: " + publicCode + "->" + uid.getLocalId());
-			String bur = retrieveBurFromMirror(uid);
+			String publicCode = MartusCrypto.getFormattedPublicCode(item.getAccountId());
+			logNotice("Getting bulletin: " + publicCode + "->" + item.getLocalId());
+			String bur = retrieveBurFromMirror(item);
 			File zip = File.createTempFile("$$$MirroringRetriever", null);
 			try
 			{
 				zip.deleteOnExit();
-				retrieveOneBulletin(zip, uid);
-				BulletinHeaderPacket bhp = store.saveZipFileToDatabase(zip, uid.getAccountId());
+				retrieveOneBulletin(zip, item);
+				BulletinHeaderPacket bhp = store.saveZipFileToDatabase(zip, item.getAccountId());
 				store.writeBur(bhp, bur);
 			}
 			finally
@@ -129,13 +129,13 @@ public class MirroringRetriever implements LoggerInterface
 		return bur;
 	}
 	
-	UniversalId getNextUidToRetrieve()
+	BulletinMirroringInformation getNextItemToRetrieve()
 	{
 		try
 		{
-			if(uidsToRetrieve.size() > 0)
+			if(itemsToRetrieve.size() > 0)
 			{
-				return (UniversalId)uidsToRetrieve.remove(0);
+				return (BulletinMirroringInformation)itemsToRetrieve.remove(0);
 			}
 
 			String nextAccountId = getNextAccountToRetrieve();
@@ -148,10 +148,10 @@ public class MirroringRetriever implements LoggerInterface
 			if(response.getResultCode().equals(NetworkInterfaceConstants.OK))
 			{
 				Vector infos = response.getResultVector();
-				uidsToRetrieve = listOnlyPacketsThatWeWant(nextAccountId, infos);
-				if(infos.size()>0 || uidsToRetrieve.size()>0)
+				itemsToRetrieve = listOnlyPacketsThatWeWant(nextAccountId, infos);
+				if(infos.size()>0 || itemsToRetrieve.size()>0)
 					logInfo("listBulletins: " + publicCode + 
-						" -> " + infos.size() + " -> " + uidsToRetrieve.size());
+						" -> " + infos.size() + " -> " + itemsToRetrieve.size());
 			}
 		}
 		catch (Exception e)
@@ -294,7 +294,7 @@ public class MirroringRetriever implements LoggerInterface
 	String ip;
 	LoggerInterface logger;
 	
-	Vector uidsToRetrieve;
+	Vector itemsToRetrieve;
 	Vector accountsToRetrieve;
 
 	public boolean shouldSleepNextCycle;

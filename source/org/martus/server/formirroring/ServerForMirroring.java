@@ -385,7 +385,7 @@ public class ServerForMirroring implements ServerSupplierInterface
 	{
 		for(int i = 0; i < retrieversWeWillCall.size(); ++i)
 		{	
-			((MirroringRetriever)retrieversWeWillCall.get(i)).retrieveNextBulletin();
+			((MirroringRetriever)retrieversWeWillCall.get(i)).processNextBulletin();
 		}
 	}
 	

@@ -45,10 +45,11 @@ public class TestForMirroring
 	{
 		TestSuite suite= new TestSuite("All Server Mirroring Tests");
 
+		suite.addTest(new TestSuite(TestBulletinMirroringInformation.class));
 		suite.addTest(new TestSuite(TestMirroringRetriever.class));
 		suite.addTest(new TestSuite(TestServerForMirroring.class));
 		suite.addTest(new TestSuite(TestSupplierSideMirroringHandler.class));
-
+		
 		return suite;
 	}
 }

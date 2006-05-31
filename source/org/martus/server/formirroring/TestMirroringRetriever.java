@@ -83,22 +83,22 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		server.deleteAllFiles();
 	}
 	
-	public void testGetNextUidToRetrieve() throws Exception
+	public void testGetNextItemToRetrieve() throws Exception
 	{
-		assertNull("uid right after constructor?", realRetriever.getNextUidToRetrieve());
-		Vector uids = new Vector();
+		assertNull("item available right after constructor?", realRetriever.getNextItemToRetrieve());
+		Vector items = new Vector();
 		for(int i=0; i < 3; ++i)
 		{
 			UniversalId uid = UniversalId.createDummyUniversalId(); 
-			uids.add(uid);
-			realRetriever.uidsToRetrieve.add(uid);
+			items.add(uid);
+			realRetriever.itemsToRetrieve.add(uid);
 		}
 
-		for(int i=0; i < uids.size(); ++i)
-			assertEquals("wrong " + i + "?", uids.get(i), realRetriever.getNextUidToRetrieve());
+		for(int i=0; i < items.size(); ++i)
+			assertEquals("wrong " + i + "?", items.get(i), realRetriever.getNextItemToRetrieve());
 
-		assertNull("uid right after emptied?", realRetriever.getNextUidToRetrieve());
-		assertNull("uid again after emptied?", realRetriever.getNextUidToRetrieve());
+		assertNull("uid right after emptied?", realRetriever.getNextItemToRetrieve());
+		assertNull("uid again after emptied?", realRetriever.getNextItemToRetrieve());
 	}
 	
 	public void testGetNextAccountToRetrieve() throws Exception
@@ -147,7 +147,7 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 	{
 		assertFalse("initial shouldsleep wrong?", realRetriever.shouldSleepNextCycle);
 		// get account list (empty)
-		realRetriever.retrieveNextBulletin();
+		realRetriever.processNextBulletin();
 		assertNull("tick asked for account?", supplier.gotAccount);
 		assertNull("tick asked for id?", supplier.gotLocalId);
 		assertTrue("not ready to sleep?", realRetriever.shouldSleepNextCycle);
@@ -184,12 +184,12 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		realRetriever.shouldSleepNextCycle = false;
 		assertEquals("before tick a", 0, store.getBulletinCount());
 		// get account list
-		realRetriever.retrieveNextBulletin();
+		realRetriever.processNextBulletin();
 		assertNull("tick a asked for account?", supplier.gotAccount);
 		assertNull("tick a asked for id?", supplier.gotLocalId);
 		assertEquals("after tick a", 0, store.getBulletinCount());
 		//get bulletin list
-		realRetriever.retrieveNextBulletin();
+		realRetriever.processNextBulletin();
 		assertNull("tick b asked for account?", supplier.gotAccount);
 		assertNull("tick b asked for id?", supplier.gotLocalId);
 		assertEquals("after tick b", 0, store.getBulletinCount());
@@ -201,19 +201,19 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 			Bulletin expectedBulletin = (Bulletin)bulletins.get(goodTick);
 			supplier.returnZipData = getZipString(db, expectedBulletin, clientSecurity);
 			supplier.addBur(expectedBulletin.getAccount(), expectedBulletin.getLocalId(), burs[goodTick]);
-			realRetriever.retrieveNextBulletin();
+			realRetriever.processNextBulletin();
 			assertEquals("tick " + goodTick + " wrong account?", clientSecurity.getPublicKeyString(), supplier.gotAccount);
 			assertEquals("tick " + goodTick + " wrong id?", ((Bulletin)bulletins.get(goodTick)).getLocalId(), supplier.gotLocalId);
 			assertEquals("after tick " + goodTick, (goodTick+1), store.getBulletinCount());
 			assertFalse("shouldsleep " + goodTick + " wrong?", realRetriever.shouldSleepNextCycle);
 		}
-		realRetriever.retrieveNextBulletin();
+		realRetriever.processNextBulletin();
 		assertEquals("after extra tick", 3, store.getBulletinCount());
-		assertEquals("extra tick got uids?", 0, realRetriever.uidsToRetrieve.size());
+		assertEquals("extra tick got uids?", 0, realRetriever.itemsToRetrieve.size());
 		assertTrue("after extra tick shouldsleep false?", realRetriever.shouldSleepNextCycle);
-		realRetriever.retrieveNextBulletin();
+		realRetriever.processNextBulletin();
 		assertEquals("after extra tick2", 3, store.getBulletinCount());
-		assertEquals("extra tick2 got uids?", 0, realRetriever.uidsToRetrieve.size());
+		assertEquals("extra tick2 got uids?", 0, realRetriever.itemsToRetrieve.size());
 	}
 	
 	public void testListPacketsWeWant() throws Exception
