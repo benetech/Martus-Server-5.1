@@ -33,6 +33,7 @@ import java.util.Vector;
 
 import org.martus.common.LoggerToNull;
 import org.martus.common.bulletin.Bulletin;
+import org.martus.common.bulletin.BulletinConstants;
 import org.martus.common.bulletin.BulletinZipUtilities;
 import org.martus.common.bulletinstore.BulletinStore;
 import org.martus.common.crypto.MartusCrypto;
@@ -336,7 +337,33 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		assertEquals("Didn't remove hidden?", 1, result.size());
 		assertEquals("Wrong info?", visibleUid, ((BulletinMirroringInformation)result.get(0)).getUid());
 	}
+	
+	public void testDoWeWantThis() throws Exception
+	{
+		UniversalId sealedHiddenUid = UniversalIdForTesting.createDummyUniversalId();
+		UniversalId sealedNotHiddenUid = UniversalIdForTesting.createDummyUniversalId();
+		UniversalId draftHiddenUid = UniversalIdForTesting.createDummyUniversalId();
+		UniversalId draftNotHiddenUid = UniversalIdForTesting.createDummyUniversalId();
+		Database db = server.getWriteableDatabase();
+		db.hide(sealedHiddenUid);
+		db.hide(draftHiddenUid);
+		BulletinMirroringInformation sealedHidden = new BulletinMirroringInformation(sealedHiddenUid);
+		BulletinMirroringInformation sealedNotHidden = new BulletinMirroringInformation(sealedNotHiddenUid);
+		BulletinMirroringInformation draftHidden = new BulletinMirroringInformation(draftHiddenUid);
+		draftHidden.status = BulletinConstants.STATUSDRAFT;
+		BulletinMirroringInformation draftNotHidden = new BulletinMirroringInformation(draftNotHiddenUid);
+		draftNotHidden.status = BulletinConstants.STATUSDRAFT;
 
+		assertFalse(realRetriever.doWeWantThis(sealedHidden));		
+		assertTrue(realRetriever.doWeWantThis(sealedNotHidden));	
+		assertFalse(realRetriever.doWeWantThis(draftHidden));		
+		assertTrue(realRetriever.doWeWantThis(draftNotHidden));	
+		
+		
+		
+		
+	}
+	
 	private UniversalId addNewUid(Vector infos, String accountId)
 	{
 		UniversalId newUid = UniversalIdForTesting.createFromAccountAndPrefix(accountId, "H");

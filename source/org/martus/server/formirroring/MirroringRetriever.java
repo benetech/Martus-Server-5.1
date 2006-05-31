@@ -211,54 +211,45 @@ public class MirroringRetriever implements LoggerInterface
 		{
 			Vector info = (Vector)listWithMirroringInfo.get(i);
 			BulletinMirroringInformation mirroringInfo = new BulletinMirroringInformation(accountId, info);
-			BulletinMirroringInformation dataWeWantToRetrieve = null;
-			if(mirroringInfo.isDraft())
-				dataWeWantToRetrieve = addDraftWeWant(mirroringInfo);
-			else if(mirroringInfo.isSealed())
-				dataWeWantToRetrieve = addSealedWeWant(mirroringInfo);
-			//TODO handle delete requests when we are propagating deletes.
-			
-			if(dataWeWantToRetrieve != null)
-				dataToRetrieve.add(dataWeWantToRetrieve);
+			if(doWeWantThis(mirroringInfo))
+				dataToRetrieve.add(mirroringInfo);
 		}
 		return dataToRetrieve;
 	}
 
-	private BulletinMirroringInformation addDraftWeWant(BulletinMirroringInformation mirroringInfo)
+	public boolean doWeWantThis(BulletinMirroringInformation mirroringInfo)
 	{
-		DatabaseKey key = DatabaseKey.createDraftKey(mirroringInfo.getUid());
+		//TODO handle delete requests when we are propagating deletes.
+
+		DatabaseKey key = null;
+		if(mirroringInfo.isSealed())
+			key = DatabaseKey.createSealedKey(mirroringInfo.getUid());
+		else if(mirroringInfo.isDraft())
+			key = DatabaseKey.createDraftKey(mirroringInfo.getUid());
+
+		if(store.isHidden(key))
+			return false;
+		
+		if(mirroringInfo.isSealed())
+			return(!store.doesBulletinRevisionExist(key));
+		
 		try
 		{
-			boolean addDraft = false;
 			if(store.doesBulletinRevisionExist(key))
 			{
 //				long currentBulletinsmTime = store.getDatabase().getmTime(key);
 //				if(mirroringInfo.getmTime() > currentBulletinsmTime)
-//					addDraft = true;
+//					return true;
+				return false;
 			}
-			else if (!store.isHidden(key))
-			{
-				addDraft = true;
-			}
-
-			if(addDraft)
-				return mirroringInfo;
+			return true;
 		}
 		catch (Exception e)
 		{
 			e.printStackTrace();
 		}
-		return null;
+		return false;
 	}
-	
-	private BulletinMirroringInformation addSealedWeWant(BulletinMirroringInformation mirroringInfo)
-	{
-		DatabaseKey key = DatabaseKey.createSealedKey(mirroringInfo.getUid());
-		if(!store.doesBulletinRevisionExist(key) && !store.isHidden(key))
-			return mirroringInfo;
-		return null;
-	}
-
 	
 	String getNextAccountToRetrieve()
 	{

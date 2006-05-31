@@ -112,6 +112,6 @@ public class BulletinMirroringInformation
 
 	private long mTime;
 	private UniversalId uId;
-	private String status;
+	String status;
 	private String signature;
 }
