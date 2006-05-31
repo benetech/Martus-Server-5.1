@@ -27,6 +27,7 @@ Boston, MA 02111-1307, USA.
 package org.martus.server.formirroring;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -50,7 +51,8 @@ class FakeServerSupplier implements ServerSupplierInterface
 		availableIdsToMirror = new Vector();
 		security = MockMartusSecurity.createOtherServer();
 		
-		returnZipData = Base64.encode("zip data");
+		burContents = new HashMap();
+		zipData = new HashMap();
 	}
 
 	void addAccountToMirror(String accountId)
@@ -73,18 +75,21 @@ class FakeServerSupplier implements ServerSupplierInterface
 		availableIdsToMirror.add(data);
 	}
 
-	void addBur(String accountId, String localId, String bur)
+	void addBur(UniversalId uid, String bur)
 	{
-		burAccountId = accountId;
-		burLocalId = localId;
-		burContents = bur;
+		burContents.put(uid,bur);
 	}
 	
-	int getChunkSize()
+	void addZipData(UniversalId uid, String zipDataToUse)
+	{
+		zipData.put(uid, zipDataToUse);
+	}
+	
+	int getChunkSize(UniversalId uid)
 	{
 		try
 		{
-			return Base64.decode(returnZipData).length;
+			return Base64.decode((String)zipData.get(uid)).length;
 		}
 		catch(Exception nothingWeCanDo)
 		{
@@ -164,11 +169,8 @@ class FakeServerSupplier implements ServerSupplierInterface
 	
 	public String getBulletinUploadRecord(String authorAccountId, String bulletinLocalId)
 	{
-		if(!authorAccountId.equals(burAccountId))
-			return null;
-		if(!bulletinLocalId.equals(burLocalId))
-			return null;
-		return burContents;
+		UniversalId uid = UniversalId.createFromAccountAndLocalId(authorAccountId, bulletinLocalId);
+		return (String)burContents.get(uid);
 	}
 	
 	public Vector getBulletinChunkWithoutVerifyingCaller(String authorAccountId, String bulletinLocalId,
@@ -178,16 +180,17 @@ class FakeServerSupplier implements ServerSupplierInterface
 		gotLocalId = bulletinLocalId;
 		gotChunkOffset = chunkOffset;
 		gotMaxChunkSize = maxChunkSize;
+		UniversalId uid = UniversalId.createFromAccountAndLocalId(authorAccountId, bulletinLocalId);
 
-		int totalLen = getChunkSize();
+		int totalLen = getChunkSize(uid);
 		if(returnResultTag == NetworkInterfaceConstants.CHUNK_OK)
 			totalLen *= 3;
 
 		Vector result = new Vector();
 		result.add(returnResultTag);
 		result.add(new Integer(totalLen));
-		result.add(new Integer(getChunkSize()));
-		result.add(returnZipData);
+		result.add(new Integer(getChunkSize(uid)));
+		result.add(zipData.get(uid));
 		return result;
 	}
 	
@@ -201,12 +204,10 @@ class FakeServerSupplier implements ServerSupplierInterface
 	public void logDebug(String message){}
 	
 	String authorizedCaller;
-	String returnZipData;
 	String returnResultTag;
 
-	String burAccountId;
-	String burLocalId;
-	String burContents;
+	HashMap burContents;
+	HashMap zipData;
 
 	MartusCrypto security;
 	Vector accountsToMirror;

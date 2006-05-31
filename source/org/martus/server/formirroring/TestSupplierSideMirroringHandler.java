@@ -39,6 +39,7 @@ import org.martus.common.database.MockServerDatabase;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.network.mirroring.MirroringInterface;
 import org.martus.common.packet.BulletinHeaderPacket;
+import org.martus.common.packet.UniversalId;
 import org.martus.util.Base64;
 import org.martus.util.TestCaseEnhanced;
 
@@ -296,14 +297,13 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 	{
 		supplier.authorizedCaller = callerAccountId;
 
-		String accountId = "account";
-		String localId = "local";
+		UniversalId uid = UniversalId.createDummyUniversalId();
 		String bur = "This pretends to be a BUR";
-		supplier.addBur(accountId, localId, bur);
+		supplier.addBur(uid, bur);
 		Vector parameters = new Vector();
 		parameters.add(MirroringInterface.CMD_MIRRORING_GET_BULLETIN_UPLOAD_RECORD);
-		parameters.add(accountId);
-		parameters.add(localId);
+		parameters.add(uid.getAccountId());
+		parameters.add(uid.getLocalId());
 		String sig = callerSecurity.createSignatureOfVectorOfStrings(parameters);
 		Vector result = handler.request(callerAccountId, parameters, sig);
 		assertEquals(NetworkInterfaceConstants.OK, result.get(0));
@@ -359,6 +359,9 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 		
 		supplier.returnResultTag = NetworkInterfaceConstants.CHUNK_OK;
 		supplier.authorizedCaller = callerAccountId;
+		String returnZipData = Base64.encode("zip data");
+		UniversalId uid = UniversalId.createFromAccountAndLocalId(authorAccountId, bulletinLocalId);
+		supplier.addZipData(uid, returnZipData);
 
 		Vector parameters = new Vector();
 		parameters.add(MirroringInterface.CMD_MIRRORING_GET_BULLETIN_CHUNK);
@@ -377,9 +380,9 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 		assertEquals(2, result.size());
 		assertEquals(NetworkInterfaceConstants.CHUNK_OK, result.get(0));
 		Vector details = (Vector)result.get(1);
-		assertEquals(new Integer(supplier.getChunkSize() * 3), details.get(0));
-		assertEquals(new Integer(supplier.getChunkSize()), details.get(1));
-		assertEquals(supplier.returnZipData, details.get(2));
+		assertEquals(new Integer(supplier.getChunkSize(uid) * 3), details.get(0));
+		assertEquals(new Integer(supplier.getChunkSize(uid)), details.get(1));
+		assertEquals(returnZipData, details.get(2));
 	}
 
 	public void testGetBulletinChunkTypo() throws Exception
@@ -391,6 +394,10 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 		
 		supplier.returnResultTag = NetworkInterfaceConstants.CHUNK_OK;
 		supplier.authorizedCaller = callerAccountId;
+		String returnZipData = Base64.encode("zip data");
+		UniversalId uid = UniversalId.createFromAccountAndLocalId(authorAccountId, bulletinLocalId);
+		supplier.addZipData(uid, returnZipData);
+
 
 		Vector parameters = new Vector();
 		parameters.add(MirroringInterface.CMD_MIRRORING_GET_BULLETIN_CHUNK_TYPO);
@@ -409,9 +416,9 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 		assertEquals(2, result.size());
 		assertEquals(NetworkInterfaceConstants.CHUNK_OK, result.get(0));
 		Vector details = (Vector)result.get(1);
-		assertEquals(new Integer(supplier.getChunkSize() * 3), details.get(0));
-		assertEquals(new Integer(supplier.getChunkSize()), details.get(1));
-		assertEquals(supplier.returnZipData, details.get(2));
+		assertEquals(new Integer(supplier.getChunkSize(uid) * 3), details.get(0));
+		assertEquals(new Integer(supplier.getChunkSize(uid)), details.get(1));
+		assertEquals(returnZipData, details.get(2));
 	}
 
 	Vector writeSampleHeaderPacket(BulletinHeaderPacket bhp) throws Exception

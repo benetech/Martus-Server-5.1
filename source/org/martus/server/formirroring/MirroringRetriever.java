@@ -77,15 +77,16 @@ public class MirroringRetriever implements LoggerInterface
 			
 		try
 		{
-			String publicCode = MartusCrypto.getFormattedPublicCode(item.getAccountId());
-			logNotice("Getting bulletin: " + publicCode + "->" + item.getLocalId());
-			String bur = retrieveBurFromMirror(item);
+			UniversalId uId = item.getUid();
+			String publicCode = MartusCrypto.getFormattedPublicCode(uId.getAccountId());
+			logNotice("Getting bulletin: " + publicCode + "->" + uId.getLocalId());
+			String bur = retrieveBurFromMirror(uId);
 			File zip = File.createTempFile("$$$MirroringRetriever", null);
 			try
 			{
 				zip.deleteOnExit();
-				retrieveOneBulletin(zip, item);
-				BulletinHeaderPacket bhp = store.saveZipFileToDatabase(zip, item.getAccountId());
+				retrieveOneBulletin(zip, uId);
+				BulletinHeaderPacket bhp = store.saveZipFileToDatabase(zip, uId.getAccountId());
 				store.writeBur(bhp, bur);
 			}
 			finally
@@ -142,16 +143,37 @@ public class MirroringRetriever implements LoggerInterface
 			if(nextAccountId == null)
 				return null;
 
-			String publicCode = MartusCrypto.getFormattedPublicCode(nextAccountId);
-			//log("listBulletins: " + publicCode);
-			NetworkResponse response = gateway.listBulletinsForMirroring(getSecurity(), nextAccountId);
-			if(response.getResultCode().equals(NetworkInterfaceConstants.OK))
+			int totalIdsReturned = 0;
+			String mirroringCallUsed = "listAvailableIdsForMirroring"; 
+			NetworkResponse response = gateway.listAvailableIdsForMirroring(getSecurity(), nextAccountId);
+			if(networkResponseOk(response))
 			{
-				Vector infos = response.getResultVector();
-				itemsToRetrieve = listOnlyPacketsThatWeWant(nextAccountId, infos);
-				if(infos.size()>0 || itemsToRetrieve.size()>0)
-					logInfo("listBulletins: " + publicCode + 
-						" -> " + infos.size() + " -> " + itemsToRetrieve.size());
+				Vector listwithBulletinMirroringInfo = response.getResultVector();
+				totalIdsReturned = listwithBulletinMirroringInfo.size();
+				itemsToRetrieve = listOnlyPacketsThatWeWantUsingBulletinMirroringInformation(nextAccountId, listwithBulletinMirroringInfo);
+			}
+			else
+			{
+				mirroringCallUsed = "OLD MIRRORING CALL(listBulletinsForMirroring)";
+				response = gateway.listBulletinsForMirroring(getSecurity(), nextAccountId);
+				if(networkResponseOk(response))
+				{
+					Vector listWithLocalIds = response.getResultVector();
+					totalIdsReturned = listWithLocalIds.size();
+					itemsToRetrieve = listOnlyPacketsThatWeWantUsingLocalIds(nextAccountId, listWithLocalIds);
+				}
+			}
+			
+			if(networkResponseOk(response))
+			{
+				String publicCode = MartusCrypto.getFormattedPublicCode(nextAccountId);
+				if(totalIdsReturned>0 || itemsToRetrieve.size()>0)
+					logInfo(mirroringCallUsed+": " + publicCode + 
+						" -> " + totalIdsReturned+ " -> " + itemsToRetrieve.size());
+			}
+			else
+			{
+				logWarning("MirroringRetriever.getNextItemToRetrieve: Returned NetworkResponse: " + response.getResultCode());				
 			}
 		}
 		catch (Exception e)
@@ -162,21 +184,46 @@ public class MirroringRetriever implements LoggerInterface
 		return null;
 	}
 
-	Vector listOnlyPacketsThatWeWant(String accountId, Vector infos)
+	private boolean networkResponseOk(NetworkResponse response)
 	{
-		Vector uids = new Vector();
-		for(int i=0; i < infos.size(); ++i)
+		return response.getResultCode().equals(NetworkInterfaceConstants.OK);
+	}
+	
+	Vector listOnlyPacketsThatWeWantUsingLocalIds(String accountId, Vector listWithLocalIds)
+	{
+		Vector mirroringInfo = new Vector();
+		for(int i=0; i < listWithLocalIds.size(); ++i)
 		{
-			Vector info = (Vector)infos.get(i);
-			String localId = (String)info.get(0);
-			UniversalId uid = UniversalId.createFromAccountAndLocalId(accountId, localId);
-			DatabaseKey key = DatabaseKey.createSealedKey(uid);
-			if(!store.doesBulletinRevisionExist(key) && !store.isHidden(key))
-				uids.add(uid);
+			UniversalId uid = UniversalId.createFromAccountAndLocalId(accountId, (String)((Vector)listWithLocalIds.get(i)).get(0));
+			BulletinMirroringInformation mirroringData = new BulletinMirroringInformation(uid);
+			mirroringInfo.add(mirroringData.getInfoWithLocalId());
 		}
-		return uids;
+		
+		return listOnlyPacketsThatWeWantUsingBulletinMirroringInformation(accountId, mirroringInfo);
 	}
 
+	Vector listOnlyPacketsThatWeWantUsingBulletinMirroringInformation(String accountId, Vector listWithMirroringInfo)
+	{
+		Vector dataToRetrieve = new Vector();
+		for(int i=0; i < listWithMirroringInfo.size(); ++i)
+		{
+			Vector info = (Vector)listWithMirroringInfo.get(i);
+			BulletinMirroringInformation mirroringInfo = new BulletinMirroringInformation(accountId, info);
+			DatabaseKey key = null;
+			UniversalId uid = mirroringInfo.getUid();
+			if(mirroringInfo.isDraft())
+				key = DatabaseKey.createDraftKey(uid);
+			if(mirroringInfo.isSealed())
+				key = DatabaseKey.createSealedKey(uid);
+			if(!store.doesBulletinRevisionExist(key) && !store.isHidden(key))
+			{
+				BulletinMirroringInformation mirroringData = new BulletinMirroringInformation(uid);
+				dataToRetrieve.add(mirroringData);
+			}
+		}
+		return dataToRetrieve;
+	}
+	
 	String getNextAccountToRetrieve()
 	{
 		if(accountsToRetrieve.size() > 0)

@@ -55,6 +55,12 @@ public class BulletinMirroringInformation
 		signature = (String)info.get(3);
 	}
 	
+	public BulletinMirroringInformation(UniversalId uIdToUse)
+	{
+		uId = uIdToUse;
+		status = BulletinConstants.STATUSSEALED;
+	}
+
 	public UniversalId getUid()
 	{
 		return uId;
@@ -65,6 +71,11 @@ public class BulletinMirroringInformation
 		return status.equals(BulletinConstants.STATUSDRAFT);
 	}
 	
+	public boolean isSealed()
+	{
+		return status.equals(BulletinConstants.STATUSSEALED);
+	}
+
 	public long getmTime()
 	{
 		return mTime;
