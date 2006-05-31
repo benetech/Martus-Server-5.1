@@ -99,7 +99,31 @@ public class TestServerBulletinStore extends TestCaseEnhanced
 		{
 			store.deleteAllData();
 		}
-		
-		
 	}
+
+	public void testZipExtractormTime() throws Exception
+	{
+		MartusCrypto security = MockMartusSecurity.createClient();
+		MockClientDatabase db = new MockClientDatabase();
+		BulletinStore store = new BulletinStore();
+		store.setSignatureGenerator(security);
+		store.setDatabase(db);
+		try
+		{
+			Bulletin b1 = new Bulletin(security);
+			b1.setDraft();
+			store.saveBulletinForTesting(b1);
+			Thread.sleep(5);//Ensure that the mTimes will be different between saving to the database and creating the zip file.
+			DatabaseKey key1 = b1.getDatabaseKey();
+			File zip1 = createTempFile();
+			BulletinZipUtilities.exportBulletinPacketsFromDatabaseToZipFile(db, key1, zip1, security);
+			assertEquals("Zip file doesn't have the real mTime of the bulletin?", db.getmTime(key1), zip1.lastModified());
+			zip1.delete();
+		}
+		finally
+		{
+			store.deleteAllData();
+		}
+	}
+
 }
