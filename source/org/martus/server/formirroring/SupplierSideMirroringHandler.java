@@ -176,7 +176,7 @@ public class SupplierSideMirroringHandler implements MirroringInterface, Network
 					logInfo("listAvailableIds: None");
 				
 				result.add(OK);
-				result.add(infos);
+				result.add(new Vector(infos));
 				return result;
 			}
 			case cmdGetBulletinUploadRecordForMirroring:

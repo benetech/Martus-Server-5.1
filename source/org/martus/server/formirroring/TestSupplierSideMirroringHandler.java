@@ -27,8 +27,8 @@ Boston, MA 02111-1307, USA.
 package org.martus.server.formirroring;
 
 import java.io.StringWriter;
-import java.util.Set;
 import java.util.Vector;
+
 import org.martus.common.MartusUtilities;
 import org.martus.common.bulletin.BulletinConstants;
 import org.martus.common.crypto.MartusCrypto;
@@ -271,7 +271,7 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 		String sig = callerSecurity.createSignatureOfVectorOfStrings(parameters);
 		Vector result = handler.request(callerAccountId, parameters, sig);
 		assertEquals(NetworkInterfaceConstants.OK, result.get(0));
-		Set infos = (Set)result.get(1);
+		Vector infos = (Vector)result.get(1);
 		assertEquals(3, infos.size());
 		assertContains("result1 missing?", result1, infos);
 		assertContains("result2 missing?",result2, infos);
