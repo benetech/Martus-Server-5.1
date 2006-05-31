@@ -217,8 +217,7 @@ public class MirroringRetriever implements LoggerInterface
 				key = DatabaseKey.createSealedKey(uid);
 			if(!store.doesBulletinRevisionExist(key) && !store.isHidden(key))
 			{
-				BulletinMirroringInformation mirroringData = new BulletinMirroringInformation(uid);
-				dataToRetrieve.add(mirroringData);
+				dataToRetrieve.add(mirroringInfo);
 			}
 		}
 		return dataToRetrieve;

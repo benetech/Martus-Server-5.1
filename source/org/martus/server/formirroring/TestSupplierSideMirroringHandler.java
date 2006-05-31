@@ -29,6 +29,7 @@ package org.martus.server.formirroring;
 import java.io.StringWriter;
 import java.util.Vector;
 
+import org.martus.common.LoggerToNull;
 import org.martus.common.MartusUtilities;
 import org.martus.common.bulletin.BulletinConstants;
 import org.martus.common.crypto.MartusCrypto;
@@ -37,9 +38,11 @@ import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.MockDatabase;
 import org.martus.common.database.MockServerDatabase;
 import org.martus.common.network.NetworkInterfaceConstants;
+import org.martus.common.network.mirroring.CallerSideMirroringGateway;
 import org.martus.common.network.mirroring.MirroringInterface;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
+import org.martus.server.forclients.MockMartusServer;
 import org.martus.util.Base64;
 import org.martus.util.TestCaseEnhanced;
 
@@ -277,6 +280,32 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 		assertContains("result1 missing?", result1, infos);
 		assertContains("result2 missing?",result2, infos);
 		assertContains("result3 missing?",result3, infos);
+		
+		CallerSideMirroringGateway gateway = new CallerSideMirroringGateway(handler);
+		LoggerToNull logger = new LoggerToNull();
+		MockMartusServer server = new MockMartusServer();
+
+		MirroringRetriever mirroringRetriever = new MirroringRetriever(server.getStore(), gateway, "Dummy IP", logger);
+		Vector returnedListWeWantToMirror = mirroringRetriever.listOnlyPacketsThatWeWantUsingBulletinMirroringInformation(authorSecurity.getPublicKeyString(), infos);
+		int bulletinsVerified = 0;
+		for (int i = 0; i < returnedListWeWantToMirror.size(); i++)
+		{
+			BulletinMirroringInformation returnedInfo = (BulletinMirroringInformation) returnedListWeWantToMirror.get(i);
+			bulletinsVerified = verifyStatus(bulletinsVerified, returnedInfo, bhp1, "BHP1");
+			bulletinsVerified = verifyStatus(bulletinsVerified, returnedInfo, bhp2, "BHP2");
+			bulletinsVerified = verifyStatus(bulletinsVerified, returnedInfo, bhpDraft, "BHPDRAFT");
+		}		
+		assertEquals(3, bulletinsVerified);
+	}
+
+	private int verifyStatus(int bulletinsVerified, BulletinMirroringInformation returnedInfo, BulletinHeaderPacket bhp, String tag)
+	{
+		if(returnedInfo.getUid().equals(bhp.getUniversalId()))
+		{
+			assertEquals("Status for "+tag+" not correct?",bhp.getStatus(), returnedInfo.status);
+			++bulletinsVerified;
+		}
+		return bulletinsVerified;
 	}
 
 	public void testGetBulletinUploadRecordNotFound() throws Exception
