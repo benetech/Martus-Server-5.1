@@ -176,7 +176,33 @@ public class TestServerForMirroring extends TestCaseEnhanced
 		assertContains(clientSecurity2.getPublicKeyString(), result);
 	}
 	
-	public void testListBulletins() throws Exception
+	public void testOldListBulletinsForMirroring() throws Exception
+	{
+		internalTestSealeds();
+		
+		String publicKeyString2 = clientSecurity2.getPublicKeyString();
+		Vector result2 = server.listBulletinsForMirroring(publicKeyString2);
+		assertEquals(1, result2.size());
+		Vector ids2 = new Vector();
+		ids2.add(((Vector)result2.get(0)).get(0));
+		assertContains(bhp3.getLocalId(), ids2);
+	}
+	
+	public void testNewListAvailableIdsForMirroring() throws Exception
+	{
+		internalTestSealeds();
+		
+		String publicKeyString2 = clientSecurity2.getPublicKeyString();
+		Vector result2 = new Vector(server.listAvailableIdsForMirroring(publicKeyString2));
+		assertEquals(2, result2.size());
+		Vector ids2 = new Vector();
+		ids2.add(((Vector)result2.get(0)).get(0));
+		ids2.add(((Vector)result2.get(1)).get(0));
+		assertContains(bhp3.getLocalId(), ids2);
+		assertContains(bhp4.getLocalId(), ids2);
+	}
+
+	private void internalTestSealeds()
 	{
 		ReadableDatabase db = coreServer.getDatabase();
 		MockServerDatabase mdb = (MockServerDatabase)db;
@@ -194,23 +220,17 @@ public class TestServerForMirroring extends TestCaseEnhanced
 		}
 		assertEquals(5, sealeds);
 		assertEquals(1, drafts);
+
 		String publicKeyString1 = clientSecurity1.getPublicKeyString();
-		Vector result1 = server.listBulletinsForMirroring(publicKeyString1);
+		Vector result1 = new Vector(server.listAvailableIdsForMirroring(publicKeyString1));
 		assertEquals(2, result1.size());
 		Vector ids1 = new Vector();
 		ids1.add(((Vector)result1.get(0)).get(0));
 		ids1.add(((Vector)result1.get(1)).get(0));
 		assertContains(bhp1.getLocalId(), ids1);
 		assertContains(bhp2.getLocalId(), ids1);
-		
-		String publicKeyString2 = clientSecurity2.getPublicKeyString();
-		Vector result2 = server.listBulletinsForMirroring(publicKeyString2);
-		assertEquals(1, result2.size());
-		Vector ids2 = new Vector();
-		ids2.add(((Vector)result2.get(0)).get(0));
-		assertContains(bhp3.getLocalId(), ids2);
 	}
-	
+
 	public void testGetBulletinUploadRecord() throws Exception
 	{
 		String burNotFound = server.getBulletinUploadRecord(bhp1.getAccountId(), bhp1.getLocalId());
