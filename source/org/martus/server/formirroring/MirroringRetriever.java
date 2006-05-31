@@ -74,7 +74,9 @@ public class MirroringRetriever implements LoggerInterface
 			return;
 			
 		shouldSleepNextCycle = false;
-			
+
+		//TODO handle delete requests when we are propagating deletes.
+		
 		try
 		{
 			UniversalId uId = item.getUid();
@@ -209,19 +211,54 @@ public class MirroringRetriever implements LoggerInterface
 		{
 			Vector info = (Vector)listWithMirroringInfo.get(i);
 			BulletinMirroringInformation mirroringInfo = new BulletinMirroringInformation(accountId, info);
-			DatabaseKey key = null;
-			UniversalId uid = mirroringInfo.getUid();
+			BulletinMirroringInformation dataWeWantToRetrieve = null;
 			if(mirroringInfo.isDraft())
-				key = DatabaseKey.createDraftKey(uid);
-			if(mirroringInfo.isSealed())
-				key = DatabaseKey.createSealedKey(uid);
-			if(!store.doesBulletinRevisionExist(key) && !store.isHidden(key))
-			{
-				dataToRetrieve.add(mirroringInfo);
-			}
+				dataWeWantToRetrieve = addDraftWeWant(mirroringInfo);
+			else if(mirroringInfo.isSealed())
+				dataWeWantToRetrieve = addSealedWeWant(mirroringInfo);
+			//TODO handle delete requests when we are propagating deletes.
+			
+			if(dataWeWantToRetrieve != null)
+				dataToRetrieve.add(dataWeWantToRetrieve);
 		}
 		return dataToRetrieve;
 	}
+
+	private BulletinMirroringInformation addDraftWeWant(BulletinMirroringInformation mirroringInfo)
+	{
+		DatabaseKey key = DatabaseKey.createDraftKey(mirroringInfo.getUid());
+		try
+		{
+			boolean addDraft = false;
+			if(store.doesBulletinRevisionExist(key))
+			{
+//				long currentBulletinsmTime = store.getDatabase().getmTime(key);
+//				if(mirroringInfo.getmTime() > currentBulletinsmTime)
+//					addDraft = true;
+			}
+			else if (!store.isHidden(key))
+			{
+				addDraft = true;
+			}
+
+			if(addDraft)
+				return mirroringInfo;
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	private BulletinMirroringInformation addSealedWeWant(BulletinMirroringInformation mirroringInfo)
+	{
+		DatabaseKey key = DatabaseKey.createSealedKey(mirroringInfo.getUid());
+		if(!store.doesBulletinRevisionExist(key) && !store.isHidden(key))
+			return mirroringInfo;
+		return null;
+	}
+
 	
 	String getNextAccountToRetrieve()
 	{
