@@ -159,8 +159,8 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		TestCallerSideMirroringGateway newGateway = new TestCallerSideMirroringGateway(handler);
 		LoggerToNull logger = new LoggerToNull();
 		MirroringRetriever newMirroringRetriever = new MirroringRetriever(server.getStore(), newGateway, "Dummy IP", logger);
-
-		internalTestTick(newMirroringRetriever);
+		boolean makeSureDaftsAreMirrored = true;
+		internalTestTick(newMirroringRetriever, makeSureDaftsAreMirrored);
 		assertTrue(newGateway.listAvailableIdsForMirroringCalled);
 		assertFalse(newGateway.listBulletinsForMirroringCalled);
 	}
@@ -172,7 +172,8 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		LoggerToNull logger = new LoggerToNull();
 
 		MirroringRetriever mirroringRetriever = new MirroringRetriever(server.getStore(), oldGateway, "Dummy IP", logger);
-		internalTestTick(mirroringRetriever);
+		boolean makeSureDaftsAreMirrored = false;
+		internalTestTick(mirroringRetriever, makeSureDaftsAreMirrored);
 		assertTrue(oldGateway.listBulletinsForMirroringCalled);
 	}
 	
@@ -216,7 +217,7 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 	}
 
 
-	private void internalTestTick(MirroringRetriever mirroringRetriever) throws Exception, IOException, CryptoException, CreateDigestException, RecordHiddenException, InvalidPacketException, SignatureVerificationException
+	private void internalTestTick(MirroringRetriever mirroringRetriever, boolean draftsShouldBeMirrored) throws Exception, IOException, CryptoException, CreateDigestException, RecordHiddenException, InvalidPacketException, SignatureVerificationException
 	{
 		assertFalse("initial shouldsleep wrong?", mirroringRetriever.shouldSleepNextCycle);
 		// get account list (empty)
@@ -231,13 +232,31 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 
 		MartusCrypto clientSecurity = MockMartusSecurity.createClient();
 		supplier.addAccountToMirror(clientSecurity.getPublicKeyString());
-		Vector bulletins = new Vector();
+		Vector expectedBulletinLocalIds = new Vector();
+		boolean sealed = true;
+		int totalBulletinsToMirror = 0;
+
 		for(int i=0; i < 3; ++i)
 		{
 			Bulletin b = new Bulletin(clientSecurity);
-			b.setSealed();
-			bulletins.add(b);
-			DatabaseKey key = DatabaseKey.createSealedKey(b.getUniversalId());
+			DatabaseKey key = null;
+			if(sealed)
+			{
+				b.setSealed();
+				key = DatabaseKey.createSealedKey(b.getUniversalId());
+				expectedBulletinLocalIds.add(b.getLocalId());
+				++totalBulletinsToMirror;
+			}
+			else
+			{
+				b.setDraft();
+				key = DatabaseKey.createDraftKey(b.getUniversalId());
+				if(draftsShouldBeMirrored)
+				{
+					expectedBulletinLocalIds.add(b.getLocalId());
+					++totalBulletinsToMirror;
+				}
+			}
 			serverStore.saveBulletinForTesting(b);
 
 			String bur = BulletinUploadRecord.createBulletinUploadRecord(b.getLocalId(), otherServerSecurity);
@@ -251,8 +270,9 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 			in.close();
 			String sigString = Base64.encode(sigBytes);
 			supplier.addAvailableIdsToMirror(db, key, sigString);
-			supplier.addBulletinToMirror(key, sigString);
-
+			if(sealed)
+				supplier.addBulletinToMirror(key, sigString);
+			sealed = !sealed;
 		}
 
 		ServerBulletinStore store = server.getStore();
@@ -275,23 +295,26 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		for(int goodTick = 0; goodTick < 3; ++goodTick)
 		{
 			mirroringRetriever.processNextBulletin();
-			assertEquals("tick " + goodTick + " wrong account?", clientSecurity.getPublicKeyString(), supplier.gotAccount);
-			bulletinLocalIdsRetrieved.add(supplier.gotLocalId);
-			assertEquals("after tick " + goodTick, (goodTick+1), store.getBulletinCount());
-			assertFalse("shouldsleep " + goodTick + " wrong?", mirroringRetriever.shouldSleepNextCycle);
+			if(goodTick < 2 || (goodTick == 2 && draftsShouldBeMirrored))
+			{
+				assertEquals("tick " + goodTick + " wrong account?", clientSecurity.getPublicKeyString(), supplier.gotAccount);
+				bulletinLocalIdsRetrieved.add(supplier.gotLocalId);
+				assertEquals("after tick " + goodTick, (goodTick+1), store.getBulletinCount());
+				assertFalse("shouldsleep " + goodTick + " wrong?", mirroringRetriever.shouldSleepNextCycle);
+			}
 		}
 		
-		for(int i = 0; i < 3; ++i)
+		for(int i = 0; i < expectedBulletinLocalIds.size(); ++i)
 		{
-			assertContains(((Bulletin)bulletins.get(i)).getLocalId(), bulletinLocalIdsRetrieved);
+			assertContains(expectedBulletinLocalIds.get(i), bulletinLocalIdsRetrieved);
 		}	
 		
 		mirroringRetriever.processNextBulletin();
-		assertEquals("after extra tick", 3, store.getBulletinCount());
+		assertEquals("after extra tick", totalBulletinsToMirror, store.getBulletinCount());
 		assertEquals("extra tick got uids?", 0, mirroringRetriever.itemsToRetrieve.size());
 		assertTrue("after extra tick shouldsleep false?", mirroringRetriever.shouldSleepNextCycle);
 		mirroringRetriever.processNextBulletin();
-		assertEquals("after extra tick2", 3, store.getBulletinCount());
+		assertEquals("after extra tick2", totalBulletinsToMirror, store.getBulletinCount());
 		assertEquals("extra tick2 got uids?", 0, mirroringRetriever.itemsToRetrieve.size());
 	}
 	
