@@ -36,7 +36,7 @@ public interface ServerSupplierInterface extends LoggerInterface
 	public boolean isAuthorizedForMirroring(String callerAccountId);
 	public Vector listAccountsForMirroring();
 	public Vector listBulletinsForMirroring(String authorAccountId);
-	public String getBulletinUploadRecord(String authorAccountId, String bulletinLocalId);
+	public String getBulletinUploadRecord(String authorAccountId, String bulletinLocalId, String status);
 	public Vector getBulletinChunkWithoutVerifyingCaller(String authorAccountId, String bulletinLocalId,
 			int chunkOffset, int maxChunkSize);
 	public Set listAvailableIdsForMirroring(String authorAccountId);

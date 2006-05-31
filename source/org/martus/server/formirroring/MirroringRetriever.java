@@ -82,7 +82,7 @@ public class MirroringRetriever implements LoggerInterface
 			UniversalId uId = item.getUid();
 			String publicCode = MartusCrypto.getFormattedPublicCode(uId.getAccountId());
 			logNotice("Getting bulletin: " + publicCode + "->" + uId.getLocalId());
-			String bur = retrieveBurFromMirror(uId);
+			String bur = retrieveBurFromMirror(uId, item.getStatus());
 			File zip = File.createTempFile("$$$MirroringRetriever", null);
 			try
 			{
@@ -115,10 +115,10 @@ public class MirroringRetriever implements LoggerInterface
 	{
 	}
 
-	private String retrieveBurFromMirror(UniversalId uid)
+	private String retrieveBurFromMirror(UniversalId uid, String status)
 		throws MartusSignatureException, MissingBulletinUploadRecordException, ServerNotAvailableException
 	{
-		NetworkResponse response = gateway.getBulletinUploadRecord(getSecurity(), uid);
+		NetworkResponse response = gateway.getBulletinUploadRecord(getSecurity(), uid, status);
 		String resultCode = response.getResultCode();
 		if(resultCode.equals(NetworkInterfaceConstants.NO_SERVER))
 		{

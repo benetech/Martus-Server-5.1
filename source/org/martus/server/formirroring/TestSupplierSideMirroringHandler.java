@@ -302,7 +302,7 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 	{
 		if(returnedInfo.getUid().equals(bhp.getUniversalId()))
 		{
-			assertEquals("Status for "+tag+" not correct?",bhp.getStatus(), returnedInfo.status);
+			assertEquals("Status for "+tag+" not correct?",bhp.getStatus(), returnedInfo.getStatus());
 			++bulletinsVerified;
 		}
 		return bulletinsVerified;
@@ -322,13 +322,13 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 		assertEquals(1, result.size());
 	}
 
-	public void testGetBulletinUploadRecord() throws Exception
+	public void testGetBulletinUploadRecordSealedOld() throws Exception
 	{
 		supplier.authorizedCaller = callerAccountId;
 
 		UniversalId uid = UniversalId.createDummyUniversalId();
 		String bur = "This pretends to be a BUR";
-		supplier.addBur(uid, bur);
+		supplier.addBur(uid, bur, BulletinConstants.STATUSSEALED);
 		Vector parameters = new Vector();
 		parameters.add(MirroringInterface.CMD_MIRRORING_GET_BULLETIN_UPLOAD_RECORD);
 		parameters.add(uid.getAccountId());
@@ -337,6 +337,45 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 		Vector result = handler.request(callerAccountId, parameters, sig);
 		assertEquals(NetworkInterfaceConstants.OK, result.get(0));
 		assertEquals(2, result.size());
+		assertEquals(bur, ((Vector)result.get(1)).get(0));
+	}
+
+	public void testGetBulletinUploadRecordSealedNew() throws Exception
+	{
+		supplier.authorizedCaller = callerAccountId;
+
+		UniversalId uid = UniversalId.createDummyUniversalId();
+		String bur = "This pretends to be a BUR";
+		supplier.addBur(uid, bur, BulletinConstants.STATUSSEALED);
+		Vector parameters = new Vector();
+		parameters.add(MirroringInterface.CMD_MIRRORING_GET_BULLETIN_UPLOAD_RECORD);
+		parameters.add(uid.getAccountId());
+		parameters.add(uid.getLocalId());
+		parameters.add(BulletinConstants.STATUSSEALED);
+		String sig = callerSecurity.createSignatureOfVectorOfStrings(parameters);
+		Vector result = handler.request(callerAccountId, parameters, sig);
+		assertEquals(NetworkInterfaceConstants.OK, result.get(0));
+		assertEquals(2, result.size());
+		assertEquals(bur, ((Vector)result.get(1)).get(0));
+	}
+
+	public void testGetBulletinUploadRecordDraft() throws Exception
+	{
+		supplier.authorizedCaller = callerAccountId;
+
+		UniversalId uid = UniversalId.createDummyUniversalId();
+		String bur = "This pretends to be a BUR";
+		supplier.addBur(uid, bur, BulletinConstants.STATUSDRAFT);
+		Vector parameters = new Vector();
+		parameters.add(MirroringInterface.CMD_MIRRORING_GET_BULLETIN_UPLOAD_RECORD);
+		parameters.add(uid.getAccountId());
+		parameters.add(uid.getLocalId());
+		parameters.add(BulletinConstants.STATUSDRAFT);
+		String sig = callerSecurity.createSignatureOfVectorOfStrings(parameters);
+		Vector result = handler.request(callerAccountId, parameters, sig);
+		assertEquals(NetworkInterfaceConstants.OK, result.get(0));
+		assertEquals(2, result.size());
+		assertEquals(bur, ((Vector)result.get(1)).get(0));
 	}
 
 	public void testGetBulletinChunkNotAuthorized() throws Exception

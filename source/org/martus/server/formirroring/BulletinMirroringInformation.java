@@ -75,6 +75,11 @@ public class BulletinMirroringInformation
 	{
 		return status.equals(BulletinConstants.STATUSSEALED);
 	}
+	
+	public String getStatus()
+	{
+		return status;
+	}
 
 	public long getmTime()
 	{
@@ -105,8 +110,8 @@ public class BulletinMirroringInformation
 		info.add(signature);
 	}
 
-	long mTime;
-	UniversalId uId;
-	String status;
-	String signature;
+	private long mTime;
+	private UniversalId uId;
+	private String status;
+	private String signature;
 }

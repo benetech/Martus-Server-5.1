@@ -233,14 +233,14 @@ public class TestServerForMirroring extends TestCaseEnhanced
 
 	public void testGetBulletinUploadRecord() throws Exception
 	{
-		String burNotFound = server.getBulletinUploadRecord(bhp1.getAccountId(), bhp1.getLocalId());
+		String burNotFound = server.getBulletinUploadRecord(bhp1.getAccountId(), bhp1.getLocalId(), bhp1.getStatus());
 		assertNull("found bur?", burNotFound);
 
 		String expectedBur = BulletinUploadRecord.createBulletinUploadRecord(bhp1.getLocalId(), server.getSecurity());
 		DatabaseKey headerKey = bhp1.createKeyWithHeaderStatus(bhp1.getUniversalId());
 		String bulletinLocalId = headerKey.getLocalId();
 		BulletinUploadRecord.writeSpecificBurToDatabase(coreServer.getWriteableDatabase(), bhp1, expectedBur);
-		String bur1 = server.getBulletinUploadRecord(bhp1.getAccountId(), bulletinLocalId);
+		String bur1 = server.getBulletinUploadRecord(bhp1.getAccountId(), bulletinLocalId, bhp1.getStatus());
 		assertNotNull("didn't find bur1?", bur1);
 		assertEquals("wrong bur?", expectedBur, bur1);
 	}

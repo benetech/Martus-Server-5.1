@@ -260,7 +260,7 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 			serverStore.saveBulletinForTesting(b);
 
 			String bur = BulletinUploadRecord.createBulletinUploadRecord(b.getLocalId(), otherServerSecurity);
-			supplier.addBur(b.getUniversalId(), bur);
+			supplier.addBur(b.getUniversalId(), bur, b.getStatus());
 			supplier.addZipData(b.getUniversalId(), getZipString(db, b, clientSecurity));
 			BulletinUploadRecord.writeSpecificBurToDatabase(db, b.getBulletinHeaderPacket(), bur);
 			assertEquals("after write bur" + i, (i+1)*databaseRecordsPerBulletin, db.getRecordCount());

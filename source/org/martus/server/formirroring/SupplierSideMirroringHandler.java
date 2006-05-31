@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.Vector;
 
 import org.martus.common.LoggerInterface;
+import org.martus.common.bulletin.BulletinConstants;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.network.mirroring.MirroringInterface;
@@ -183,8 +184,12 @@ public class SupplierSideMirroringHandler implements MirroringInterface, Network
 			{
 				String authorAccountId = (String)parameters.get(1);
 				String bulletinLocalId = (String)parameters.get(2);
+				String status = BulletinConstants.STATUSSEALED;
+				if(parameters.size()>3)
+					status = (String)parameters.get(3);
+				
 				logInfo("getBulletinUploadRecord: " + bulletinLocalId);
-				String bur = supplier.getBulletinUploadRecord(authorAccountId, bulletinLocalId);
+				String bur = supplier.getBulletinUploadRecord(authorAccountId, bulletinLocalId, status);
 				if(bur == null)
 				{
 					logDebug("getBulletinUploadRecord: NotFound");

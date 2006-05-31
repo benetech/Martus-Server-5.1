@@ -33,6 +33,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
 
+import org.martus.common.bulletin.BulletinConstants;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MockMartusSecurity;
 import org.martus.common.database.Database;
@@ -51,7 +52,8 @@ class FakeServerSupplier implements ServerSupplierInterface
 		availableIdsToMirror = new Vector();
 		security = MockMartusSecurity.createOtherServer();
 		
-		burContents = new HashMap();
+		burContentsDraft = new HashMap();
+		burContentsSealed = new HashMap();
 		zipData = new HashMap();
 	}
 
@@ -75,9 +77,12 @@ class FakeServerSupplier implements ServerSupplierInterface
 		availableIdsToMirror.add(data);
 	}
 
-	void addBur(UniversalId uid, String bur)
+	void addBur(UniversalId uid, String bur, String status)
 	{
-		burContents.put(uid,bur);
+		if(status.equals(BulletinConstants.STATUSDRAFT))
+			burContentsDraft.put(uid,bur);
+		else
+			burContentsSealed.put(uid,bur);
 	}
 	
 	void addZipData(UniversalId uid, String zipDataToUse)
@@ -167,10 +172,12 @@ class FakeServerSupplier implements ServerSupplierInterface
 		return bulletins;
 	}
 	
-	public String getBulletinUploadRecord(String authorAccountId, String bulletinLocalId)
+	public String getBulletinUploadRecord(String authorAccountId, String bulletinLocalId, String status)
 	{
 		UniversalId uid = UniversalId.createFromAccountAndLocalId(authorAccountId, bulletinLocalId);
-		return (String)burContents.get(uid);
+		if(status.equals(BulletinConstants.STATUSDRAFT))
+			return (String)burContentsDraft.get(uid);
+		return (String)burContentsSealed.get(uid);
 	}
 	
 	public Vector getBulletinChunkWithoutVerifyingCaller(String authorAccountId, String bulletinLocalId,
@@ -206,7 +213,8 @@ class FakeServerSupplier implements ServerSupplierInterface
 	String authorizedCaller;
 	String returnResultTag;
 
-	HashMap burContents;
+	HashMap burContentsDraft;
+	HashMap burContentsSealed;
 	HashMap zipData;
 
 	MartusCrypto security;
