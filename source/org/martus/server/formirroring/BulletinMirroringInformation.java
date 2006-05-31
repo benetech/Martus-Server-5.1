@@ -66,7 +66,7 @@ public class BulletinMirroringInformation
 	private void addRemainingInfo(Vector info)
 	{
 		info.add(status);
-		//info.add(mTime);
+		info.add(new Long(mTime));
 		info.add(signature);
 	}
 

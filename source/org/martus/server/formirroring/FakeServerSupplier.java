@@ -152,9 +152,10 @@ class FakeServerSupplier implements ServerSupplierInterface
 			{
 				Vector info = new Vector();
 				info.add(uid.getLocalId());
-				info.add(data.get(1));//status
-				info.add(data.get(2));//sig (will be mtime)
-				//info.add(data.get(3));//mtime (will be sig)
+				for (int i = 1; i < data.size(); ++i)
+				{
+					info.add(data.get(i));
+				}
 				bulletins.add(info);
 			}
 		}

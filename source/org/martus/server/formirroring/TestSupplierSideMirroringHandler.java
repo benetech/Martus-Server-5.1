@@ -443,6 +443,7 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 
 		String sigString = Base64.encode(sigBytes);
 		MockDatabase db = new MockServerDatabase();
+		db.writeRecord(key, "Some text");
 		supplier.addAvailableIdsToMirror(db, key, sigString);
 		
 		BulletinMirroringInformation bulletinInfo = new BulletinMirroringInformation(db, key, sigString);
