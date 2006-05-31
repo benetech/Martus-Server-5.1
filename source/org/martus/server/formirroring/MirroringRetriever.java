@@ -79,16 +79,16 @@ public class MirroringRetriever implements LoggerInterface
 		
 		try
 		{
-			UniversalId uId = item.getUid();
-			String publicCode = MartusCrypto.getFormattedPublicCode(uId.getAccountId());
-			logNotice("Getting bulletin: " + publicCode + "->" + uId.getLocalId());
-			String bur = retrieveBurFromMirror(uId, item.getStatus());
+			UniversalId uid = item.getUid();
+			String publicCode = MartusCrypto.getFormattedPublicCode(uid.getAccountId());
+			logNotice("Getting bulletin: " + publicCode + "->" + uid.getLocalId());
+			String bur = retrieveBurFromMirror(uid, item.getStatus());
 			File zip = File.createTempFile("$$$MirroringRetriever", null);
 			try
 			{
 				zip.deleteOnExit();
-				retrieveOneBulletin(zip, uId);
-				BulletinHeaderPacket bhp = store.saveZipFileToDatabase(zip, uId.getAccountId());
+				retrieveOneBulletin(zip, uid);
+				BulletinHeaderPacket bhp = store.saveZipFileToDatabase(zip, uid.getAccountId());
 				store.writeBur(bhp, bur);
 			}
 			finally
