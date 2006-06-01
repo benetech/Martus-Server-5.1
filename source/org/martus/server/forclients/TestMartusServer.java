@@ -1145,7 +1145,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		uploadSampleBulletin();
 		DatabaseKey[] packetKeys = BulletinZipUtilities.getAllPacketKeys(b1.getBulletinHeaderPacket());
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		BulletinZipUtilities.extractPacketsToZipStream(b1.getAccount(), testServer.getDatabase(), packetKeys, out, serverSecurity);
+		BulletinZipUtilities.extractPacketsToZipStream(b1.getAccount(), testServer.getDatabase(), packetKeys, out, serverSecurity, System.currentTimeMillis());
 		assertEquals("wrong length?", b1ZipBytes.length, out.toByteArray().length);
 		
 		String zipString = Base64.encode(out.toByteArray());
