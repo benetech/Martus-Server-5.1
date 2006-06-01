@@ -37,7 +37,6 @@ import org.martus.common.LoggerInterface;
 import org.martus.common.MartusUtilities;
 import org.martus.common.MartusUtilities.InvalidPublicKeyFileException;
 import org.martus.common.MartusUtilities.PublicInformationInvalidException;
-import org.martus.common.bulletin.BulletinConstants;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
@@ -48,7 +47,6 @@ import org.martus.common.network.mirroring.CallerSideMirroringGatewayForXmlRpc;
 import org.martus.common.network.mirroring.MirroringInterface;
 import org.martus.common.network.mirroring.CallerSideMirroringGatewayForXmlRpc.SSLSocketSetupException;
 import org.martus.common.packet.BulletinHeaderPacket;
-import org.martus.common.packet.UniversalId;
 import org.martus.server.main.BulletinUploadRecord;
 import org.martus.server.main.MartusServer;
 import org.martus.server.main.ServerBulletinStore;
@@ -283,12 +281,9 @@ public class ServerForMirroring implements ServerSupplierInterface
 		return collector.infos;
 	}
 
-	public String getBulletinUploadRecord(String authorAccountId, String bulletinLocalId, String status)
+	public String getBulletinUploadRecord(String authorAccountId, String bulletinLocalId)
 	{
-		UniversalId uid = UniversalId.createFromAccountAndLocalId(authorAccountId, bulletinLocalId);
-		DatabaseKey headerKey = DatabaseKey.createSealedKey(uid);
-		if(status.equals(BulletinConstants.STATUSDRAFT))
-			headerKey = DatabaseKey.createDraftKey(uid);
+		DatabaseKey headerKey = coreServer.findHeaderKeyInDatabase(authorAccountId, bulletinLocalId);
 		DatabaseKey burKey = BulletinUploadRecord.getBurKey(headerKey);
 		try
 		{

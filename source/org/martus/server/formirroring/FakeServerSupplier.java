@@ -172,12 +172,13 @@ class FakeServerSupplier implements ServerSupplierInterface
 		return bulletins;
 	}
 	
-	public String getBulletinUploadRecord(String authorAccountId, String bulletinLocalId, String status)
+	public String getBulletinUploadRecord(String authorAccountId, String bulletinLocalId)
 	{
 		UniversalId uid = UniversalId.createFromAccountAndLocalId(authorAccountId, bulletinLocalId);
-		if(status.equals(BulletinConstants.STATUSDRAFT))
-			return (String)burContentsDraft.get(uid);
-		return (String)burContentsSealed.get(uid);
+		String bur = (String)burContentsSealed.get(uid);
+		if(bur != null)
+			return bur;
+		return (String)burContentsDraft.get(uid);
 	}
 	
 	public Vector getBulletinChunkWithoutVerifyingCaller(String authorAccountId, String bulletinLocalId,
