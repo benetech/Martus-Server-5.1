@@ -121,7 +121,7 @@ public class ServerBulletinStore extends BulletinStore
 		return getDatabase().isHidden(key);
 	}
 	
-	public BulletinHeaderPacket saveZipFileToDatabase(File zipFile, String authorAccountId) throws
+	public BulletinHeaderPacket saveZipFileToDatabase(File zipFile, String authorAccountId, long mTime) throws
 			ZipException,
 			IOException,
 			Database.RecordHiddenException,
@@ -137,7 +137,7 @@ public class ServerBulletinStore extends BulletinStore
 		{
 			zip = new ZipFile(zipFile);
 			BulletinHeaderPacket header = validateZipFilePacketsForImport(zip, authorAccountId);
-			importBulletinZipFile(zip, authorAccountId);
+			importBulletinZipFile(zip, authorAccountId, mTime);
 			return header;
 		}
 		finally

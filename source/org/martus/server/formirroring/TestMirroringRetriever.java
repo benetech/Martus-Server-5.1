@@ -29,8 +29,10 @@ package org.martus.server.formirroring;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.Enumeration;
 import java.util.Vector;
-
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import org.martus.common.LoggerToNull;
 import org.martus.common.bulletin.Bulletin;
 import org.martus.common.bulletin.BulletinConstants;
@@ -43,6 +45,7 @@ import org.martus.common.crypto.MartusCrypto.CryptoException;
 import org.martus.common.crypto.MartusCrypto.MartusSignatureException;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
+import org.martus.common.database.MockClientDatabase;
 import org.martus.common.database.MockDatabase;
 import org.martus.common.database.ReadableDatabase;
 import org.martus.common.database.Database.RecordHiddenException;
@@ -378,8 +381,47 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		assertFalse(realRetriever.doWeWantThis(sealedNotHidden));	
 		assertFalse(realRetriever.doWeWantThis(draftHidden));		
 		assertTrue("We should retrieve a newer draft bulletin", realRetriever.doWeWantThis(draftNotHidden));
-		
-		
+	}
+	
+	public void testSaveZipFileToDatabaseWithSamemTime() throws Exception
+	{
+		MartusCrypto security = MockMartusSecurity.createServer();
+		MockClientDatabase db = new MockClientDatabase();
+		ServerBulletinStore store = new ServerBulletinStore();
+		store.setSignatureGenerator(security);
+		store.setDatabase(db);
+		try
+		{
+			
+			Bulletin b1 = new Bulletin(security);
+			b1.setDraft();
+			store.saveBulletinForTesting(b1);
+			long fastTimeVarianceMS = 2000; //2 seconds
+			Thread.sleep(2*fastTimeVarianceMS);//Ensure that the mTimes will be different between saving to the database and creating the zip file.
+	
+			DatabaseKey key = b1.getDatabaseKey();
+			long mTimeOriginal = db.getmTime(key);
+			File zip1 = createTempFile();
+			BulletinZipUtilities.exportBulletinPacketsFromDatabaseToZipFile(db, key, zip1, security);
+			ZipFile zip = new ZipFile(zip1);
+			Enumeration e = zip.entries();
+			ZipEntry entry = (ZipEntry) e.nextElement();
+			zip.close();
+
+			long entryTime = entry.getTime();
+			long difference = (mTimeOriginal-entryTime);
+			assertTrue("Zip file created before mTime of bulletin?", difference > 0 );
+			assertTrue("Zip file doesn't have the real mTime of the bulletin?", difference < fastTimeVarianceMS);
+	
+			store.deleteAllBulletins();
+			store.saveZipFileToDatabase(zip1, b1.getAccount(), entryTime);
+			zip1.delete();
+			assertEquals("Zip entry mTime not equals store's mTime", entryTime, db.getmTime(key));
+		}
+		finally
+		{
+			store.deleteAllData();
+		}
 	}
 	
 	private UniversalId addNewUid(Vector infos, String accountId)

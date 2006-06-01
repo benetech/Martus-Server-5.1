@@ -27,10 +27,7 @@ Boston, MA 02111-1307, USA.
 package org.martus.server.main;
 
 import java.io.File;
-import java.util.Enumeration;
 import java.util.Vector;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import org.martus.common.HQKey;
 import org.martus.common.HQKeys;
 import org.martus.common.LoggerInterface;
@@ -84,7 +81,7 @@ public class TestServerBulletinStore extends TestCaseEnhanced
 				File zip1 = createTempFile();
 				BulletinZipUtilities.exportBulletinPacketsFromDatabaseToZipFile(foDatabase1, key1, zip1, fieldOfficeSecurity1);
 				
-				store.saveZipFileToDatabase(zip1, fieldOfficeSecurity1.getPublicKeyString());
+				store.saveZipFileToDatabase(zip1, fieldOfficeSecurity1.getPublicKeyString(), System.currentTimeMillis());
 				Vector one = store.getFieldOfficeAccountIdsWithResultCode(hqSecurity.getPublicKeyString(), logger);
 				assertEquals(2, one.size());
 				assertEquals(NetworkInterfaceConstants.OK, none.get(0));
@@ -102,39 +99,4 @@ public class TestServerBulletinStore extends TestCaseEnhanced
 			store.deleteAllData();
 		}
 	}
-
-	public void testZipExtractormTime() throws Exception
-	{
-		MartusCrypto security = MockMartusSecurity.createClient();
-		MockClientDatabase db = new MockClientDatabase();
-		BulletinStore store = new BulletinStore();
-		store.setSignatureGenerator(security);
-		store.setDatabase(db);
-		try
-		{
-			Bulletin b1 = new Bulletin(security);
-			b1.setDraft();
-			store.saveBulletinForTesting(b1);
-			long fastTimeVarianceMS = 2000; //2 seconds
-			Thread.sleep(2*fastTimeVarianceMS);//Ensure that the mTimes will be different between saving to the database and creating the zip file.
-			DatabaseKey key1 = b1.getDatabaseKey();
-			File zip1 = createTempFile();
-			BulletinZipUtilities.exportBulletinPacketsFromDatabaseToZipFile(db, key1, zip1, security);
-			ZipFile zip = new ZipFile(zip1);
-			Enumeration e = zip.entries();
-			ZipEntry entry = (ZipEntry) e.nextElement();
-			long originalmTime = db.getmTime(key1); 
-			long entryTime = entry.getTime();
-			long difference = (originalmTime-entryTime);
-			assertTrue("Zip file created before mTime of bulletin?", difference > 0 );
-			assertTrue("Zip file doesn't have the real mTime of the bulletin?", difference < fastTimeVarianceMS);
-			zip.close();
-			zip1.delete();
-		}
-		finally
-		{
-			store.deleteAllData();
-		}
-	}
-
 }

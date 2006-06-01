@@ -88,7 +88,8 @@ public class MirroringRetriever implements LoggerInterface
 			{
 				zip.deleteOnExit();
 				retrieveOneBulletin(zip, uid);
-				BulletinHeaderPacket bhp = store.saveZipFileToDatabase(zip, uid.getAccountId());
+				long mTime = item.getmTime();
+				BulletinHeaderPacket bhp = store.saveZipFileToDatabase(zip, uid.getAccountId(), mTime);
 				store.writeBur(bhp, bur);
 			}
 			finally
