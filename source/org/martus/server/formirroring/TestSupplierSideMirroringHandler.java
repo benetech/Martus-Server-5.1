@@ -296,6 +296,7 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 			bulletinsVerified = verifyStatus(bulletinsVerified, returnedInfo, bhpDraft, "BHPDRAFT");
 		}		
 		assertEquals(3, bulletinsVerified);
+		server.deleteAllFiles();
 	}
 
 	private int verifyStatus(int bulletinsVerified, BulletinMirroringInformation returnedInfo, BulletinHeaderPacket bhp, String tag)
