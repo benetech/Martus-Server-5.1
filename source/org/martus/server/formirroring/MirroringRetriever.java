@@ -230,19 +230,18 @@ public class MirroringRetriever implements LoggerInterface
 		if(store.isHidden(key))
 			return false;
 		
+		if(!store.doesBulletinRevisionExist(key))
+			return true;
+
 		if(mirroringInfo.isSealed())
-			return(!store.doesBulletinRevisionExist(key));
+			return false;
 		
 		try
 		{
-			if(store.doesBulletinRevisionExist(key))
-			{
-//				long currentBulletinsmTime = store.getDatabase().getmTime(key);
-//				if(mirroringInfo.getmTime() > currentBulletinsmTime)
-//					return true;
-				return false;
-			}
-			return true;
+			long currentBulletinsmTime = store.getDatabase().getmTime(key);
+			if(mirroringInfo.getmTime() > currentBulletinsmTime)
+				return true;
+			return false;
 		}
 		catch (Exception e)
 		{

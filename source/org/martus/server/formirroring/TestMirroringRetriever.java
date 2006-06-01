@@ -354,12 +354,30 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		BulletinMirroringInformation draftNotHidden = new BulletinMirroringInformation(draftNotHiddenUid);
 		draftNotHidden.status = BulletinConstants.STATUSDRAFT;
 
+		//Nothing in Database
 		assertFalse(realRetriever.doWeWantThis(sealedHidden));		
 		assertTrue(realRetriever.doWeWantThis(sealedNotHidden));	
 		assertFalse(realRetriever.doWeWantThis(draftHidden));		
-		assertTrue(realRetriever.doWeWantThis(draftNotHidden));	
+		assertTrue(realRetriever.doWeWantThis(draftNotHidden));
 		
+		//Bulletins now exist in Database with newer mTimes
+		db.writeRecord(DatabaseKey.createSealedKey(sealedNotHiddenUid), "Sealed Data");
+		db.writeRecord(DatabaseKey.createDraftKey(draftNotHiddenUid), "Draft Data");
+		assertFalse(realRetriever.doWeWantThis(sealedHidden));		
+		assertFalse(realRetriever.doWeWantThis(sealedNotHidden));	
+		assertFalse(realRetriever.doWeWantThis(draftHidden));		
+		assertFalse(realRetriever.doWeWantThis(draftNotHidden));
 		
+		//Bulletins now exist in Database with older mTimes
+		long futureTime = 1000000;
+		sealedHidden.mTime = System.currentTimeMillis()+ futureTime;
+		sealedNotHidden.mTime = System.currentTimeMillis()+ futureTime;
+		draftHidden.mTime = System.currentTimeMillis()+ futureTime;
+		draftNotHidden.mTime = System.currentTimeMillis()+ futureTime;
+		assertFalse(realRetriever.doWeWantThis(sealedHidden));		
+		assertFalse(realRetriever.doWeWantThis(sealedNotHidden));	
+		assertFalse(realRetriever.doWeWantThis(draftHidden));		
+		assertTrue("We should retrieve a newer draft bulletin", realRetriever.doWeWantThis(draftNotHidden));
 		
 		
 	}

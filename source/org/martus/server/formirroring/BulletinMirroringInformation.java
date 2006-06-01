@@ -110,7 +110,7 @@ public class BulletinMirroringInformation
 		info.add(signature);
 	}
 
-	private long mTime;
+	long mTime;
 	private UniversalId uId;
 	String status;
 	private String signature;
