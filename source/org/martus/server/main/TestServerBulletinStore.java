@@ -125,7 +125,9 @@ public class TestServerBulletinStore extends TestCaseEnhanced
 			ZipEntry entry = (ZipEntry) e.nextElement();
 			long originalmTime = db.getmTime(key1); 
 			long entryTime = entry.getTime();
-			assertTrue("Zip file doesn't have the real mTime of the bulletin?", (originalmTime-entryTime) < fastTimeVarianceMS);
+			long difference = (originalmTime-entryTime);
+			assertTrue("Zip file created before mTime of bulletin?", difference > 0 );
+			assertTrue("Zip file doesn't have the real mTime of the bulletin?", difference < fastTimeVarianceMS);
 			zip.close();
 			zip1.delete();
 		}
