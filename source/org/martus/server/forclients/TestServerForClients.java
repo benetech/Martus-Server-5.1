@@ -234,7 +234,7 @@ public class TestServerForClients extends TestCaseEnhanced
 		TRACE_BEGIN("testDeleteDraftBulletinsEmptyList");
 
 		String[] allIds = {};
-		String resultAllOk = testServer.deleteDraftBulletins(clientAccountId, allIds);
+		String resultAllOk = testServer.deleteDraftBulletins(clientAccountId, allIds, new Vector(), "some signature");
 		assertEquals("Empty not ok?", NetworkInterfaceConstants.OK, resultAllOk);
 
 		TRACE_END();
@@ -265,22 +265,25 @@ public class TestServerForClients extends TestCaseEnhanced
 		BulletinStore testStoreDeleteDrafts = mockServer.getStore();
 
 		String[] allIds = uploadSampleDrafts();
-		String resultAllOk = testServer.deleteDraftBulletins(clientAccountId, allIds);
+		String resultAllOk = testServer.deleteDraftBulletins(clientAccountId, allIds,  new Vector(), "signature");
 		assertEquals("Good 3 not ok?", NetworkInterfaceConstants.OK, resultAllOk);
 		assertEquals("Didn't delete all?", 0, testStoreDeleteDrafts.getBulletinCount());
+		//TODO test to make sure we have a DEL record for each of the 3 bulletins.
 		
 		String[] twoGoodOneBad = uploadSampleDrafts();
 		twoGoodOneBad[1] = "Not a valid local id";
-		String resultOneBad = testServer.deleteDraftBulletins(clientAccountId, twoGoodOneBad);
+		String resultOneBad = testServer.deleteDraftBulletins(clientAccountId, twoGoodOneBad, new Vector(), "signature");
 		assertEquals("Two good one bad not incomplete?", NetworkInterfaceConstants.INCOMPLETE, resultOneBad);
 		assertEquals("Didn't delete two?", 1, testStoreDeleteDrafts.getBulletinCount());
+		//TODO test to make sure we have a DEL record for each of the 2 deleted bulletins.
 		
+	//	assertEquals(0, testStoreDeleteDrafts.getBulletinCount());
 		uploadSampleBulletin();
 		int newRecordCount = testStoreDeleteDrafts.getBulletinCount();
 		assertNotEquals("Didn't upload?", 1, newRecordCount);
 		String[] justSealed = new String[] {b1.getLocalId()};
-		testServer.deleteDraftBulletins(clientAccountId, justSealed);
-		assertEquals("Sealed not ok?", NetworkInterfaceConstants.OK, resultAllOk);
+		String result = testServer.deleteDraftBulletins(clientAccountId, justSealed,  new Vector(), "signature");
+		assertNotEquals("Sealed should not ok?", NetworkInterfaceConstants.OK, result);
 		assertEquals("Deleted sealed?", newRecordCount, testStoreDeleteDrafts.getBulletinCount());
 
 		TRACE_END();
@@ -484,7 +487,7 @@ public class TestServerForClients extends TestCaseEnhanced
 		verifyErrorResult("getPacket", vecResult, NetworkInterfaceConstants.REJECTED );
 		assertEquals("getPacket", 0, testServer.getNumberActiveClients() );
 
-		strResult = testServer.deleteDraftBulletins(clientId, new String[] {bogusStringParameter} );
+		strResult = testServer.deleteDraftBulletins(clientId, new String[] {bogusStringParameter}, new Vector(), "some signature" );
 		assertEquals("deleteDraftBulletins", NetworkInterfaceConstants.REJECTED, strResult);
 		assertEquals("deleteDraftBulletins", 0, testServer.getNumberActiveClients() );
 

@@ -38,7 +38,7 @@ public interface ServerForClientsInterface extends LoggerInterface
 	public void clientConnectionExit();
 	public MartusCrypto getSecurity();
 	public String ping();
-	public String deleteDraftBulletins(String myAccountId, String[] idList);
+	public String deleteDraftBulletins(String myAccountId, String[] idList, Vector originalRequest, String signature);
 	public Vector getBulletinChunk(String myAccountId, String authorAccountId, String bulletinLocalId, int chunkOffset, int maxChunkSize);
 	public Vector getNews(String myAccountId, String versionLabel, String versionBuildDate);
 	public Vector getPacket(String myAccountId, String authorAccountId, String bulletinLocalId, String packetLocalId);

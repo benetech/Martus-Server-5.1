@@ -27,7 +27,10 @@ package org.martus.server.main;
 
 import java.io.BufferedReader;
 import java.io.StringReader;
+import java.util.Vector;
 
+import org.martus.common.bulletin.Bulletin;
+import org.martus.common.crypto.MockMartusSecurity;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.packet.UniversalId;
 import org.martus.common.utilities.MartusServerUtilities;
@@ -43,8 +46,13 @@ public class TestDeleteRequestRecord extends TestCaseEnhanced
 
 	public void testCreateDELRecord() throws Exception
 	{
-		String delRequestData = "Delete b1 test data";
-		DeleteRequestRecord delRequest = new DeleteRequestRecord(delRequestData);
+		String account = "account";
+		Vector delRequestData = new Vector();
+		delRequestData.add("1");
+		delRequestData.add("data");
+		
+		String signature = "signature";
+		DeleteRequestRecord delRequest = new DeleteRequestRecord(account, delRequestData, signature);
 		String delData = delRequest.getDelData();
 		BufferedReader reader = new BufferedReader(new StringReader(delData));
 		String gotFileTypeIdentifier = reader.readLine();
@@ -52,7 +60,11 @@ public class TestDeleteRequestRecord extends TestCaseEnhanced
 		String gotTimeStamp = reader.readLine();
 		String now = MartusServerUtilities.createTimeStamp();
 		assertStartsWith(now.substring(0, 13), gotTimeStamp);
-		assertEquals(delRequestData, reader.readLine());
+		assertEquals(account, reader.readLine());
+		assertEquals(new Integer(delRequestData.size()).toString(), reader.readLine());
+		assertEquals(delRequestData.get(0), reader.readLine());
+		assertEquals(delRequestData.get(1), reader.readLine());
+		assertEquals(signature, reader.readLine());
 		reader.close();
 	}
 	
@@ -61,6 +73,26 @@ public class TestDeleteRequestRecord extends TestCaseEnhanced
 		UniversalId uid = UniversalId.createDummyUniversalId();
 		DatabaseKey draftDELKey = DeleteRequestRecord.getDelKey(uid);
 		assertEquals("DEL-" + uid.getLocalId(), draftDELKey.getLocalId());
+	}
+	
+	public void testVerification() throws Exception
+	{
+		MockMartusSecurity security = new MockMartusSecurity();
+		security.createKeyPair();
+		Bulletin b1 = new Bulletin(security);
+		Bulletin b2 = new Bulletin(security);
+		Bulletin b3 = new Bulletin(security);
+		Vector clientDeleteRequestParams = new Vector();
+		clientDeleteRequestParams.add(new Integer(3).toString());
+		clientDeleteRequestParams.add(b1.getLocalId());
+		clientDeleteRequestParams.add(b2.getLocalId());
+		clientDeleteRequestParams.add(b3.getLocalId());
+		String signature = security.createSignatureOfVectorOfStrings(clientDeleteRequestParams);
+		DeleteRequestRecord delRequestValid = new DeleteRequestRecord(security.getPublicKeyString(), clientDeleteRequestParams, signature);
+		assertTrue(delRequestValid.doesSignatureMatch(security));
+		signature += "a";
+		DeleteRequestRecord delRequestNotValid = new DeleteRequestRecord(security.getPublicKeyString(), clientDeleteRequestParams, signature);
+		assertFalse(delRequestNotValid.doesSignatureMatch(security));
 	}
 	
 	public void testSaveToDatabase() throws Exception

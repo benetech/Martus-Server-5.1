@@ -1634,7 +1634,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		verifyErrorResult("getPacket", vecResult, NetworkInterfaceConstants.SERVER_DOWN );
 		assertEquals("getPacket", 1, serverForClients.getNumberActiveClients() );
 
-		strResult = testServer.serverForClients.deleteDraftBulletins(clientId, new String[] {bogusStringParameter} );
+		strResult = testServer.serverForClients.deleteDraftBulletins(clientId, new String[] {bogusStringParameter}, new Vector(), "some signature");
 		assertEquals("deleteDraftBulletins", NetworkInterfaceConstants.SERVER_DOWN, strResult);
 		assertEquals("deleteDraftBulletins", 1, serverForClients.getNumberActiveClients() );
 

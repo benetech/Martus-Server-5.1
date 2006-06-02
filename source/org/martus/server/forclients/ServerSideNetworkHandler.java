@@ -382,7 +382,7 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 				idList[i] = (String)parameters.get(1+i);
 			}
 
-			result.add(server.deleteDraftBulletins(myAccountId, idList));
+			result.add(server.deleteDraftBulletins(myAccountId, idList, parameters, signature));
 			logDebug("deleteDraftBulletins: Exit");
 			return result;
 		}

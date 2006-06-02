@@ -26,7 +26,9 @@ Boston, MA 02111-1307, USA.
 package org.martus.server.main;
 
 import java.io.IOException;
+import java.util.Vector;
 
+import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.FileDatabase;
@@ -36,19 +38,40 @@ import org.martus.common.utilities.MartusServerUtilities;
 public class DeleteRequestRecord
 {
 	
-	public DeleteRequestRecord(String originalClientDeleteRequestToUse)
+	public DeleteRequestRecord(String accountIdToUse, Vector originalRequestToUse, String signatureToUse)
 	{
 		timeStamp = MartusServerUtilities.createTimeStamp();
-		originalClientRequest = originalClientDeleteRequestToUse;
+		accountId = accountIdToUse;
+		originalClientRequest = originalRequestToUse;
+		signature = signatureToUse;
 	}
 	
 	public String getDelData() 
 	{
-		String contents = 
-			DRAFT_DELETE_REQUEST_IDENTIFIER + newline +
-			timeStamp + newline +
-			originalClientRequest + newline;
-	return contents;
+		StringBuffer contents = new StringBuffer();
+		contents.append(DRAFT_DELETE_REQUEST_IDENTIFIER);
+		contents.append(newline);
+		contents.append(timeStamp);
+		contents.append(newline);
+		contents.append(accountId);
+		contents.append(newline);
+		int count = originalClientRequest.size();
+		contents.append(count);
+		contents.append(newline);
+		for(int i = 0; i < count; ++i)
+		{
+			contents.append((String)originalClientRequest.get(i));
+			contents.append(newline);
+		}
+		contents.append(signature);
+		contents.append(newline);
+		
+	return contents.toString();
+	}
+	
+	public boolean doesSignatureMatch(MartusCrypto verifier)
+	{
+		return verifier.verifySignatureOfVectorOfStrings(originalClientRequest, accountId, signature);
 	}
 	
 	public void writeSpecificDelToDatabase(Database db, UniversalId uid)
@@ -66,6 +89,8 @@ public class DeleteRequestRecord
 	private final static String DRAFT_DELETE_REQUEST_IDENTIFIER = "Martus Draft Delete Request 1.0";
 	private final static String newline = "\n";
 
-	private String originalClientRequest;
+	private String accountId;
+	private Vector originalClientRequest;
+	private String signature;
 	private String timeStamp;
 }

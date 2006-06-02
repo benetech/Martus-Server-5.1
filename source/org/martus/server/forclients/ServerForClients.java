@@ -429,7 +429,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		return collectBulletinSummaries(summaryCollector, "listMyDraftBulletinIds ");
 	}
 
-	public String deleteDraftBulletins(String accountId, String[] localIds)
+	public String deleteDraftBulletins(String accountId, String[] localIds, Vector originalRequest, String signature)
 	{
 		if(isClientBanned(accountId) )
 			return NetworkInterfaceConstants.REJECTED;
@@ -445,6 +445,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			{
 				if(coreServer.doesDraftExist(uid))
 				{
+					writeDELPacket(uid, originalRequest, signature);
 					DatabaseKey key = DatabaseKey.createDraftKey(uid);
 					getStore().deleteBulletinRevision(key);
 				}
@@ -461,6 +462,11 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			}
 		}
 		return result;
+	}
+	
+	private void writeDELPacket(UniversalId uid, Vector originalRequest, String signature)
+	{
+	//	DeleteRequestRecord delRecord = new DeleteRequestRecord(uid.getAccountId(), originalRequest, signature);
 	}
 
 	public Vector listFieldOfficeAccounts(String hqAccountId)
