@@ -33,10 +33,10 @@ import org.martus.common.packet.UniversalId;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.util.TestCaseEnhanced;
 
-public class TestDeleteRequestPackets extends TestCaseEnhanced
+public class TestDeleteRequestRecord extends TestCaseEnhanced
 {
 
-	public TestDeleteRequestPackets(String name)
+	public TestDeleteRequestRecord(String name)
 	{
 		super(name);
 	}
@@ -44,7 +44,7 @@ public class TestDeleteRequestPackets extends TestCaseEnhanced
 	public void testCreateDELRecord() throws Exception
 	{
 		String delRequestData = "Delete b1 test data";
-		DraftDeleteRequest delRequest = new DraftDeleteRequest(delRequestData);
+		DeleteRequestRecord delRequest = new DeleteRequestRecord(delRequestData);
 		String delData = delRequest.getDelData();
 		BufferedReader reader = new BufferedReader(new StringReader(delData));
 		String gotFileTypeIdentifier = reader.readLine();
@@ -59,8 +59,13 @@ public class TestDeleteRequestPackets extends TestCaseEnhanced
 	public void testGetDELKey() throws Exception
 	{
 		UniversalId uid = UniversalId.createDummyUniversalId();
-		DatabaseKey draftDELKey = DraftDeleteRequest.getDelKey(uid);
+		DatabaseKey draftDELKey = DeleteRequestRecord.getDelKey(uid);
 		assertEquals("DEL-" + uid.getLocalId(), draftDELKey.getLocalId());
+	}
+	
+	public void testSaveToDatabase() throws Exception
+	{
+		
 	}
 	
 }

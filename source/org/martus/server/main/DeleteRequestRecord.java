@@ -33,10 +33,10 @@ import org.martus.common.database.FileDatabase;
 import org.martus.common.packet.UniversalId;
 import org.martus.common.utilities.MartusServerUtilities;
 
-public class DraftDeleteRequest
+public class DeleteRequestRecord
 {
 	
-	public DraftDeleteRequest(String originalClientDeleteRequestToUse)
+	public DeleteRequestRecord(String originalClientDeleteRequestToUse)
 	{
 		timeStamp = MartusServerUtilities.createTimeStamp();
 		originalClientRequest = originalClientDeleteRequestToUse;
