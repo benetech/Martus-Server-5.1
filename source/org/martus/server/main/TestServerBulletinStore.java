@@ -81,7 +81,7 @@ public class TestServerBulletinStore extends TestCaseEnhanced
 				File zip1 = createTempFile();
 				BulletinZipUtilities.exportBulletinPacketsFromDatabaseToZipFile(foDatabase1, key1, zip1, fieldOfficeSecurity1);
 				
-				store.saveZipFileToDatabase(zip1, fieldOfficeSecurity1.getPublicKeyString(), System.currentTimeMillis());
+				store.saveZipFileToDatabase(zip1, fieldOfficeSecurity1.getPublicKeyString());
 				Vector one = store.getFieldOfficeAccountIdsWithResultCode(hqSecurity.getPublicKeyString(), logger);
 				assertEquals(2, one.size());
 				assertEquals(NetworkInterfaceConstants.OK, none.get(0));

@@ -121,6 +121,20 @@ public class ServerBulletinStore extends BulletinStore
 		return getDatabase().isHidden(key);
 	}
 	
+	public BulletinHeaderPacket saveZipFileToDatabase(File zipFile, String authorAccountId) throws
+	ZipException,
+	IOException,
+	Database.RecordHiddenException,
+	Packet.InvalidPacketException,
+	Packet.SignatureVerificationException,
+	SealedPacketExistsException,
+	DuplicatePacketException,
+	Packet.WrongAccountException,
+	MartusCrypto.DecryptionException
+	{
+		return saveZipFileToDatabase(zipFile, authorAccountId, System.currentTimeMillis());
+	}
+	
 	public BulletinHeaderPacket saveZipFileToDatabase(File zipFile, String authorAccountId, long mTime) throws
 			ZipException,
 			IOException,
