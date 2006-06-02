@@ -45,6 +45,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
+
 import org.martus.common.ContactInfo;
 import org.martus.common.HQKey;
 import org.martus.common.HQKeys;
@@ -201,6 +202,49 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 
 		TRACE_END();
 		super.tearDown();
+	}
+	
+	public void testDoesDraftExist() throws Exception
+	{
+		MartusCrypto security = MockMartusSecurity.createClient();
+	
+		ServerBulletinStore serverStore = new ServerBulletinStore();
+		serverStore.setSignatureGenerator(security);
+		MockServerDatabase serverDatabase = new MockServerDatabase();
+		serverStore.setDatabase(serverDatabase);
+
+		BulletinStore clientStore = new BulletinStore();
+		clientStore.setSignatureGenerator(security);
+		MockClientDatabase clientDatabase = new MockClientDatabase();
+		clientStore.setDatabase(clientDatabase);
+
+		Bulletin bSealed = new Bulletin(security);
+		bSealed.setSealed();
+		clientStore.saveBulletinForTesting(bSealed);
+
+		Bulletin bDraft = new Bulletin(security);
+		bDraft.setDraft();
+		clientStore.saveBulletinForTesting(bDraft);
+		
+		DatabaseKey key1 = bSealed.getDatabaseKey();
+		File zip1 = createTempFile();
+		BulletinZipUtilities.exportBulletinPacketsFromDatabaseToZipFile(clientDatabase, key1, zip1, security);
+		serverStore.saveZipFileToDatabase(zip1, security.getPublicKeyString());
+		zip1.delete();
+		
+		DatabaseKey key2 = bDraft.getDatabaseKey(); 
+		File zip2 = createTempFile();
+		BulletinZipUtilities.exportBulletinPacketsFromDatabaseToZipFile(clientDatabase, key2, zip2, security);
+		serverStore.saveZipFileToDatabase(zip2, security.getPublicKeyString());
+		zip2.delete();
+		
+		MockMartusServer server = new MockMartusServer((Database)serverStore.getDatabase());
+		assertFalse(server.doesDraftExist(bSealed.getUniversalId()));
+		assertTrue(server.doesDraftExist(bDraft.getUniversalId()));
+		
+		clientStore.deleteAllData();
+		serverStore.deleteAllData();
+		server.deleteAllFiles();
 	}
 	
 	public void testListFieldOfficeAccountsErrorCondition() throws Exception

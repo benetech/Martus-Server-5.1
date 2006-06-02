@@ -317,6 +317,12 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		loadComplianceStatementFile();
 	}
 	
+	public boolean doesDraftExist(UniversalId uid)
+	{
+		DatabaseKey key = DatabaseKey.createDraftKey(uid);
+		return getDatabase().doesRecordExist(key);
+	}
+	
 	public ServerBulletinStore getStore()
 	{
 		return store;

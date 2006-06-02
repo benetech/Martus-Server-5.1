@@ -34,6 +34,7 @@ import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Vector;
+
 import org.martus.amplifier.ServerCallbackInterface;
 import org.martus.common.MagicWordEntry;
 import org.martus.common.MagicWords;
@@ -55,7 +56,6 @@ import org.martus.util.DirectoryUtils;
 import org.martus.util.LoggerUtil;
 import org.martus.util.UnicodeReader;
 import org.martus.util.UnicodeWriter;
-import org.martus.util.inputstreamwithseek.InputStreamWithSeek;
 
 
 public class ServerForClients implements ServerForNonSSLClientsInterface, ServerForClientsInterface
@@ -443,16 +443,16 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			UniversalId uid = UniversalId.createFromAccountAndLocalId(accountId, localIds[i]);
 			try
 			{
-				// TODO: reading the bhp protects us from trying to delete a sealed bulletin
-				// instead, the store should offer helpers to do this without having to 
-				// read the bhp at all
-				DatabaseKey key = DatabaseKey.createDraftKey(uid);
-				BulletinHeaderPacket bhp = new BulletinHeaderPacket(uid);
-				InputStreamWithSeek in = coreServer.getDatabase().openInputStream(key, getSecurity());
-				bhp.loadFromXml(in, null, getSecurity());
-				in.close();
-		
-				getStore().deleteBulletinRevision(key);
+				if(coreServer.doesDraftExist(uid))
+				{
+					DatabaseKey key = DatabaseKey.createDraftKey(uid);
+					getStore().deleteBulletinRevision(key);
+				}
+				else
+				{
+					logError("deleteDraftBulletins: Draft not Found:"+accountId+" : "+localIds[i]);
+					result =  NetworkInterfaceConstants.INCOMPLETE;
+				}
 			}
 			catch (Exception e)
 			{
