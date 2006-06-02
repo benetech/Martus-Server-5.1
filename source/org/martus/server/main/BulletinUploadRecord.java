@@ -34,6 +34,7 @@ import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MartusCrypto.CreateDigestException;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
+import org.martus.common.database.FileDatabase;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
 import org.martus.common.utilities.MartusServerUtilities;
@@ -103,7 +104,7 @@ public class BulletinUploadRecord
 
 	public static DatabaseKey getBurKey(DatabaseKey key)
 	{
-		UniversalId burUid = UniversalId.createFromAccountAndLocalId(key.getAccountId(), "BUR-" + key.getLocalId());
+		UniversalId burUid = UniversalId.createFromAccountAndLocalId(key.getAccountId(), FileDatabase.BUR_PREFIX + key.getLocalId());
 		
 		if(key.isDraft())
 			return DatabaseKey.createDraftKey(burUid);
