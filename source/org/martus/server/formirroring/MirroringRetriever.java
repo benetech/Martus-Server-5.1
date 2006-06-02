@@ -220,13 +220,9 @@ public class MirroringRetriever implements LoggerInterface
 
 	public boolean doWeWantThis(BulletinMirroringInformation mirroringInfo)
 	{
-		//TODO handle delete requests when we are propagating deletes.
-
-		DatabaseKey key = null;
-		if(mirroringInfo.isSealed())
-			key = DatabaseKey.createSealedKey(mirroringInfo.getUid());
-		else if(mirroringInfo.isDraft())
-			key = DatabaseKey.createDraftKey(mirroringInfo.getUid());
+		//TODO handle delete requests when we are propagating deletes, 
+		//or if they exist on this server
+		DatabaseKey key = getDatabaseKey(mirroringInfo);
 
 		if(store.isHidden(key))
 			return false;
@@ -249,6 +245,16 @@ public class MirroringRetriever implements LoggerInterface
 			e.printStackTrace();
 		}
 		return false;
+	}
+
+	private DatabaseKey getDatabaseKey(BulletinMirroringInformation mirroringInfo)
+	{
+		DatabaseKey key = null;
+		if(mirroringInfo.isSealed())
+			key = DatabaseKey.createSealedKey(mirroringInfo.getUid());
+		else if(mirroringInfo.isDraft())
+			key = DatabaseKey.createDraftKey(mirroringInfo.getUid());
+		return key;
 	}
 	
 	String getNextAccountToRetrieve()
