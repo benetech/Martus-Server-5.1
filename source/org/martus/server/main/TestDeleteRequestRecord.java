@@ -32,8 +32,10 @@ import java.util.Vector;
 import org.martus.common.bulletin.Bulletin;
 import org.martus.common.crypto.MockMartusSecurity;
 import org.martus.common.database.DatabaseKey;
+import org.martus.common.database.MockServerDatabase;
 import org.martus.common.packet.UniversalId;
 import org.martus.common.utilities.MartusServerUtilities;
+import org.martus.server.forclients.MockMartusServer;
 import org.martus.util.TestCaseEnhanced;
 
 public class TestDeleteRequestRecord extends TestCaseEnhanced
@@ -77,27 +79,49 @@ public class TestDeleteRequestRecord extends TestCaseEnhanced
 	
 	public void testVerification() throws Exception
 	{
-		MockMartusSecurity security = new MockMartusSecurity();
-		security.createKeyPair();
-		Bulletin b1 = new Bulletin(security);
-		Bulletin b2 = new Bulletin(security);
-		Bulletin b3 = new Bulletin(security);
+		MockMartusSecurity clientSecurity = new MockMartusSecurity();
+		clientSecurity.createKeyPair();
+		MockMartusSecurity serverSecurity = new MockMartusSecurity();
+		serverSecurity.createKeyPair();
+		Bulletin b1 = new Bulletin(clientSecurity);
+		Bulletin b2 = new Bulletin(clientSecurity);
+		Bulletin b3 = new Bulletin(clientSecurity);
 		Vector clientDeleteRequestParams = new Vector();
-		clientDeleteRequestParams.add(new Integer(3).toString());
+		clientDeleteRequestParams.add(new Integer(3));
 		clientDeleteRequestParams.add(b1.getLocalId());
 		clientDeleteRequestParams.add(b2.getLocalId());
 		clientDeleteRequestParams.add(b3.getLocalId());
-		String signature = security.createSignatureOfVectorOfStrings(clientDeleteRequestParams);
-		DeleteRequestRecord delRequestValid = new DeleteRequestRecord(security.getPublicKeyString(), clientDeleteRequestParams, signature);
-		assertTrue(delRequestValid.doesSignatureMatch(security));
+		String signature = clientSecurity.createSignatureOfVectorOfStrings(clientDeleteRequestParams);
+		DeleteRequestRecord delRequestValid = new DeleteRequestRecord(clientSecurity.getPublicKeyString(), clientDeleteRequestParams, signature);
+		assertTrue(delRequestValid.doesSignatureMatch(serverSecurity));
 		signature += "a";
-		DeleteRequestRecord delRequestNotValid = new DeleteRequestRecord(security.getPublicKeyString(), clientDeleteRequestParams, signature);
-		assertFalse(delRequestNotValid.doesSignatureMatch(security));
+		DeleteRequestRecord delRequestNotValid = new DeleteRequestRecord(clientSecurity.getPublicKeyString(), clientDeleteRequestParams, signature);
+		assertFalse(delRequestNotValid.doesSignatureMatch(serverSecurity));
 	}
 	
 	public void testSaveToDatabase() throws Exception
 	{
+		MockMartusSecurity clientSecurity = new MockMartusSecurity();
+		clientSecurity.createKeyPair();
+		MockMartusSecurity serverSecurity = new MockMartusSecurity();
+		serverSecurity.createKeyPair();
+		Bulletin b1 = new Bulletin(clientSecurity);
+		Bulletin b2 = new Bulletin(clientSecurity);
+		Vector clientDeleteRequestParams = new Vector();
+		clientDeleteRequestParams.add(new Integer(2));
+		clientDeleteRequestParams.add(b1.getLocalId());
+		clientDeleteRequestParams.add(b2.getLocalId());
+		String signature = clientSecurity.createSignatureOfVectorOfStrings(clientDeleteRequestParams);
+		DeleteRequestRecord delRequest = new DeleteRequestRecord(clientSecurity.getPublicKeyString(), clientDeleteRequestParams, signature);
+		assertTrue(delRequest.doesSignatureMatch(serverSecurity));
+
+		MockServerDatabase db = new MockServerDatabase();
+		MockMartusServer server = new MockMartusServer(db);
+		ServerBulletinStore store = server.getStore();
+		store.writeDel(b1.getUniversalId(), delRequest);
 		
+		DeleteRequestRecord delRequestFromDatabase = new DeleteRequestRecord(db, b1.getUniversalId(), serverSecurity);		
+		assertTrue("Signature verification failed?", delRequestFromDatabase.doesSignatureMatch(serverSecurity));
+		assertEquals("Doesn't match?", delRequest.getDelData(), delRequestFromDatabase.getDelData());
 	}
-	
 }

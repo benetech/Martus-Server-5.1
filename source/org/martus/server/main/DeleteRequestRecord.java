@@ -27,13 +27,15 @@ package org.martus.server.main;
 
 import java.io.IOException;
 import java.util.Vector;
-
 import org.martus.common.crypto.MartusCrypto;
+import org.martus.common.crypto.MartusCrypto.CryptoException;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.FileDatabase;
+import org.martus.common.database.ReadableDatabase;
 import org.martus.common.packet.UniversalId;
 import org.martus.common.utilities.MartusServerUtilities;
+import org.martus.util.UnicodeStringReader;
 
 public class DeleteRequestRecord
 {
@@ -44,6 +46,23 @@ public class DeleteRequestRecord
 		accountId = accountIdToUse;
 		originalClientRequest = originalRequestToUse;
 		signature = signatureToUse;
+	}
+	
+	public DeleteRequestRecord(ReadableDatabase db, UniversalId uid, MartusCrypto security) throws IOException, CryptoException
+	{
+		String retrievedRecordString = db.readRecord(getDelKey(uid), security);
+		UnicodeStringReader reader = new UnicodeStringReader(retrievedRecordString);
+		reader.readLine(); //header
+		timeStamp = reader.readLine();
+		accountId = reader.readLine();
+		int originalClientRequestSize = new Integer(reader.readLine()).intValue();
+		originalClientRequest = new Vector();
+		for(int i = 0; i < originalClientRequestSize; ++i)
+		{
+			originalClientRequest.add(reader.readLine());
+		}
+		signature = reader.readLine();
+		
 	}
 	
 	public String getDelData() 
