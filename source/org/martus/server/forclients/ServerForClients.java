@@ -43,6 +43,7 @@ import org.martus.common.Version;
 import org.martus.common.MartusUtilities.FileVerificationException;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.database.DatabaseKey;
+import org.martus.common.database.Database.RecordHiddenException;
 import org.martus.common.network.MartusXmlRpcServer;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.network.NetworkInterfaceXmlRpcConstants;
@@ -50,6 +51,7 @@ import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.common.xmlrpc.WebServerWithClientId;
+import org.martus.server.main.DeleteRequestRecord;
 import org.martus.server.main.MartusServer;
 import org.martus.server.main.ServerBulletinStore;
 import org.martus.util.DirectoryUtils;
@@ -464,9 +466,10 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		return result;
 	}
 	
-	private void writeDELPacket(UniversalId uid, Vector originalRequest, String signature)
+	private void writeDELPacket(UniversalId uid, Vector originalRequest, String signature) throws IOException, RecordHiddenException
 	{
-	//	DeleteRequestRecord delRecord = new DeleteRequestRecord(uid.getAccountId(), originalRequest, signature);
+		DeleteRequestRecord delRecord = new DeleteRequestRecord(uid.getAccountId(), originalRequest, signature);
+		getStore().writeDel(uid, delRecord);
 	}
 
 	public Vector listFieldOfficeAccounts(String hqAccountId)

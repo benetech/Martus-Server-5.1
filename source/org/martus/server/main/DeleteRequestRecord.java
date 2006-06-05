@@ -60,7 +60,7 @@ public class DeleteRequestRecord
 		contents.append(newline);
 		for(int i = 0; i < count; ++i)
 		{
-			contents.append((String)originalClientRequest.get(i));
+			contents.append(originalClientRequest.get(i));
 			contents.append(newline);
 		}
 		contents.append(signature);

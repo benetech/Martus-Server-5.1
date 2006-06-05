@@ -48,7 +48,7 @@ public class TestDeleteRequestRecord extends TestCaseEnhanced
 	{
 		String account = "account";
 		Vector delRequestData = new Vector();
-		delRequestData.add("1");
+		delRequestData.add(new Integer(1));
 		delRequestData.add("data");
 		
 		String signature = "signature";
@@ -62,7 +62,7 @@ public class TestDeleteRequestRecord extends TestCaseEnhanced
 		assertStartsWith(now.substring(0, 13), gotTimeStamp);
 		assertEquals(account, reader.readLine());
 		assertEquals(new Integer(delRequestData.size()).toString(), reader.readLine());
-		assertEquals(delRequestData.get(0), reader.readLine());
+		assertEquals(delRequestData.get(0), new Integer(reader.readLine()));
 		assertEquals(delRequestData.get(1), reader.readLine());
 		assertEquals(signature, reader.readLine());
 		reader.close();

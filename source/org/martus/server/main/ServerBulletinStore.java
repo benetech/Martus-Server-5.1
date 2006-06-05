@@ -97,6 +97,11 @@ public class ServerBulletinStore extends BulletinStore
 	{
 		BulletinUploadRecord.writeSpecificBurToDatabase(getWriteableDatabase(), bhp, bur);
 	}
+	
+	public void writeDel(UniversalId uid, DeleteRequestRecord delRecord) throws IOException, RecordHiddenException
+	{
+		delRecord.writeSpecificDelToDatabase(getWriteableDatabase(), uid);
+	}
 
 	public boolean doesContactInfoExist(String accountId) throws IOException
 	{

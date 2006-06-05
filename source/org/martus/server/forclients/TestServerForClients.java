@@ -34,7 +34,6 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Vector;
-
 import org.martus.common.HQKey;
 import org.martus.common.HQKeys;
 import org.martus.common.bulletin.AttachmentProxy;
@@ -48,7 +47,9 @@ import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.MockClientDatabase;
 import org.martus.common.network.NetworkInterface;
 import org.martus.common.network.NetworkInterfaceConstants;
+import org.martus.common.packet.UniversalId;
 import org.martus.common.test.MockBulletinStore;
+import org.martus.server.main.DeleteRequestRecord;
 import org.martus.server.main.MartusServer;
 import org.martus.util.Base64;
 import org.martus.util.TestCaseEnhanced;
@@ -262,37 +263,66 @@ public class TestServerForClients extends TestCaseEnhanced
 	{
 		TRACE_BEGIN("testDeleteDraftBulletinsThroughHandler");
 
-		BulletinStore testStoreDeleteDrafts = mockServer.getStore();
 
 		String[] allIds = uploadSampleDrafts();
+		for(int i = 0 ; i < allIds.length; ++i)
+		{
+			internalTestDelRecord(UniversalId.createFromAccountAndLocalId(clientAccountId,allIds[i]), "DEL already exists?", false);
+		}
+		
 		String resultAllOk = testServer.deleteDraftBulletins(clientAccountId, allIds,  new Vector(), "signature");
 		assertEquals("Good 3 not ok?", NetworkInterfaceConstants.OK, resultAllOk);
+		BulletinStore testStoreDeleteDrafts = mockServer.getStore();
 		assertEquals("Didn't delete all?", 0, testStoreDeleteDrafts.getBulletinCount());
-		//TODO test to make sure we have a DEL record for each of the 3 bulletins.
+		for(int i = 0 ; i < allIds.length; ++i)
+		{
+			internalTestDelRecord(UniversalId.createFromAccountAndLocalId(clientAccountId,allIds[i]), "DEL should exist.", true);
+		}
 		
+		testStoreDeleteDrafts.deleteAllData();
+
 		String[] twoGoodOneBad = uploadSampleDrafts();
 		twoGoodOneBad[1] = "Not a valid local id";
+		for(int i = 0 ; i < twoGoodOneBad.length; ++i)
+		{
+			internalTestDelRecord(UniversalId.createFromAccountAndLocalId(clientAccountId,twoGoodOneBad[i]), "DEL should not exist.", false);
+		}
 		String resultOneBad = testServer.deleteDraftBulletins(clientAccountId, twoGoodOneBad, new Vector(), "signature");
 		assertEquals("Two good one bad not incomplete?", NetworkInterfaceConstants.INCOMPLETE, resultOneBad);
 		assertEquals("Didn't delete two?", 1, testStoreDeleteDrafts.getBulletinCount());
-		//TODO test to make sure we have a DEL record for each of the 2 deleted bulletins.
+		boolean shouldExist = true;
+		for(int i = 0 ; i < twoGoodOneBad.length; ++i)
+		{
+			internalTestDelRecord(UniversalId.createFromAccountAndLocalId(clientAccountId,twoGoodOneBad[i]), "DEL should:" + i + shouldExist, shouldExist);
+			shouldExist = !shouldExist;
+		}
 		
-	//	assertEquals(0, testStoreDeleteDrafts.getBulletinCount());
 		uploadSampleBulletin();
+		
 		int newRecordCount = testStoreDeleteDrafts.getBulletinCount();
 		assertNotEquals("Didn't upload?", 1, newRecordCount);
 		String[] justSealed = new String[] {b1.getLocalId()};
 		String result = testServer.deleteDraftBulletins(clientAccountId, justSealed,  new Vector(), "signature");
 		assertNotEquals("Sealed should not ok?", NetworkInterfaceConstants.OK, result);
 		assertEquals("Deleted sealed?", newRecordCount, testStoreDeleteDrafts.getBulletinCount());
+		internalTestDelRecord(b1.getUniversalId(), "DEL should not exist for sealed", false);
 
 		TRACE_END();
+	}
+
+	private void internalTestDelRecord(UniversalId uid, String errorMessage, boolean shouldExist)
+	{
+		BulletinStore testStoreDeleteDrafts = mockServer.getStore();
+		DatabaseKey delKey = DeleteRequestRecord.getDelKey(uid);
+		if(shouldExist)
+			assertTrue(errorMessage, testStoreDeleteDrafts.getDatabase().doesRecordExist(delKey));
+		else
+			assertFalse(errorMessage, testStoreDeleteDrafts.getDatabase().doesRecordExist(delKey));
 	}
 
 	String[] uploadSampleDrafts() throws Exception
 	{
 		BulletinStore testStoreUploadDrafts = mockServer.getStore();
-
 		assertEquals("db not empty?", 0, testStoreUploadDrafts.getBulletinCount());
 		Bulletin draft1 = new Bulletin(clientSecurity);
 		uploadSampleDraftBulletin(draft1);
