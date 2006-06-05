@@ -390,7 +390,7 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		//Nothing in Database
 		assertFalse(realRetriever.doWeWantThis(sealedHidden));		
 		assertTrue(realRetriever.doWeWantThis(sealedNotHidden));	
-		assertFalse(realRetriever.doWeWantThis(sealedWithDraftDel));	
+		assertTrue(realRetriever.doWeWantThis(sealedWithDraftDel));	
 		assertFalse(realRetriever.doWeWantThis(draftHidden));		
 		assertTrue(realRetriever.doWeWantThis(draftNotHidden));
 		assertFalse(realRetriever.doWeWantThis(draftWithDel));		
@@ -400,7 +400,7 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		db.writeRecord(DatabaseKey.createDraftKey(draftNotHiddenUid), "Draft Data");
 		assertFalse(realRetriever.doWeWantThis(sealedHidden));		
 		assertFalse(realRetriever.doWeWantThis(sealedNotHidden));	
-		assertFalse(realRetriever.doWeWantThis(sealedWithDraftDel));
+		assertTrue("Even if a Del request packet is newer than a sealed, we still want the sealed", realRetriever.doWeWantThis(sealedWithDraftDel));
 		assertFalse(realRetriever.doWeWantThis(draftHidden));		
 		assertFalse(realRetriever.doWeWantThis(draftNotHidden));
 		assertFalse(realRetriever.doWeWantThis(draftWithDel));

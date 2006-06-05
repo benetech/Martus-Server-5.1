@@ -231,7 +231,7 @@ public class MirroringRetriever implements LoggerInterface
 		{
 			UniversalId uid = mirroringInfo.getUid();
 			DatabaseKey delKey = DeleteRequestRecord.getDelKey(uid);
-			if(store.doesBulletinDelRecordExist(delKey))
+			if(mirroringInfo.isDraft() && store.doesBulletinDelRecordExist(delKey))
 			{
 				DeleteRequestRecord delRecord = new DeleteRequestRecord(store.getDatabase(), uid, store.getSignatureVerifier());
 				if(delRecord.isBefore(mirroringInfo.mTime))
