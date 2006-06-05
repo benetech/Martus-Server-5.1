@@ -102,6 +102,12 @@ public class ServerBulletinStore extends BulletinStore
 	{
 		delRecord.writeSpecificDelToDatabase(getWriteableDatabase(), uid);
 	}
+	
+	public void deleteDel(UniversalId uid)
+	{
+		DatabaseKey delKey = DeleteRequestRecord.getDelKey(uid);
+		getWriteableDatabase().discardRecord(delKey);
+	}
 
 	public boolean doesContactInfoExist(String accountId) throws IOException
 	{

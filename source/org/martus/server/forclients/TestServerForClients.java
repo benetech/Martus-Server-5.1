@@ -325,18 +325,52 @@ public class TestServerForClients extends TestCaseEnhanced
 		BulletinStore testStoreUploadDrafts = mockServer.getStore();
 		assertEquals("db not empty?", 0, testStoreUploadDrafts.getBulletinCount());
 		Bulletin draft1 = new Bulletin(clientSecurity);
-		uploadSampleDraftBulletin(draft1);
+		uploadSampleBulletin(draft1);
 		assertEquals("Didn't save 1?", 1, testStoreUploadDrafts.getBulletinCount());
 		Bulletin draft2 = new Bulletin(clientSecurity);
-		uploadSampleDraftBulletin(draft2);
+		uploadSampleBulletin(draft2);
 		assertEquals("Didn't save 2?", 2, testStoreUploadDrafts.getBulletinCount());
 		Bulletin draft3 = new Bulletin(clientSecurity);
-		uploadSampleDraftBulletin(draft3);
+		uploadSampleBulletin(draft3);
 		assertEquals("Didn't save 3?", 3, testStoreUploadDrafts.getBulletinCount());
 
 		return new String[] {draft1.getLocalId(), draft2.getLocalId(), draft3.getLocalId()};
 	}
 
+	public void testDeleteDelRecordOnClientUploadDraftSealed() throws Exception
+	{
+		BulletinStore testStoreUploadDraftsSealeds = mockServer.getStore();
+		testStoreUploadDraftsSealeds.deleteAllData();
+		Bulletin draft1 = new Bulletin(clientSecurity);
+		draft1.setDraft();
+		uploadSampleBulletin(draft1);
+		assertEquals("Didn't save 1?", 1, testStoreUploadDraftsSealeds.getBulletinCount());
+		Bulletin draftThenSealed = new Bulletin(clientSecurity);
+		draftThenSealed.setDraft();
+		uploadSampleBulletin(draftThenSealed);
+		assertEquals("Didn't save 2?", 2, testStoreUploadDraftsSealeds.getBulletinCount());
+
+		internalTestDelRecord(draft1.getUniversalId(), "DEL already exists for draft1?", false);
+		internalTestDelRecord(draftThenSealed.getUniversalId(), "DEL already exists for draft2?", false);
+		
+		String[] allIds = new String[] {draft1.getLocalId(), draftThenSealed.getLocalId()};
+		String resultAllOk = testServer.deleteDraftBulletins(clientAccountId, allIds,  new Vector(), "signature");
+		assertEquals("Good 2 not ok?", NetworkInterfaceConstants.OK, resultAllOk);
+		assertEquals("Didn't delete all?", 0, testStoreUploadDraftsSealeds.getBulletinCount());
+
+		internalTestDelRecord(draft1.getUniversalId(), "DEL does not exist for draft1?", true);
+		internalTestDelRecord(draftThenSealed.getUniversalId(), "DEL does not exist for draft2?", true);
+		
+		uploadSampleBulletin(draft1);
+		assertEquals("Didn't resave draft?", 1, testStoreUploadDraftsSealeds.getBulletinCount());
+		draftThenSealed.setSealed();
+		uploadSampleBulletin(draftThenSealed);
+		assertEquals("Didn't resave sealed?", 2, testStoreUploadDraftsSealeds.getBulletinCount());
+		
+		internalTestDelRecord(draft1.getUniversalId(), "DEL should not exist after upload of new draft.", false);
+		internalTestDelRecord(draftThenSealed.getUniversalId(), "DEL should not exist after upload of new sealed?", false);
+	}
+	
 	public void testLoadingMagicWords() throws Exception
 	{		
 		TRACE_BEGIN("testLoadingMagicWords");
@@ -754,14 +788,14 @@ public class TestServerForClients extends TestCaseEnhanced
 		mockServer.uploadBulletin(clientSecurity.getPublicKeyString(), b1.getLocalId(), b1ZipString);
 	}
 	
-	String uploadSampleDraftBulletin(Bulletin draftBulletin) throws Exception
+	String uploadSampleBulletin(Bulletin bulletin) throws Exception
 	{
 		mockServer.setSecurity(serverSecurity);
 		testServer.clearCanUploadList();
 		mockServer.allowUploads(clientSecurity.getPublicKeyString());
 		
-		String draftZipString = BulletinForTesting.saveToZipString(getClientDatabase(), draftBulletin, clientSecurity);
-		String result = mockServer.uploadBulletin(clientSecurity.getPublicKeyString(), draftBulletin.getLocalId(), draftZipString);
+		String draftZipString = BulletinForTesting.saveToZipString(getClientDatabase(), bulletin, clientSecurity);
+		String result = mockServer.uploadBulletin(clientSecurity.getPublicKeyString(), bulletin.getLocalId(), draftZipString);
 		assertEquals("upload failed?", NetworkInterfaceConstants.OK, result);
 		return draftZipString;
 	}

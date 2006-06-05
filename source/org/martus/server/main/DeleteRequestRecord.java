@@ -99,9 +99,9 @@ public class DeleteRequestRecord
 		db.writeRecord(getDelKey(uid), getDelData());
 	}
 	
-	public static DatabaseKey getDelKey(UniversalId id)
+	public static DatabaseKey getDelKey(UniversalId uid)
 	{
-		UniversalId burUid = UniversalId.createFromAccountAndLocalId(id.getAccountId(), FileDatabase.DEL_PREFIX + id.getLocalId());
+		UniversalId burUid = UniversalId.createFromAccountAndLocalId(uid.getAccountId(), FileDatabase.DEL_PREFIX + uid.getLocalId());
 		return DatabaseKey.createDraftKey(burUid);
 	}
 

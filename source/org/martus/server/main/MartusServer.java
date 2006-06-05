@@ -43,7 +43,6 @@ import java.util.Iterator;
 import java.util.TimerTask;
 import java.util.Vector;
 import java.util.zip.ZipFile;
-
 import org.martus.amplifier.ServerCallbackInterface;
 import org.martus.amplifier.main.MartusAmplifier;
 import org.martus.common.ContactInfo;
@@ -1173,6 +1172,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		try
 		{
 			getStore().writeBur(bhp);
+			getStore().deleteDel(bhp.getUniversalId());
 		}
 		catch (Exception e)
 		{
