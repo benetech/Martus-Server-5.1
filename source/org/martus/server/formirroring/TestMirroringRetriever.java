@@ -66,8 +66,10 @@ import org.martus.common.packet.Packet.WrongAccountException;
 import org.martus.common.packet.Packet.WrongPacketTypeException;
 import org.martus.common.test.MockBulletinStore;
 import org.martus.common.test.UniversalIdForTesting;
+import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.server.forclients.MockMartusServer;
 import org.martus.server.main.BulletinUploadRecord;
+import org.martus.server.main.DeleteRequestRecord;
 import org.martus.server.main.ServerBulletinStore;
 import org.martus.server.main.ServerBulletinStore.DuplicatePacketException;
 import org.martus.server.main.ServerBulletinStore.SealedPacketExistsException;
@@ -356,42 +358,68 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 	{
 		UniversalId sealedHiddenUid = UniversalIdForTesting.createDummyUniversalId();
 		UniversalId sealedNotHiddenUid = UniversalIdForTesting.createDummyUniversalId();
+		UniversalId sealedWithDraftDelUid = UniversalIdForTesting.createDummyUniversalId();
 		UniversalId draftHiddenUid = UniversalIdForTesting.createDummyUniversalId();
 		UniversalId draftNotHiddenUid = UniversalIdForTesting.createDummyUniversalId();
+		UniversalId draftWithDelUid = UniversalIdForTesting.createDummyUniversalId();
 		Database db = server.getWriteableDatabase();
 		db.hide(sealedHiddenUid);
 		db.hide(draftHiddenUid);
+		DeleteRequestRecord draftDelRecord = new DeleteRequestRecord(draftWithDelUid.getAccountId(), new Vector(), "signature");
+		realRetriever.store.writeDel(draftWithDelUid, draftDelRecord);
+		DeleteRequestRecord sealedWithDraftDelRecord = new DeleteRequestRecord(sealedWithDraftDelUid.getAccountId(), new Vector(), "signature");
+		realRetriever.store.writeDel(sealedWithDraftDelUid, sealedWithDraftDelRecord);
+		
 		BulletinMirroringInformation sealedHidden = new BulletinMirroringInformation(sealedHiddenUid);
 		BulletinMirroringInformation sealedNotHidden = new BulletinMirroringInformation(sealedNotHiddenUid);
+		BulletinMirroringInformation sealedWithDraftDel = new BulletinMirroringInformation(sealedWithDraftDelUid);
+		
+		long sealedDraftsDelRecordmTime = MartusServerUtilities.getDateFromFormattedTimeStamp(sealedWithDraftDelRecord.timeStamp).getTime(); 
+		long earlierTime = 123456789;
+		sealedWithDraftDel.mTime = sealedDraftsDelRecordmTime - earlierTime; 
+			
 		BulletinMirroringInformation draftHidden = new BulletinMirroringInformation(draftHiddenUid);
 		draftHidden.status = BulletinConstants.STATUSDRAFT;
 		BulletinMirroringInformation draftNotHidden = new BulletinMirroringInformation(draftNotHiddenUid);
 		draftNotHidden.status = BulletinConstants.STATUSDRAFT;
+		BulletinMirroringInformation draftWithDel = new BulletinMirroringInformation(draftWithDelUid);
+		draftWithDel.status = BulletinConstants.STATUSDRAFT;
+		long draftsDelRecordmTime = MartusServerUtilities.getDateFromFormattedTimeStamp(draftDelRecord.timeStamp).getTime(); 
+		draftWithDel.mTime = draftsDelRecordmTime - earlierTime; 
 
 		//Nothing in Database
 		assertFalse(realRetriever.doWeWantThis(sealedHidden));		
 		assertTrue(realRetriever.doWeWantThis(sealedNotHidden));	
+		assertFalse(realRetriever.doWeWantThis(sealedWithDraftDel));	
 		assertFalse(realRetriever.doWeWantThis(draftHidden));		
 		assertTrue(realRetriever.doWeWantThis(draftNotHidden));
+		assertFalse(realRetriever.doWeWantThis(draftWithDel));		
 		
 		//Bulletins now exist in Database with newer mTimes
 		db.writeRecord(DatabaseKey.createSealedKey(sealedNotHiddenUid), "Sealed Data");
 		db.writeRecord(DatabaseKey.createDraftKey(draftNotHiddenUid), "Draft Data");
 		assertFalse(realRetriever.doWeWantThis(sealedHidden));		
 		assertFalse(realRetriever.doWeWantThis(sealedNotHidden));	
+		assertFalse(realRetriever.doWeWantThis(sealedWithDraftDel));
 		assertFalse(realRetriever.doWeWantThis(draftHidden));		
 		assertFalse(realRetriever.doWeWantThis(draftNotHidden));
+		assertFalse(realRetriever.doWeWantThis(draftWithDel));
 		
 		//Bulletins now exist in Database with older mTimes
 		long futureTime = 1000000;
 		sealedHidden.mTime = System.currentTimeMillis()+ futureTime;
 		sealedNotHidden.mTime = System.currentTimeMillis()+ futureTime;
+		sealedWithDraftDel.mTime = sealedDraftsDelRecordmTime + futureTime; 
 		draftHidden.mTime = System.currentTimeMillis()+ futureTime;
 		draftNotHidden.mTime = System.currentTimeMillis()+ futureTime;
+		draftWithDel.mTime = draftsDelRecordmTime + futureTime; 
+		
 		assertFalse(realRetriever.doWeWantThis(sealedHidden));		
 		assertFalse(realRetriever.doWeWantThis(sealedNotHidden));	
+		assertTrue("We should retrieve a newer sealed bulletin with older draft delete record", realRetriever.doWeWantThis(sealedWithDraftDel));		
 		assertFalse(realRetriever.doWeWantThis(draftHidden));		
-		assertTrue("We should retrieve a newer draft bulletin", realRetriever.doWeWantThis(draftNotHidden));
+		assertTrue("We should retrieve a newer draft bulletin with older draft bulletin", realRetriever.doWeWantThis(draftNotHidden));
+		assertTrue("We should retrieve a newer draft bulletin with older del record", realRetriever.doWeWantThis(draftWithDel));
 	}
 	
 	public void testSaveZipFileToDatabaseWithSamemTime() throws Exception

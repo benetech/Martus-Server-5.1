@@ -26,6 +26,7 @@ Boston, MA 02111-1307, USA.
 package org.martus.server.main;
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.Vector;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MartusCrypto.CryptoException;
@@ -104,6 +105,20 @@ public class DeleteRequestRecord
 		UniversalId burUid = UniversalId.createFromAccountAndLocalId(uid.getAccountId(), FileDatabase.DEL_PREFIX + uid.getLocalId());
 		return DatabaseKey.createDraftKey(burUid);
 	}
+	
+	public boolean isBefore(long timeToCompare)
+	{
+		try
+		{
+			long mTimeOfDelRequest = MartusServerUtilities.getDateFromFormattedTimeStamp(timeStamp).getTime();
+			return (timeToCompare > mTimeOfDelRequest);
+		}
+		catch(ParseException e)
+		{
+			e.printStackTrace();
+		}
+		return false;
+	}
 
 	private final static String DRAFT_DELETE_REQUEST_IDENTIFIER = "Martus Draft Delete Request 1.0";
 	private final static String newline = "\n";
@@ -111,5 +126,5 @@ public class DeleteRequestRecord
 	private String accountId;
 	private Vector originalClientRequest;
 	private String signature;
-	private String timeStamp;
+	public String timeStamp;
 }

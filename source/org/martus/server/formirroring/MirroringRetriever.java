@@ -45,6 +45,7 @@ import org.martus.common.network.NetworkResponse;
 import org.martus.common.network.mirroring.CallerSideMirroringGatewayInterface;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
+import org.martus.server.main.DeleteRequestRecord;
 import org.martus.server.main.ServerBulletinStore;
 import org.martus.util.LoggerUtil;
 import org.martus.util.Base64.InvalidBase64Exception;
@@ -221,20 +222,29 @@ public class MirroringRetriever implements LoggerInterface
 	public boolean doWeWantThis(BulletinMirroringInformation mirroringInfo)
 	{
 		//TODO handle delete requests when we are propagating deletes, 
-		//or if they exist on this server
 		DatabaseKey key = getDatabaseKey(mirroringInfo);
 
 		if(store.isHidden(key))
 			return false;
 		
-		if(!store.doesBulletinRevisionExist(key))
-			return true;
-
-		if(mirroringInfo.isSealed())
-			return false;
-		
 		try
 		{
+			UniversalId uid = mirroringInfo.getUid();
+			DatabaseKey delKey = DeleteRequestRecord.getDelKey(uid);
+			if(store.doesBulletinDelRecordExist(delKey))
+			{
+				DeleteRequestRecord delRecord = new DeleteRequestRecord(store.getDatabase(), uid, store.getSignatureVerifier());
+				if(delRecord.isBefore(mirroringInfo.mTime))
+					return true;
+				return false;
+			}
+		
+			if(!store.doesBulletinRevisionExist(key))
+				return true;
+	
+			if(mirroringInfo.isSealed())
+				return false;
+		
 			long currentBulletinsmTime = store.getDatabase().getmTime(key);
 			if(mirroringInfo.getmTime() > currentBulletinsmTime)
 				return true;
