@@ -591,6 +591,8 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		for(int i = 0; i < newsItemSortedFileList.size(); i++)
 		{
 			File newsFile = (File)newsItemSortedFileList.get(i);
+			if(isTempNewsFile(newsFile))
+				continue;
 			try
 			{
 				String fileContents = UnicodeReader.getFileContents(newsFile);
@@ -604,6 +606,16 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 				logError("getNews:Error reading File:" + newsFile.getAbsolutePath(), e);
 			}
 		}
+	}
+	
+	private boolean isTempNewsFile(File fileToTest)
+	{
+		String fileName = fileToTest.getName();
+		if(fileName.endsWith("#"))
+			return true;
+		if(fileName.endsWith("~"))
+			return true;
+		return false;
 	}
 	
 	public int getNumberOfNewsItems()

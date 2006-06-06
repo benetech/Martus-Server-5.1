@@ -685,10 +685,16 @@ public class TestServerForClients extends TestCaseEnhanced
 		newsFile2.deleteOnExit();
 		File newsFile3 = new File(newsDirectory, "$$$news3.message");
 		newsFile3.deleteOnExit();
+		File tmpnewsFileEndingInTilda = new File(newsDirectory, "$$$news4.message~");
+		tmpnewsFileEndingInTilda.deleteOnExit();
+		File tmpNewsFileEndingInPound = new File(newsDirectory, "$$$news5.message#");
+		tmpNewsFileEndingInPound.deleteOnExit();
 		
 		String newsText1 = "This is news item #1";
 		String newsText2 = "This is news item #2";
 		String newsText3 = "This is news item #3";
+		String newsText4 = "This is news item #4";
+		String newsText5 = "This is news item #5";
 		
 		//Order is important #2, then #3, then #1.
 		UnicodeWriter writer = new UnicodeWriter(newsFile2);
@@ -705,6 +711,13 @@ public class TestServerForClients extends TestCaseEnhanced
 		writer.write(newsText1);
 		writer.close();
 		
+		writer = new UnicodeWriter(tmpnewsFileEndingInTilda);
+		writer.write(newsText4);
+		writer.close();
+		writer = new UnicodeWriter(tmpNewsFileEndingInPound);
+		writer.write(newsText5);
+		writer.close();
+
 		newsTestServer.clientsBanned.add(clientAccountId);
 		Vector newsItems = newsTestServer.getNews(clientAccountId, "1.0.2", "03/03/03");
 		newsTestServer.clientsBanned.remove(clientAccountId);
