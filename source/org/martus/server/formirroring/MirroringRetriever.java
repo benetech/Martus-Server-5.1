@@ -92,6 +92,7 @@ public class MirroringRetriever implements LoggerInterface
 				long mTime = item.getmTime();
 				BulletinHeaderPacket bhp = store.saveZipFileToDatabase(zip, uid.getAccountId(), mTime);
 				store.writeBur(bhp, bur);
+				store.deleteDel(bhp.getUniversalId());
 			}
 			finally
 			{

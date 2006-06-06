@@ -32,6 +32,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Vector;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
@@ -252,7 +253,7 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		Vector expectedBulletinLocalIds = new Vector();
 		boolean sealed = true;
 		int totalBulletinsToMirror = 0;
-
+		HashMap delRecords = new HashMap();
 		for(int i=0; i < 3; ++i)
 		{
 			Bulletin b = new Bulletin(clientSecurity);
@@ -275,6 +276,16 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 				}
 			}
 			serverStore.saveBulletinForTesting(b);
+			
+			if(i < 2)
+			{
+				DeleteRequestRecord delRecord = new DeleteRequestRecord(b.getAccount(), new Vector(), "signature");
+				mirroringRetriever.store.writeDel(b.getUniversalId(), delRecord);
+				if(sealed)
+					delRecords.put(BulletinConstants.STATUSSEALED, b.getUniversalId());
+				else
+					delRecords.put(BulletinConstants.STATUSDRAFT, b.getUniversalId());
+			}
 
 			String bur = BulletinUploadRecord.createBulletinUploadRecord(b.getLocalId(), otherServerSecurity);
 			supplier.addBur(b.getUniversalId(), bur, b.getStatus());
@@ -290,6 +301,15 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 			if(sealed)
 				supplier.addBulletinToMirror(key, sigString);
 			sealed = !sealed;
+		}
+
+		ReadableDatabase mirroringDataBase = mirroringRetriever.store.getDatabase();
+		for(int i = 0; i < delRecords.size(); ++i)
+		{
+			UniversalId uid = (UniversalId)delRecords.get(BulletinConstants.STATUSSEALED);
+			assertTrue("DEL record should exist for sealed", mirroringDataBase.doesRecordExist(DeleteRequestRecord.getDelKey(uid)));
+			uid = (UniversalId)delRecords.get(BulletinConstants.STATUSDRAFT);
+			assertTrue("DEL record should exist for draft", mirroringDataBase.doesRecordExist(DeleteRequestRecord.getDelKey(uid)));
 		}
 
 		ServerBulletinStore store = server.getStore();
@@ -324,7 +344,18 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		for(int i = 0; i < expectedBulletinLocalIds.size(); ++i)
 		{
 			assertContains(expectedBulletinLocalIds.get(i), bulletinLocalIdsRetrieved);
-		}	
+		}
+		
+		for(int i = 0; i < delRecords.size(); ++i)
+		{
+			UniversalId uid = (UniversalId)delRecords.get(BulletinConstants.STATUSSEALED);
+			assertFalse("DEL record should have been deleted forpulled sealed", mirroringDataBase.doesRecordExist(DeleteRequestRecord.getDelKey(uid)));
+			uid = (UniversalId)delRecords.get(BulletinConstants.STATUSDRAFT);
+			if(draftsShouldBeMirrored)
+				assertFalse("DEL record should have been deleted for pulled draft", mirroringDataBase.doesRecordExist(DeleteRequestRecord.getDelKey(uid)));
+			else
+				assertTrue("DEL record should not have been deleted for skipped draft", mirroringDataBase.doesRecordExist(DeleteRequestRecord.getDelKey(uid)));				
+		}
 		
 		mirroringRetriever.processNextBulletin();
 		assertEquals("after extra tick", totalBulletinsToMirror, store.getBulletinCount());
