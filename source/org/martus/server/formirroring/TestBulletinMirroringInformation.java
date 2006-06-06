@@ -38,8 +38,6 @@ import org.martus.util.TestCaseEnhanced;
 
 public class TestBulletinMirroringInformation extends TestCaseEnhanced
 {
-
-	
 	public TestBulletinMirroringInformation(String name)
 	{
 		super(name);

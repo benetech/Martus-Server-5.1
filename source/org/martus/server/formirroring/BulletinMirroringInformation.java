@@ -51,7 +51,7 @@ public class BulletinMirroringInformation
 		String localId = (String)info.get(0);
 		uId = UniversalId.createFromAccountAndLocalId(accountId, localId);
 		status = (String)info.get(1);
-		mTime = ((Long)info.get(2)).longValue();
+		mTime = new Long((String)info.get(2)).longValue();
 		signature = (String)info.get(3);
 	}
 	
@@ -106,7 +106,7 @@ public class BulletinMirroringInformation
 	private void addRemainingInfo(Vector info)
 	{
 		info.add(status);
-		info.add(new Long(mTime));
+		info.add(new Long(mTime).toString());
 		info.add(signature);
 	}
 
