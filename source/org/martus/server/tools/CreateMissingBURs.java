@@ -33,6 +33,7 @@ import java.util.Vector;
 
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MartusCrypto.CreateDigestException;
+import org.martus.common.database.BulletinUploadRecord;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.ServerFileDatabase;
@@ -40,7 +41,6 @@ import org.martus.common.database.Database.RecordHiddenException;
 import org.martus.common.database.FileDatabase.TooManyAccountsException;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.utilities.MartusServerUtilities;
-import org.martus.server.main.BulletinUploadRecord;
 
 public class CreateMissingBURs
 {

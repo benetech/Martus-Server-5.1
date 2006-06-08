@@ -31,6 +31,7 @@ import java.util.Vector;
 
 import org.martus.common.bulletin.Bulletin;
 import org.martus.common.crypto.MockMartusSecurity;
+import org.martus.common.database.BulletinUploadRecord;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.MockServerDatabase;

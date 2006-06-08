@@ -32,6 +32,7 @@ import java.io.StringReader;
 import org.martus.common.bulletin.Bulletin;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MockMartusSecurity;
+import org.martus.common.database.BulletinUploadRecord;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.packet.UniversalId;
 import org.martus.common.utilities.MartusServerUtilities;

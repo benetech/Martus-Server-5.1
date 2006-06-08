@@ -32,6 +32,7 @@ import java.util.Vector;
 import org.martus.common.bulletin.Bulletin;
 import org.martus.common.crypto.MockMartusSecurity;
 import org.martus.common.database.DatabaseKey;
+import org.martus.common.database.DeleteRequestRecord;
 import org.martus.common.database.MockServerDatabase;
 import org.martus.common.packet.UniversalId;
 import org.martus.common.utilities.MartusServerUtilities;

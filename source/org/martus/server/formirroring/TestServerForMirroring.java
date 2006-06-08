@@ -37,6 +37,7 @@ import org.martus.common.MartusUtilities;
 import org.martus.common.MartusUtilities.InvalidPublicKeyFileException;
 import org.martus.common.bulletin.BulletinConstants;
 import org.martus.common.crypto.MockMartusSecurity;
+import org.martus.common.database.BulletinUploadRecord;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.MockServerDatabase;
@@ -47,7 +48,6 @@ import org.martus.common.packet.FieldDataPacket;
 import org.martus.common.packet.UniversalId;
 import org.martus.common.test.UniversalIdForTesting;
 import org.martus.server.forclients.MockMartusServer;
-import org.martus.server.main.BulletinUploadRecord;
 import org.martus.util.TestCaseEnhanced;
 
 public class TestServerForMirroring extends TestCaseEnhanced

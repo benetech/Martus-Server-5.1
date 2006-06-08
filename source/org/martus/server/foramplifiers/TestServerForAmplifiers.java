@@ -39,12 +39,12 @@ import org.martus.common.bulletin.BulletinForTesting;
 import org.martus.common.bulletin.BulletinLoader;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MockMartusSecurity;
+import org.martus.common.database.BulletinUploadRecord;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.MockClientDatabase;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.test.MockBulletinStore;
 import org.martus.server.forclients.MockMartusServer;
-import org.martus.server.main.BulletinUploadRecord;
 import org.martus.util.TestCaseEnhanced;
 import org.martus.util.UnicodeWriter;
 

@@ -28,15 +28,9 @@ package org.martus.server.formirroring;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Vector;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipException;
-import java.util.zip.ZipFile;
 import org.martus.common.LoggerToNull;
 import org.martus.common.bulletin.Bulletin;
 import org.martus.common.bulletin.BulletinConstants;
@@ -46,12 +40,11 @@ import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MockMartusSecurity;
 import org.martus.common.crypto.MartusCrypto.CreateDigestException;
 import org.martus.common.crypto.MartusCrypto.CryptoException;
-import org.martus.common.crypto.MartusCrypto.DecryptionException;
 import org.martus.common.crypto.MartusCrypto.MartusSignatureException;
-import org.martus.common.crypto.MartusCrypto.NoKeyPairException;
+import org.martus.common.database.BulletinUploadRecord;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
-import org.martus.common.database.MockClientDatabase;
+import org.martus.common.database.DeleteRequestRecord;
 import org.martus.common.database.MockDatabase;
 import org.martus.common.database.ReadableDatabase;
 import org.martus.common.database.ServerFileDatabase;
@@ -63,17 +56,11 @@ import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
 import org.martus.common.packet.Packet.InvalidPacketException;
 import org.martus.common.packet.Packet.SignatureVerificationException;
-import org.martus.common.packet.Packet.WrongAccountException;
-import org.martus.common.packet.Packet.WrongPacketTypeException;
 import org.martus.common.test.MockBulletinStore;
 import org.martus.common.test.UniversalIdForTesting;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.server.forclients.MockMartusServer;
-import org.martus.server.main.BulletinUploadRecord;
-import org.martus.server.main.DeleteRequestRecord;
 import org.martus.server.main.ServerBulletinStore;
-import org.martus.server.main.ServerBulletinStore.DuplicatePacketException;
-import org.martus.server.main.ServerBulletinStore.SealedPacketExistsException;
 import org.martus.util.Base64;
 import org.martus.util.DirectoryUtils;
 import org.martus.util.TestCaseEnhanced;
@@ -465,58 +452,47 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 	
 	public void testSaveZipFileToDatabaseWithSamemTime() throws Exception
 	{
-		MartusCrypto security = MockMartusSecurity.createServer();
-		MockClientDatabase db = new MockClientDatabase();
-		ServerBulletinStore store = new ServerBulletinStore();
-		store.setSignatureGenerator(security);
-		store.setDatabase(db);
-		
 		File tmpPacketDir = createTempFileFromName("$$$testSaveZipFileToDatabaseWithSamemTime");
 		tmpPacketDir.delete();
 		tmpPacketDir.mkdir();
-		ServerFileDatabase realdb = new ServerFileDatabase(tmpPacketDir, security);
-		realdb.initialize();
-		
-		
+
+		MartusCrypto security = MockMartusSecurity.createServer();
+		ServerFileDatabase db = new ServerFileDatabase(tmpPacketDir, security);
+		db.initialize();
+		MockMartusServer mock = new MockMartusServer(db);
 		try
 		{
-			internalTestDatabasemTime(security, db, store);
-			store.deleteAllData();
-			store.setDatabase(realdb);
-			internalTestDatabasemTime(security, realdb, store);
+			internalTestDatabasemTime(mock);
 		}
 		finally
 		{
-			store.deleteAllData();
+			mock.deleteAllData();
 			DirectoryUtils.deleteEntireDirectoryTree(tmpPacketDir);
 		}
 	}
 
-	private void internalTestDatabasemTime(MartusCrypto security, Database db, ServerBulletinStore store) throws IOException, CryptoException, InterruptedException, RecordHiddenException, UnsupportedEncodingException, InvalidPacketException, WrongPacketTypeException, SignatureVerificationException, DecryptionException, NoKeyPairException, FileNotFoundException, ZipException, Exception, SealedPacketExistsException, DuplicatePacketException, WrongAccountException
+	private void internalTestDatabasemTime(MockMartusServer internalServer) throws Exception
 	{
+		MartusCrypto security = internalServer.getSecurity();
+		BulletinStore store = internalServer.getStore();
+		Database db = internalServer.getWriteableDatabase();
+		
 		Bulletin b1 = new Bulletin(security);
 		b1.setSealed();
 		store.saveBulletinForTesting(b1);
-		long fastTimeVarianceMS = 2000; //2 seconds
-		Thread.sleep(2 * fastTimeVarianceMS);//Ensure that the mTimes will be different between saving to the database and creating the zip file.
+		Long mtime = new Long(b1.getBulletinHeaderPacket().getLastSavedTime());
+		db.setmTime(DatabaseKey.createSealedKey(b1.getUniversalId()), mtime);
 
 		DatabaseKey key = b1.getDatabaseKey();
-		long mTimeOriginal = db.getmTime(key);
 		File zip1 = createTempFile();
 		BulletinZipUtilities.exportBulletinPacketsFromDatabaseToZipFile(db, key, zip1, security);
-		ZipFile zip = new ZipFile(zip1);
-		Enumeration e = zip.entries();
-		ZipEntry entry = (ZipEntry) e.nextElement();
-		zip.close();
 
-		long entryTime = entry.getTime();
-		long difference = (mTimeOriginal-entryTime);
-		assertTrue("Zip file created before mTime of bulletin?", difference > 0);
-		assertTrue("Zip file doesn't have the real mTime of the bulletin?", difference < fastTimeVarianceMS);
 		store.deleteAllBulletins();
-		store.saveZipFileToDatabase(zip1, b1.getAccount(), entryTime);
+		internalServer.saveUploadedBulletinZipFile(b1.getAccount(), b1.getLocalId(), zip1);
 		zip1.delete();
-		assertEquals("Zip entry mTime not equals store's mTime", entryTime, db.getmTime(key));
+		assertTrue(db.doesRecordExist(key));
+		String bur = db.readRecord(BulletinUploadRecord.getBurKey(key), security);
+		assertContains("Zip entry mTime not equals store's mTime", MartusServerUtilities.getFormattedTimeStamp(db.getmTime(key)), bur);
 	}
 	
 	private UniversalId addNewUid(Vector infos, String accountId)
