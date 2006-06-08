@@ -451,6 +451,16 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		assertFalse(realRetriever.doWeWantThis(draftHidden));		
 		assertTrue("We should retrieve a newer draft bulletin with older draft bulletin", realRetriever.doWeWantThis(draftNotHidden));
 		assertTrue("We should retrieve a newer draft bulletin with older del record", realRetriever.doWeWantThis(draftWithDel));
+		
+		//Sealed exists in the database and new draft trys to replace it.
+		UniversalId sealed = UniversalIdForTesting.createDummyUniversalId();
+		DatabaseKey sealedKey = DatabaseKey.createSealedKey(sealed);
+		db.writeRecord(sealedKey, "Sealed Data");
+		BulletinMirroringInformation draftOfSealed = new BulletinMirroringInformation(sealed);
+		draftOfSealed.status = BulletinConstants.STATUSDRAFT;
+		draftOfSealed.mTime = db.getmTime(sealedKey) + futureTime;
+		assertFalse("Should not overwrite a sealed with a newer draft", realRetriever.doWeWantThis(draftOfSealed));		
+
 	}
 	
 	public void testSaveZipFileToDatabaseWithSamemTime() throws Exception

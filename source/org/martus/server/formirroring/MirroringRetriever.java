@@ -224,15 +224,20 @@ public class MirroringRetriever implements LoggerInterface
 	{
 		//TODO handle delete requests when we are propagating deletes, 
 		DatabaseKey key = getDatabaseKey(mirroringInfo);
-
 		if(store.isHidden(key))
+			return false;
+		
+		UniversalId uid = mirroringInfo.getUid();
+		DatabaseKey sealedKey = DatabaseKey.createSealedKey(uid);
+		if(store.doesBulletinRevisionExist(sealedKey))
 			return false;
 		
 		try
 		{
-			UniversalId uid = mirroringInfo.getUid();
-			DatabaseKey delKey = DeleteRequestRecord.getDelKey(uid);
-			if(mirroringInfo.isDraft() && store.doesBulletinDelRecordExist(delKey))
+			if(mirroringInfo.isSealed())
+				return (!store.doesBulletinRevisionExist(key));
+			
+			if(store.doesBulletinDelRecordExist(DeleteRequestRecord.getDelKey(uid)))
 			{
 				DeleteRequestRecord delRecord = new DeleteRequestRecord(store.getDatabase(), uid, store.getSignatureVerifier());
 				if(delRecord.isBefore(mirroringInfo.mTime))
@@ -243,9 +248,6 @@ public class MirroringRetriever implements LoggerInterface
 			if(!store.doesBulletinRevisionExist(key))
 				return true;
 	
-			if(mirroringInfo.isSealed())
-				return false;
-		
 			long currentBulletinsmTime = store.getDatabase().getmTime(key);
 			if(mirroringInfo.getmTime() > currentBulletinsmTime)
 				return true;
