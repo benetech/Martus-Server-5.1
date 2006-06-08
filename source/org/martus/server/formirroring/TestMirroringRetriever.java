@@ -497,8 +497,8 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		Bulletin b1 = new Bulletin(security);
 		b1.setSealed();
 		store.saveBulletinForTesting(b1);
-		long fastTimeVarianceMS = 3000; //3 seconds
-		Thread.sleep(2*fastTimeVarianceMS);//Ensure that the mTimes will be different between saving to the database and creating the zip file.
+		long fastTimeVarianceMS = 2000; //2 seconds
+		Thread.sleep(2 * fastTimeVarianceMS);//Ensure that the mTimes will be different between saving to the database and creating the zip file.
 
 		DatabaseKey key = b1.getDatabaseKey();
 		long mTimeOriginal = db.getmTime(key);
@@ -511,9 +511,8 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 
 		long entryTime = entry.getTime();
 		long difference = (mTimeOriginal-entryTime);
-		assertTrue("Zip file created before mTime of bulletin?", (difference + fastTimeVarianceMS) > 0);
+		assertTrue("Zip file created before mTime of bulletin?", difference > 0);
 		assertTrue("Zip file doesn't have the real mTime of the bulletin?", difference < fastTimeVarianceMS);
-
 		store.deleteAllBulletins();
 		store.saveZipFileToDatabase(zip1, b1.getAccount(), entryTime);
 		zip1.delete();
