@@ -100,7 +100,7 @@ public class ServerBulletinStore extends BulletinStore
 	
 	public void writeDel(UniversalId uid, DeleteRequestRecord delRecord) throws IOException, RecordHiddenException
 	{
-		delRecord.writeSpecificDelToDatabase(getWriteableDatabase(), uid);
+		delRecord.writeToDatabase(getWriteableDatabase(), uid);
 	}
 	
 	public void deleteDel(UniversalId uid)

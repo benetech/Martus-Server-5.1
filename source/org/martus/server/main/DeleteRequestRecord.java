@@ -94,7 +94,7 @@ public class DeleteRequestRecord
 		return verifier.verifySignatureOfVectorOfStrings(originalClientRequest, accountId, signature);
 	}
 	
-	public void writeSpecificDelToDatabase(Database db, UniversalId uid)
+	public void writeToDatabase(Database db, UniversalId uid)
 		throws IOException, Database.RecordHiddenException
 	{
 		db.writeRecord(getDelKey(uid), getDelData());
