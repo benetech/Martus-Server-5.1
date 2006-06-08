@@ -500,7 +500,7 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		zip.close();
 
 		long entryTime = entry.getTime();
-		long difference = (mTimeOriginal-(entryTime));
+		long difference = (mTimeOriginal-entryTime);
 		assertTrue("Zip file created before mTime of bulletin?", (difference + fastTimeVarianceMS) > 0);
 		assertTrue("Zip file doesn't have the real mTime of the bulletin?", difference < fastTimeVarianceMS);
 
