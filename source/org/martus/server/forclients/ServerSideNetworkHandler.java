@@ -375,14 +375,7 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 				return result;
 			result = new Vector();
 
-			int idCount = ((Integer)parameters.get(0)).intValue();
-			String[] idList = new String[idCount];
-			for (int i = 0; i < idList.length; i++)
-			{
-				idList[i] = (String)parameters.get(1+i);
-			}
-
-			result.add(server.deleteDraftBulletins(myAccountId, idList, parameters, signature));
+			result.add(server.deleteDraftBulletins(myAccountId, parameters, signature));
 			logDebug("deleteDraftBulletins: Exit");
 			return result;
 		}

@@ -431,13 +431,20 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		return collectBulletinSummaries(summaryCollector, "listMyDraftBulletinIds ");
 	}
 
-	public String deleteDraftBulletins(String accountId, String[] localIds, Vector originalRequest, String signature)
+	public String deleteDraftBulletins(String accountId, Vector originalRequest, String signature)
 	{
 		if(isClientBanned(accountId) )
 			return NetworkInterfaceConstants.REJECTED;
 		
 		if( coreServer.isShutdownRequested() )
 			return NetworkInterfaceConstants.SERVER_DOWN;
+		
+		int idCount = ((Integer)originalRequest.get(0)).intValue();
+		String[] localIds = new String[idCount];
+		for (int i = 0; i < localIds.length; i++)
+		{
+			localIds[i] = (String)originalRequest.get(1+i);
+		}
 			
 		String result = NetworkInterfaceConstants.OK;
 		for (int i = 0; i < localIds.length; i++)

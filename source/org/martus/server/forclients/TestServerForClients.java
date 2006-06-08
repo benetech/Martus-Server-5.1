@@ -235,7 +235,7 @@ public class TestServerForClients extends TestCaseEnhanced
 		TRACE_BEGIN("testDeleteDraftBulletinsEmptyList");
 
 		String[] allIds = {};
-		String resultAllOk = testServer.deleteDraftBulletins(clientAccountId, allIds, new Vector(), "some signature");
+		String resultAllOk = testServer.deleteDraftBulletins(clientAccountId, getOriginalRequest(allIds), "some signature");
 		assertEquals("Empty not ok?", NetworkInterfaceConstants.OK, resultAllOk);
 
 		TRACE_END();
@@ -269,8 +269,7 @@ public class TestServerForClients extends TestCaseEnhanced
 		{
 			internalTestDelRecord(UniversalId.createFromAccountAndLocalId(clientAccountId,allIds[i]), "DEL already exists?", false);
 		}
-		
-		String resultAllOk = testServer.deleteDraftBulletins(clientAccountId, allIds,  new Vector(), "signature");
+		String resultAllOk = testServer.deleteDraftBulletins(clientAccountId, getOriginalRequest(allIds), "signature");
 		assertEquals("Good 3 not ok?", NetworkInterfaceConstants.OK, resultAllOk);
 		BulletinStore testStoreDeleteDrafts = mockServer.getStore();
 		assertEquals("Didn't delete all?", 0, testStoreDeleteDrafts.getBulletinCount());
@@ -287,7 +286,7 @@ public class TestServerForClients extends TestCaseEnhanced
 		{
 			internalTestDelRecord(UniversalId.createFromAccountAndLocalId(clientAccountId,twoGoodOneBad[i]), "DEL should not exist.", false);
 		}
-		String resultOneBad = testServer.deleteDraftBulletins(clientAccountId, twoGoodOneBad, new Vector(), "signature");
+		String resultOneBad = testServer.deleteDraftBulletins(clientAccountId, getOriginalRequest(twoGoodOneBad), "signature");
 		assertEquals("Two good one bad not incomplete?", NetworkInterfaceConstants.INCOMPLETE, resultOneBad);
 		assertEquals("Didn't delete two?", 1, testStoreDeleteDrafts.getBulletinCount());
 		boolean shouldExist = true;
@@ -302,12 +301,23 @@ public class TestServerForClients extends TestCaseEnhanced
 		int newRecordCount = testStoreDeleteDrafts.getBulletinCount();
 		assertNotEquals("Didn't upload?", 1, newRecordCount);
 		String[] justSealed = new String[] {b1.getLocalId()};
-		String result = testServer.deleteDraftBulletins(clientAccountId, justSealed,  new Vector(), "signature");
+		String result = testServer.deleteDraftBulletins(clientAccountId, getOriginalRequest(justSealed), "signature");
 		assertNotEquals("Sealed should not ok?", NetworkInterfaceConstants.OK, result);
 		assertEquals("Deleted sealed?", newRecordCount, testStoreDeleteDrafts.getBulletinCount());
 		internalTestDelRecord(b1.getUniversalId(), "DEL should not exist for sealed", false);
 
 		TRACE_END();
+	}
+
+	private Vector getOriginalRequest(String[] allIds)
+	{
+		Vector ids = new Vector();
+		ids.add(new Integer(allIds.length));
+		for(int i = 0; i < allIds.length; i++)
+		{
+			ids.add(allIds[i]);
+		}
+		return ids;
 	}
 
 	private void internalTestDelRecord(UniversalId uid, String errorMessage, boolean shouldExist)
@@ -354,7 +364,7 @@ public class TestServerForClients extends TestCaseEnhanced
 		internalTestDelRecord(draftThenSealed.getUniversalId(), "DEL already exists for draft2?", false);
 		
 		String[] allIds = new String[] {draft1.getLocalId(), draftThenSealed.getLocalId()};
-		String resultAllOk = testServer.deleteDraftBulletins(clientAccountId, allIds,  new Vector(), "signature");
+		String resultAllOk = testServer.deleteDraftBulletins(clientAccountId, getOriginalRequest(allIds), "signature");
 		assertEquals("Good 2 not ok?", NetworkInterfaceConstants.OK, resultAllOk);
 		assertEquals("Didn't delete all?", 0, testStoreUploadDraftsSealeds.getBulletinCount());
 
@@ -551,7 +561,7 @@ public class TestServerForClients extends TestCaseEnhanced
 		verifyErrorResult("getPacket", vecResult, NetworkInterfaceConstants.REJECTED );
 		assertEquals("getPacket", 0, testServer.getNumberActiveClients() );
 
-		strResult = testServer.deleteDraftBulletins(clientId, new String[] {bogusStringParameter}, new Vector(), "some signature" );
+		strResult = testServer.deleteDraftBulletins(clientId, new Vector(), "some signature" );
 		assertEquals("deleteDraftBulletins", NetworkInterfaceConstants.REJECTED, strResult);
 		assertEquals("deleteDraftBulletins", 0, testServer.getNumberActiveClients() );
 
