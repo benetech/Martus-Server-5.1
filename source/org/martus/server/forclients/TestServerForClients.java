@@ -685,8 +685,8 @@ public class TestServerForClients extends TestCaseEnhanced
 		newsFile2.deleteOnExit();
 		File newsFile3 = new File(newsDirectory, "$$$news3.message");
 		newsFile3.deleteOnExit();
-		File tmpnewsFileEndingInTilda = new File(newsDirectory, "$$$news4.message~");
-		tmpnewsFileEndingInTilda.deleteOnExit();
+		File tmpnewsFileEndingInTilde = new File(newsDirectory, "$$$news4.message~");
+		tmpnewsFileEndingInTilde.deleteOnExit();
 		File tmpNewsFileEndingInPound = new File(newsDirectory, "$$$news5.message#");
 		tmpNewsFileEndingInPound.deleteOnExit();
 		
@@ -711,7 +711,7 @@ public class TestServerForClients extends TestCaseEnhanced
 		writer.write(newsText1);
 		writer.close();
 		
-		writer = new UnicodeWriter(tmpnewsFileEndingInTilda);
+		writer = new UnicodeWriter(tmpnewsFileEndingInTilde);
 		writer.write(newsText4);
 		writer.close();
 		writer = new UnicodeWriter(tmpNewsFileEndingInPound);

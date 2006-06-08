@@ -591,31 +591,35 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		for(int i = 0; i < newsItemSortedFileList.size(); i++)
 		{
 			File newsFile = (File)newsItemSortedFileList.get(i);
-			if(isTempNewsFile(newsFile))
-				continue;
-			try
-			{
-				String fileContents = UnicodeReader.getFileContents(newsFile);
-				Date fileDate = new Date(newsFile.lastModified());
-				SimpleDateFormat format = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-				String dateAndData = format.format(fileDate) + System.getProperty("line.separator") + fileContents; 
-				newsItems.add(dateAndData);
-			}
-			catch(IOException e)
-			{
-				logError("getNews:Error reading File:" + newsFile.getAbsolutePath(), e);
-			}
+			if(isNewsFile(newsFile))
+				addNewsItem(newsFile);
+		}
+	}
+
+	private void addNewsItem(File newsFile)
+	{
+		try
+		{
+			String fileContents = UnicodeReader.getFileContents(newsFile);
+			Date fileDate = new Date(newsFile.lastModified());
+			SimpleDateFormat format = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+			String dateAndData = format.format(fileDate) + System.getProperty("line.separator") + fileContents; 
+			newsItems.add(dateAndData);
+		}
+		catch(IOException e)
+		{
+			logError("getNews:Error reading File:" + newsFile.getAbsolutePath(), e);
 		}
 	}
 	
-	private boolean isTempNewsFile(File fileToTest)
+	private boolean isNewsFile(File fileToTest)
 	{
 		String fileName = fileToTest.getName();
 		if(fileName.endsWith("#"))
-			return true;
+			return false;
 		if(fileName.endsWith("~"))
-			return true;
-		return false;
+			return false;
+		return true;
 	}
 	
 	public int getNumberOfNewsItems()
