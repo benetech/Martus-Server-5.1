@@ -509,7 +509,7 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		String accountId = b.getAccount();
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		DatabaseKey[] packetKeys = BulletinZipUtilities.getAllPacketKeys(b.getBulletinHeaderPacket());
-		BulletinZipUtilities.extractPacketsToZipStream(accountId, dbToExportFrom, packetKeys, out, signer, System.currentTimeMillis());
+		BulletinZipUtilities.extractPacketsToZipStream(accountId, dbToExportFrom, packetKeys, out, signer);
 		String zipString = Base64.encode(out.toByteArray());
 		return zipString;
 	}
