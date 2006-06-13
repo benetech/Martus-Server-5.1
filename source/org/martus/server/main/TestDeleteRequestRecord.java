@@ -124,5 +124,6 @@ public class TestDeleteRequestRecord extends TestCaseEnhanced
 		DeleteRequestRecord delRequestFromDatabase = new DeleteRequestRecord(db, b1.getUniversalId(), serverSecurity);		
 		assertTrue("Signature verification failed?", delRequestFromDatabase.doesSignatureMatch(serverSecurity));
 		assertEquals("Doesn't match?", delRequest.getDelData(), delRequestFromDatabase.getDelData());
+		server.deleteAllFiles();
 	}
 }

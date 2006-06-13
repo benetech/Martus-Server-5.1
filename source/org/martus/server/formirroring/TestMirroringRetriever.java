@@ -466,7 +466,7 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		}
 		finally
 		{
-			mock.deleteAllData();
+			mock.deleteAllFiles();
 			DirectoryUtils.deleteEntireDirectoryTree(tmpPacketDir);
 		}
 	}
