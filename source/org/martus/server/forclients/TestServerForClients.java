@@ -46,6 +46,7 @@ import org.martus.common.crypto.MockMartusSecurity;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.DeleteRequestRecord;
 import org.martus.common.database.MockClientDatabase;
+import org.martus.common.database.ServerFileDatabase;
 import org.martus.common.network.NetworkInterface;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.packet.UniversalId;
@@ -174,6 +175,46 @@ public class TestServerForClients extends TestCaseEnhanced
 		super.tearDown();
 	}
 	
+	public void testSealedReplacingDraft() throws Exception
+	{
+		BulletinStore serverStore = new BulletinStore();
+		serverStore.setSignatureGenerator(serverSecurity);
+		File serverDir = createTempDirectory();
+		File fileDbDir = createTempDirectory();
+		ServerFileDatabase serverdb = new ServerFileDatabase(fileDbDir, serverSecurity);
+		serverStore.doAfterSigninInitialization(serverDir, serverdb);
+		
+		Bulletin draftThenSealedBulletin = new Bulletin(clientSecurity);
+		draftThenSealedBulletin.setDraft();
+		store.saveBulletinForTesting(draftThenSealedBulletin);
+		File zipFile = createTempFileFromName("$$$MartusTestZipDraft");
+		DatabaseKey draftKey = draftThenSealedBulletin.getDatabaseKey();
+		BulletinForTesting.saveToFile(store.getDatabase(),draftThenSealedBulletin, zipFile, clientSecurity);
+		serverStore.deleteAllData();
+		Vector draftLeaftUids = serverStore.scanForLeafKeys();
+		assertNotContains(draftKey, draftLeaftUids);
+
+		serverStore.importZipFileToStoreWithSameUids(zipFile);
+		zipFile.delete();
+		draftLeaftUids = serverStore.scanForLeafKeys();
+		assertContains(draftKey, draftLeaftUids);
+		
+		draftThenSealedBulletin.setSealed();
+		store.saveBulletinForTesting(draftThenSealedBulletin);
+		zipFile = createTempFileFromName("$$$MartusTestZipSealed");
+		DatabaseKey sealedKey = draftThenSealedBulletin.getDatabaseKey();
+		BulletinForTesting.saveToFile(store.getDatabase(),draftThenSealedBulletin, zipFile, clientSecurity);
+
+		serverStore.importZipFileToStoreWithSameUids(zipFile);
+		zipFile.delete();
+		Vector sealedUids = serverStore.scanForLeafKeys();
+		assertContains(sealedKey, sealedUids);
+		assertNotContains("Should no longer contain the Draft Key", draftKey, sealedUids);
+		store.deleteAllData();
+		serverStore.deleteAllData();
+		serverdb.deleteAllData();
+	}
+
 	public void testListFieldOfficeDraftBulletinIds() throws Exception
 	{
 		TRACE_BEGIN("testListFieldOfficeDraftBulletinIds");
