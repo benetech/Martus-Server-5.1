@@ -1142,12 +1142,12 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		}
 		catch (DuplicatePacketException e)
 		{
-			logError("saveUpload DUPLICATE: ", e);
+			logWarning("saveUpload DUPLICATE: ");
 			result =  NetworkInterfaceConstants.DUPLICATE;
 		}
 		catch (SealedPacketExistsException e)
 		{
-			logError("saveUpload SEALED_EXISTS: ", e);
+			logWarning("saveUpload SEALED_EXISTS: ");
 			result =  NetworkInterfaceConstants.SEALED_EXISTS;
 		}
 		catch (Packet.SignatureVerificationException e)
