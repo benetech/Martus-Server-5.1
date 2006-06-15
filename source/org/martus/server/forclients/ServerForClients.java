@@ -556,8 +556,10 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		Vector result = new Vector();
 		result.add(NetworkInterfaceConstants.OK);
 		result.add(summaries);
-		
-		logNotice(methodName +clientAliasForLogging+ " Exit: Ids="+summaries.size());
+		String authorAccountId = summaryCollector.authorAccountId;
+		logNotice(methodName +"caller: "+clientAliasForLogging+
+				 " author: " + coreServer.getClientAliasForLogging(authorAccountId) + 
+				 " Exit: Ids="+summaries.size());
 		return result;
 	}
 

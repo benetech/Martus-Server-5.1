@@ -705,8 +705,8 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	{
 		{
 			StringBuffer logMsg = new StringBuffer();
-			logMsg.append("getBulletinChunk remote: " + getClientAliasForLogging(myAccountId));
-			logMsg.append(" local: " + getClientAliasForLogging(authorAccountId) + " " + bulletinLocalId);
+			logMsg.append("getBulletinChunk caller: " + getClientAliasForLogging(myAccountId));
+			logMsg.append(" author: " + getClientAliasForLogging(authorAccountId) + " " + bulletinLocalId);
 			logMsg.append("  Offset=" + chunkOffset + ", Max=" + maxChunkSize);
 			logDebug(logMsg.toString());
 		}
