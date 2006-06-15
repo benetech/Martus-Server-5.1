@@ -719,7 +719,12 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 
 		DatabaseKey headerKey =	findHeaderKeyInDatabase(authorAccountId, bulletinLocalId);
 		if(headerKey == null)
-			return returnSingleErrorResponseAndLog( " returning NOT_FOUND", NetworkInterfaceConstants.NOT_FOUND );
+		{
+			logInfo(" returning NOT_FOUND");
+			Vector response = new Vector();
+			response.add( NetworkInterfaceConstants.NOT_FOUND );
+			return response;
+		}
 
 		if(!myAccountId.equals(authorAccountId))
 		{
