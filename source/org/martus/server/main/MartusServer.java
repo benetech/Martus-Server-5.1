@@ -1887,6 +1887,22 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 					logError(timerToCheck.getThreadName() + ": Timer may be wedged, last invoked " +formatDate.format(stamp));
 				}
 			}
+			
+			monitorActiveRunners();
+		}
+
+		private void monitorActiveRunners()
+		{
+			int[] activeRunnerCounts = serverForClients.getActiveRunnerCounts();
+			String countText = "Runner counts: ";
+			for(int i = 0; i < activeRunnerCounts.length; ++i)
+			{
+				int thisCount = activeRunnerCounts[i];
+				if(thisCount > 100)
+					logWarning("Active runner possible leak, now at " + thisCount + " out of 255");
+				countText += "  " + thisCount;
+			}
+			logNotice(countText);
 		}
 		Vector timersToWatch;
 	}

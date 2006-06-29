@@ -154,6 +154,18 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		
 		return developmentPorts;
 	}
+	
+	public int[] getActiveRunnerCounts()
+	{
+		int[] counts = new int[activeWebServers.size()];
+		for(int i = 0; i < counts.length; ++i)
+		{
+			WebServerWithClientId server = (WebServerWithClientId)activeWebServers.get(i);
+			counts[i] = server.getActiveRunnerCount();
+		}
+		
+		return counts;
+	}
 
 	boolean isRunningUnderWindows()
 	{
