@@ -1265,7 +1265,8 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		}
 		MartusUtilities.deleteInterimFileAndSignature(interimFile);
 
-		File tempFile = File.createTempFile(interimFile.getName(), ".tmp");
+		File tempDirectory = interimFile.getParentFile();
+		File tempFile = File.createTempFile(interimFile.getName(), ".tmp", tempDirectory);
 		BulletinZipUtilities.exportBulletinPacketsFromDatabaseToZipFile(getDatabase(), headerKey, tempFile, getSecurity());
 		File tempFileSignature = MartusUtilities.createSignatureFileFromFile(tempFile, getSecurity());
 
