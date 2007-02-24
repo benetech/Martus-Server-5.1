@@ -1,8 +1,8 @@
 /*
 
 The Martus(tm) free, social justice documentation and
-monitoring software. Copyright (C) 2006, Beneficent
-Technology, Inc. (Benetech).
+monitoring software. Copyright (C) 2006-2007, Beneficent
+Technology, Inc. (The Benetech Initiative).
 
 Martus is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
