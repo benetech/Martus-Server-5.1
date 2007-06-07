@@ -38,9 +38,9 @@ import org.martus.common.crypto.MartusCrypto.AuthorizationFailedException;
 import org.martus.common.crypto.MartusCrypto.DecryptionException;
 import org.martus.common.crypto.MartusCrypto.NoKeyPairException;
 import org.martus.common.utilities.MartusServerUtilities;
-import org.martus.util.Base64;
+import org.martus.util.StreamableBase64;
 import org.martus.util.UnicodeReader;
-import org.martus.util.Base64.InvalidBase64Exception;
+import org.martus.util.StreamableBase64.InvalidBase64Exception;
 import org.martus.util.inputstreamwithseek.ByteArrayInputStreamWithSeek;
 
 
@@ -144,7 +144,7 @@ public class DecryptFile
 			plainTextOutput.close();
 			
 			byte [] plainFileContents = MartusServerUtilities.getFileContents(plainTextFile);			
-			String calculatedDigest = Base64.encode(MartusSecurity.createDigest(plainFileContents));
+			String calculatedDigest = StreamableBase64.encode(MartusSecurity.createDigest(plainFileContents));
 			if(! calculatedDigest.equals(retrievedDigest))
 			{
 				throw new DigestFailedException();
@@ -174,7 +174,7 @@ public class DecryptFile
 	public static void decryptToFile(MartusCrypto security, OutputStream plainTextOutput, String retrievedEncryptedText)
 		throws InvalidBase64Exception, NoKeyPairException, DecryptionException
 	{
-		byte[] encryptedBytes = Base64.decode(retrievedEncryptedText);
+		byte[] encryptedBytes = StreamableBase64.decode(retrievedEncryptedText);
 		ByteArrayInputStreamWithSeek inEncrypted = new ByteArrayInputStreamWithSeek(encryptedBytes);
 		security.decrypt(inEncrypted, plainTextOutput);
 	}

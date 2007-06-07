@@ -30,7 +30,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Vector;
 import org.martus.common.network.NetworkInterfaceConstants;
-import org.martus.util.Base64;
+import org.martus.util.StreamableBase64;
 
 public class MockServerForClients extends ServerForClients implements ServerForNonSSLClientsInterface
 {
@@ -264,7 +264,7 @@ public class MockServerForClients extends ServerForClients implements ServerForN
 		File tempFile = null;
 		try 
 		{
-			tempFile = Base64.decodeToTempFile(data);
+			tempFile = StreamableBase64.decodeToTempFile(data);
 		} 
 		catch(Exception e)
 		{

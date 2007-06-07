@@ -61,7 +61,7 @@ import org.martus.common.test.UniversalIdForTesting;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.server.forclients.MockMartusServer;
 import org.martus.server.main.ServerBulletinStore;
-import org.martus.util.Base64;
+import org.martus.util.StreamableBase64;
 import org.martus.util.DirectoryUtils;
 import org.martus.util.TestCaseEnhanced;
 import org.martus.util.inputstreamwithseek.InputStreamWithSeek;
@@ -147,7 +147,7 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		supplier.returnResultTag = MirroringInterface.RESULT_OK;
 		
 		UniversalId uid = UniversalId.createDummyUniversalId();
-		supplier.addZipData(uid, Base64.encode("some text"));
+		supplier.addZipData(uid, StreamableBase64.encode("some text"));
 		File tempFile = createTempFile();
 		tempFile.deleteOnExit();
 		
@@ -155,7 +155,7 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		assertEquals(uid.getAccountId(), supplier.gotAccount);
 		assertEquals(uid.getLocalId(), supplier.gotLocalId);
 
-		int expectedLength = Base64.decode((String)supplier.zipData.get(uid)).length;
+		int expectedLength = StreamableBase64.decode((String)supplier.zipData.get(uid)).length;
 		assertEquals("file wrong length?", expectedLength, tempFile.length());
 	}
 	
@@ -283,7 +283,7 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 			InputStreamWithSeek in = db.openInputStream(key, otherServerSecurity);
 			byte[] sigBytes = BulletinHeaderPacket.verifyPacketSignature(in, otherServerSecurity);
 			in.close();
-			String sigString = Base64.encode(sigBytes);
+			String sigString = StreamableBase64.encode(sigBytes);
 			supplier.addAvailableIdsToMirror(db, key, sigString);
 			if(sealed)
 				supplier.addBulletinToMirror(key, sigString);
@@ -510,7 +510,7 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		DatabaseKey[] packetKeys = BulletinZipUtilities.getAllPacketKeys(b.getBulletinHeaderPacket());
 		BulletinZipUtilities.extractPacketsToZipStream(accountId, dbToExportFrom, packetKeys, out, signer);
-		String zipString = Base64.encode(out.toByteArray());
+		String zipString = StreamableBase64.encode(out.toByteArray());
 		return zipString;
 	}
 

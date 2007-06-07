@@ -35,7 +35,7 @@ import java.util.Vector;
 import org.martus.common.MartusUtilities;
 import org.martus.common.crypto.MartusSecurity;
 import org.martus.common.utilities.MartusServerUtilities;
-import org.martus.util.Base64;
+import org.martus.util.StreamableBase64;
 import org.martus.util.UnicodeWriter;
 
 public class EncryptFile
@@ -78,7 +78,7 @@ public class EncryptFile
 			security = new MartusSecurity();
 			
 			byte [] plainFileContents = MartusServerUtilities.getFileContents(plainTextFile);
-			String digest = Base64.encode(MartusSecurity.createDigest(plainFileContents));
+			String digest = StreamableBase64.encode(MartusSecurity.createDigest(plainFileContents));
 			
 			plainStream = new FileInputStream(plainTextFile);		
 			cipherByteArrayOutputStream = new ByteArrayOutputStream();
@@ -87,7 +87,7 @@ public class EncryptFile
 			String publicKeyString = (String) publicInfo.get(0);
 			
 			security.encrypt(plainStream, cipherByteArrayOutputStream, security.createSessionKey(), publicKeyString);
-			String encodedEncryptedFile = Base64.encode(cipherByteArrayOutputStream.toByteArray());
+			String encodedEncryptedFile = StreamableBase64.encode(cipherByteArrayOutputStream.toByteArray());
 					
 			UnicodeWriter writer = new UnicodeWriter(cryptoFile);
 			writer.writeln(MartusSecurity.geEncryptedFileIdentifier());

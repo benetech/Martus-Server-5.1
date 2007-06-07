@@ -43,7 +43,7 @@ import org.martus.common.network.mirroring.MirroringInterface;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
 import org.martus.server.forclients.MockMartusServer;
-import org.martus.util.Base64;
+import org.martus.util.StreamableBase64;
 import org.martus.util.TestCaseEnhanced;
 
 public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
@@ -428,7 +428,7 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 		
 		supplier.returnResultTag = NetworkInterfaceConstants.CHUNK_OK;
 		supplier.authorizedCaller = callerAccountId;
-		String returnZipData = Base64.encode("zip data");
+		String returnZipData = StreamableBase64.encode("zip data");
 		UniversalId uid = UniversalId.createFromAccountAndLocalId(authorAccountId, bulletinLocalId);
 		supplier.addZipData(uid, returnZipData);
 
@@ -463,7 +463,7 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 		
 		supplier.returnResultTag = NetworkInterfaceConstants.CHUNK_OK;
 		supplier.authorizedCaller = callerAccountId;
-		String returnZipData = Base64.encode("zip data");
+		String returnZipData = StreamableBase64.encode("zip data");
 		UniversalId uid = UniversalId.createFromAccountAndLocalId(authorAccountId, bulletinLocalId);
 		supplier.addZipData(uid, returnZipData);
 
@@ -497,7 +497,7 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 		DatabaseKey key = DatabaseKey.createSealedKey(bhp.getUniversalId());
 		if(bhp.getStatus().equals(BulletinConstants.STATUSDRAFT))
 			return null;
-		String sigString = Base64.encode(sigBytes);
+		String sigString = StreamableBase64.encode(sigBytes);
 		supplier.addBulletinToMirror(key, sigString);
 		
 		Vector info = new Vector();
@@ -517,7 +517,7 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 		else
 			key = DatabaseKey.createSealedKey(bhp.getUniversalId());
 
-		String sigString = Base64.encode(sigBytes);
+		String sigString = StreamableBase64.encode(sigBytes);
 		MockDatabase db = new MockServerDatabase();
 		db.writeRecord(key, "Some text");
 		supplier.addAvailableIdsToMirror(db, key, sigString);

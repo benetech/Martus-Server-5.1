@@ -41,7 +41,7 @@ import org.martus.common.network.mirroring.CallerSideMirroringGateway;
 import org.martus.common.network.mirroring.CallerSideMirroringGatewayForXmlRpc;
 import org.martus.common.network.mirroring.MirroringInterface;
 import org.martus.common.network.mirroring.CallerSideMirroringGatewayForXmlRpc.SSLSocketSetupException;
-import org.martus.util.Base64;
+import org.martus.util.StreamableBase64;
 import org.martus.util.UnicodeWriter;
 
 public class RetrievePublicKey
@@ -106,9 +106,9 @@ public class RetrievePublicKey
 				System.exit(3);
 			}
 			MartusCrypto security = new MartusSecurity();
-			byte[] publicKeyBytes = Base64.decode(publicKeyString);
+			byte[] publicKeyBytes = StreamableBase64.decode(publicKeyString);
 			ByteArrayInputStream in = new ByteArrayInputStream(publicKeyBytes);
-			if(!security.isValidSignatureOfStream(publicKeyString, in, Base64.decode(sig)))
+			if(!security.isValidSignatureOfStream(publicKeyString, in, StreamableBase64.decode(sig)))
 			{
 				System.out.println("Error Retrieved Public Key bad signature!");
 				System.exit(3);

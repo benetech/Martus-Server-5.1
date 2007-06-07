@@ -75,10 +75,10 @@ import org.martus.common.test.MockBulletinStore;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.server.main.MartusServer;
 import org.martus.server.main.ServerBulletinStore;
-import org.martus.util.Base64;
+import org.martus.util.StreamableBase64;
 import org.martus.util.TestCaseEnhanced;
 import org.martus.util.UnicodeReader;
-import org.martus.util.Base64.InvalidBase64Exception;
+import org.martus.util.StreamableBase64.InvalidBase64Exception;
 import org.martus.util.inputstreamwithseek.InputStreamWithSeek;
 
 
@@ -173,13 +173,13 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 			store.saveEncryptedBulletinForTesting(privateBulletin);
 
 			b1ZipString = BulletinForTesting.saveToZipString(getClientDatabase(), b1, clientSecurity);
-			b1ZipBytes = Base64.decode(b1ZipString);
+			b1ZipBytes = StreamableBase64.decode(b1ZipString);
 			b1ChunkBytes0 = new byte[100];
 			b1ChunkBytes1 = new byte[b1ZipBytes.length - b1ChunkBytes0.length];
 			System.arraycopy(b1ZipBytes, 0, b1ChunkBytes0, 0, b1ChunkBytes0.length);
 			System.arraycopy(b1ZipBytes, b1ChunkBytes0.length, b1ChunkBytes1, 0, b1ChunkBytes1.length);
-			b1ChunkData0 = Base64.encode(b1ChunkBytes0);
-			b1ChunkData1 = Base64.encode(b1ChunkBytes1);
+			b1ChunkData0 = StreamableBase64.encode(b1ChunkBytes0);
+			b1ChunkData1 = StreamableBase64.encode(b1ChunkBytes1);
 			
 		}
 		
@@ -313,7 +313,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		b = BulletinLoader.loadFromDatabase(getClientDatabase(), DatabaseKey.createSealedKey(b.getUniversalId()), clientSecurity);
 		
 		String draft1ZipString = BulletinForTesting.saveToZipString(getClientDatabase(), b, clientSecurity);
-		byte[] draft1ZipBytes = Base64.decode(draft1ZipString);
+		byte[] draft1ZipBytes = StreamableBase64.decode(draft1ZipString);
 
 		String result = testServer.putBulletinChunk(hqAccountId, allowedToUploadAccountId, b.getLocalId(), draft1ZipBytes.length, 0, 
 				draft1ZipBytes.length, draft1ZipString);
@@ -344,7 +344,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		b = BulletinLoader.loadFromDatabase(getClientDatabase(), DatabaseKey.createSealedKey(b.getUniversalId()), clientSecurity);
 		
 		String draft1ZipString = BulletinForTesting.saveToZipString(getClientDatabase(), b, clientSecurity);
-		byte[] draft1ZipBytes = Base64.decode(draft1ZipString);
+		byte[] draft1ZipBytes = StreamableBase64.decode(draft1ZipString);
 
 		String result = testServer.putBulletinChunk(authorAccountId, authorAccountId, b.getLocalId(), draft1ZipBytes.length, 0, 
 			draft1ZipBytes.length, draft1ZipString);
@@ -783,18 +783,18 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 			MartusSignatureException, 
 			InvalidBase64Exception 
 	{
-		byte[] accountIdBytes = Base64.decode(accountId);
+		byte[] accountIdBytes = StreamableBase64.decode(accountId);
 
 		ByteArrayInputStream in = new ByteArrayInputStream(accountIdBytes);
 		byte[] expectedSig = serverSecurity.createSignatureOfStream(in);
-		assertEquals(label + " encoded sig wrong?", Base64.encode(expectedSig), sig);
+		assertEquals(label + " encoded sig wrong?", StreamableBase64.encode(expectedSig), sig);
 
 		ByteArrayInputStream dataInClient = new ByteArrayInputStream(accountIdBytes);
-		boolean ok1 = clientSecurity.isValidSignatureOfStream(accountId, dataInClient, Base64.decode(sig));
+		boolean ok1 = clientSecurity.isValidSignatureOfStream(accountId, dataInClient, StreamableBase64.decode(sig));
 		assertEquals(label + " client verifySig failed", true, ok1);
 
 		ByteArrayInputStream dataInServer = new ByteArrayInputStream(accountIdBytes);
-		boolean ok2 = serverSecurity.isValidSignatureOfStream(accountId, dataInServer, Base64.decode(sig));
+		boolean ok2 = serverSecurity.isValidSignatureOfStream(accountId, dataInServer, StreamableBase64.decode(sig));
 		assertEquals(label + " server verifySig failed", true, ok2);
 	}
 	
@@ -842,13 +842,13 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 
 		String b2ZipString = BulletinForTesting.saveToZipString(getClientDatabase(), b2, clientSecurity);
 
-		byte[] b2ZipBytes = Base64.decode(b2ZipString);
+		byte[] b2ZipBytes = StreamableBase64.decode(b2ZipString);
 		byte[] b2ChunkBytes0 = new byte[100];
 		byte[] b2ChunkBytes1 = new byte[b2ZipBytes.length - b2ChunkBytes0.length];
 		System.arraycopy(b2ZipBytes, 0, b2ChunkBytes0, 0, b2ChunkBytes0.length);
 		System.arraycopy(b2ZipBytes, b2ChunkBytes0.length, b2ChunkBytes1, 0, b2ChunkBytes1.length);
-		String b2ChunkData0 = Base64.encode(b2ChunkBytes0);
-		String b2ChunkData1 = Base64.encode(b2ChunkBytes1);
+		String b2ChunkData0 = StreamableBase64.encode(b2ChunkBytes0);
+		String b2ChunkData1 = StreamableBase64.encode(b2ChunkBytes1);
 
 		testServer.serverForClients.clearCanUploadList();
 		testServer.allowUploads(clientSecurity.getPublicKeyString());
@@ -958,7 +958,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 					Integer.toString(0) + "," + Integer.toString(chunkLength) + "," + b1ChunkData0;
 		byte[] bytesToSign = stringToSign.getBytes("UTF-8");
 		byte[] sigBytes = serverSecurity.createSignatureOfStream(new ByteArrayInputStream(bytesToSign));
-		String signature = Base64.encode(sigBytes);
+		String signature = StreamableBase64.encode(sigBytes);
 		assertEquals("allowed wrong sig?", NetworkInterfaceConstants.SIG_ERROR, testServer.uploadBulletinChunk(authorId, localId, totalLength, 0, chunkLength, b1ChunkData0, signature));
 
 		TRACE_END();
@@ -985,7 +985,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		store.saveEncryptedBulletinForTesting(draftBulletin);
 		draftBulletin = BulletinLoader.loadFromDatabase(getClientDatabase(), DatabaseKey.createDraftKey(draftBulletin.getUniversalId()), clientSecurity);
 		String draftZipString = BulletinForTesting.saveToZipString(getClientDatabase(), draftBulletin, clientSecurity);
-		byte[] draftZipBytes = Base64.decode(draftZipString);
+		byte[] draftZipBytes = StreamableBase64.decode(draftZipString);
 
 		MockMartusServer tempServer = new MockMartusServer(new MockDraftDatabase());
 		try
@@ -1047,7 +1047,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		DatabaseKey draftHeader1 = DatabaseKey.createDraftKey(b.getUniversalId());
 		DatabaseKey attachmentKey1 = DatabaseKey.createDraftKey(attachmentUid1);
 		String draft1ZipString = BulletinForTesting.saveToZipString(getClientDatabase(), b, clientSecurity);
-		byte[] draft1ZipBytes = Base64.decode(draft1ZipString);
+		byte[] draft1ZipBytes = StreamableBase64.decode(draft1ZipString);
 
 		b.clearPublicAttachments();
 		FileOutputStream out2 = new FileOutputStream(attachment);
@@ -1062,7 +1062,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		draftHeader2.setDraft();
 		attachmentKey2.setDraft();
 		String draft2ZipString = BulletinForTesting.saveToZipString(getClientDatabase(),b, clientSecurity);
-		byte[] draft2ZipBytes = Base64.decode(draft2ZipString);
+		byte[] draft2ZipBytes = StreamableBase64.decode(draft2ZipString);
 
 		b.clearPublicAttachments();
 		FileOutputStream out3 = new FileOutputStream(attachment);
@@ -1078,7 +1078,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		sealedHeader3.setSealed();
 		attachmentKey3.setSealed();
 		String sealedZipString = BulletinForTesting.saveToZipString(getClientDatabase(), b, clientSecurity);
-		byte[] sealedZipBytes = Base64.decode(sealedZipString);
+		byte[] sealedZipBytes = StreamableBase64.decode(sealedZipString);
 
 		testServer.serverForClients.clearCanUploadList();
 		testServer.allowUploads(clientSecurity.getPublicKeyString());
@@ -1175,7 +1175,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		zipWithBadEntry.putNextEntry(badEntry);
 		zipWithBadEntry.write(5);
 		zipWithBadEntry.close();
-		String zipWithBadEntryString = Base64.encode(out2.toByteArray());
+		String zipWithBadEntryString = StreamableBase64.encode(out2.toByteArray());
 		assertEquals("zip bad entry", NetworkInterfaceConstants.INVALID_DATA, testServer.uploadBulletin(authorClientId, "yah", zipWithBadEntryString));
 
 		TRACE_END();
@@ -1192,7 +1192,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		BulletinZipUtilities.extractPacketsToZipStream(b1.getAccount(), testServer.getDatabase(), packetKeys, out, serverSecurity);
 		assertEquals("wrong length?", b1ZipBytes.length, out.toByteArray().length);
 		
-		String zipString = Base64.encode(out.toByteArray());
+		String zipString = StreamableBase64.encode(out.toByteArray());
 		assertEquals("zips different?", getZipEntryNamesAndCrcs(b1ZipString), getZipEntryNamesAndCrcs(zipString));
 
 		TRACE_END();
@@ -1204,7 +1204,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		ZipException 
 	{
 		String result = "";
-		File tempZipFile = Base64.decodeToTempFile(zipString);
+		File tempZipFile = StreamableBase64.decodeToTempFile(zipString);
 		ZipFile zip = new ZipFile(tempZipFile);
 		Enumeration entries = zip.entries();
 		while(entries.hasMoreElements())
@@ -1577,14 +1577,14 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 
 		MockMartusServer server = new MockMartusServer();
 		server.setSecurity(new MartusSecurity());
-		String base64data = Base64.encode(new byte[]{1,2,3});
+		String base64data = StreamableBase64.encode(new byte[]{1,2,3});
 		result = server.authenticateServer(base64data);
 		assertEquals("did not return server error?", NetworkInterfaceConstants.SERVER_ERROR, result);
 
 		server.setSecurity(serverSecurity);
 		result = server.authenticateServer(base64data);
-		byte[] signature = Base64.decode(result);
-		InputStream in = new ByteArrayInputStream(Base64.decode(base64data));
+		byte[] signature = StreamableBase64.decode(result);
+		InputStream in = new ByteArrayInputStream(StreamableBase64.decode(base64data));
 		assertTrue("Invalid signature?", clientSecurity.isValidSignatureOfStream(server.getSecurity().getPublicKeyString(), in, signature));
 		
 		server.deleteAllFiles();
@@ -1719,7 +1719,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 					Integer.toString(offset) + "," + Integer.toString(chunkLength) + "," + data;
 		byte[] bytesToSign = stringToSign.getBytes("UTF-8");
 		byte[] sigBytes = signer.createSignatureOfStream(new ByteArrayInputStream(bytesToSign));
-		String signature = Base64.encode(sigBytes);
+		String signature = StreamableBase64.encode(sigBytes);
 		return server.uploadBulletinChunk(authorId, localId, totalLength, offset, chunkLength, data, signature);
 	}
 	

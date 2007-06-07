@@ -50,7 +50,7 @@ import org.martus.common.network.mirroring.CallerSideMirroringGatewayForXmlRpc.S
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.server.main.MartusServer;
 import org.martus.server.main.ServerBulletinStore;
-import org.martus.util.Base64;
+import org.martus.util.StreamableBase64;
 import org.martus.util.DirectoryUtils;
 import org.martus.util.LoggerUtil;
 import org.martus.util.inputstreamwithseek.InputStreamWithSeek;
@@ -230,7 +230,7 @@ public class ServerForMirroring implements ServerSupplierInterface
 					InputStreamWithSeek in = getDatabase().openInputStream(key, null);
 					byte[] sigBytes = BulletinHeaderPacket.verifyPacketSignature(in, getSecurity());
 					in.close();
-					String sigString = Base64.encode(sigBytes);
+					String sigString = StreamableBase64.encode(sigBytes);
 					Vector info = new Vector();
 					info.add(key.getLocalId());
 					info.add(sigString);
@@ -263,7 +263,7 @@ public class ServerForMirroring implements ServerSupplierInterface
 					InputStreamWithSeek in = getDatabase().openInputStream(key, null);
 					byte[] sigBytes = BulletinHeaderPacket.verifyPacketSignature(in, getSecurity());
 					in.close();
-					String sigString = Base64.encode(sigBytes);
+					String sigString = StreamableBase64.encode(sigBytes);
 					BulletinMirroringInformation bulletinInfo = new BulletinMirroringInformation(getDatabase(), key, sigString);
 					infos.add(bulletinInfo.getInfoWithLocalId());
 				}

@@ -90,10 +90,10 @@ import org.martus.server.forclients.ServerForClients;
 import org.martus.server.formirroring.ServerForMirroring;
 import org.martus.server.main.ServerBulletinStore.DuplicatePacketException;
 import org.martus.server.main.ServerBulletinStore.SealedPacketExistsException;
-import org.martus.util.Base64;
+import org.martus.util.StreamableBase64;
 import org.martus.util.DirectoryUtils;
 import org.martus.util.UnicodeReader;
-import org.martus.util.Base64.InvalidBase64Exception;
+import org.martus.util.StreamableBase64.InvalidBase64Exception;
 
 public class MartusServer implements NetworkInterfaceConstants, ServerCallbackInterface
 {
@@ -452,13 +452,13 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		try
 		{
 			String publicKeyString = getSecurity().getPublicKeyString();
-			byte[] publicKeyBytes = Base64.decode(publicKeyString);
+			byte[] publicKeyBytes = StreamableBase64.decode(publicKeyString);
 			ByteArrayInputStream in = new ByteArrayInputStream(publicKeyBytes);
 			byte[] sigBytes = getSecurity().createSignatureOfStream(in);
 			
 			result.add(NetworkInterfaceConstants.OK);
 			result.add(publicKeyString);
-			result.add(Base64.encode(sigBytes));
+			result.add(StreamableBase64.encode(sigBytes));
 			logDebug("getServerInformation: Exit OK");
 		}
 		catch(Exception e)
@@ -590,7 +590,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		{
 			reader = new StringReader(data);
 			out = new FileOutputStream(interimZipFile.getPath(), true);
-			Base64.decode(reader, out);
+			StreamableBase64.decode(reader, out);
 			out.close();
 			reader.close();
 		} 
@@ -980,9 +980,9 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		logInfo("authenticateServer");
 		try 
 		{
-			InputStream in = new ByteArrayInputStream(Base64.decode(tokenToSign));
+			InputStream in = new ByteArrayInputStream(StreamableBase64.decode(tokenToSign));
 			byte[] sig = getSecurity().createSignatureOfStream(in);
-			return Base64.encode(sig);
+			return StreamableBase64.encode(sig);
 		} 
 		catch(MartusSignatureException e) 
 		{
@@ -1228,7 +1228,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		in.read(rawData);
 		in.close();
 		
-		String zipString = Base64.encode(rawData);
+		String zipString = StreamableBase64.encode(rawData);
 		
 		int endPosition = chunkOffset + chunkSize;
 		if(endPosition >= totalLength)
@@ -1314,7 +1314,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		try
 		{
 			ByteArrayInputStream in = new ByteArrayInputStream(signedString.getBytes("UTF-8"));
-			return getSecurity().isValidSignatureOfStream(signerPublicKey, in, Base64.decode(signature));
+			return getSecurity().isValidSignatureOfStream(signerPublicKey, in, StreamableBase64.decode(signature));
 		}
 		catch(Exception e)
 		{

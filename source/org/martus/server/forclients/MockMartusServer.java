@@ -40,7 +40,7 @@ import org.martus.common.database.MockServerDatabase;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.server.main.MartusServer;
-import org.martus.util.Base64;
+import org.martus.util.StreamableBase64;
 import org.martus.util.TestCaseEnhanced;
 
 public class MockMartusServer extends MartusServer
@@ -334,7 +334,7 @@ public class MockMartusServer extends MartusServer
 		File tempFile = null;
 		try 
 		{
-			tempFile = Base64.decodeToTempFile(data);
+			tempFile = StreamableBase64.decodeToTempFile(data);
 		} 
 		catch(Exception e)
 		{

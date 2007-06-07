@@ -52,7 +52,7 @@ import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.packet.UniversalId;
 import org.martus.common.test.MockBulletinStore;
 import org.martus.server.main.MartusServer;
-import org.martus.util.Base64;
+import org.martus.util.StreamableBase64;
 import org.martus.util.TestCaseEnhanced;
 import org.martus.util.UnicodeReader;
 import org.martus.util.UnicodeWriter;
@@ -143,13 +143,13 @@ public class TestServerForClients extends TestCaseEnhanced
 			store.saveEncryptedBulletinForTesting(privateBulletin);
 
 			b1ZipString = BulletinForTesting.saveToZipString(getClientDatabase(), b1, clientSecurity);
-			b1ZipBytes = Base64.decode(b1ZipString);
+			b1ZipBytes = StreamableBase64.decode(b1ZipString);
 			b1ChunkBytes0 = new byte[100];
 			b1ChunkBytes1 = new byte[b1ZipBytes.length - b1ChunkBytes0.length];
 			System.arraycopy(b1ZipBytes, 0, b1ChunkBytes0, 0, b1ChunkBytes0.length);
 			System.arraycopy(b1ZipBytes, b1ChunkBytes0.length, b1ChunkBytes1, 0, b1ChunkBytes1.length);
-			b1ChunkData0 = Base64.encode(b1ChunkBytes0);
-			b1ChunkData1 = Base64.encode(b1ChunkBytes1);
+			b1ChunkData0 = StreamableBase64.encode(b1ChunkBytes0);
+			b1ChunkData1 = StreamableBase64.encode(b1ChunkBytes1);
 			
 		}
 		
@@ -870,7 +870,7 @@ public class TestServerForClients extends TestCaseEnhanced
 					Integer.toString(offset) + "," + Integer.toString(chunkLength) + "," + data;
 		byte[] bytesToSign = stringToSign.getBytes("UTF-8");
 		byte[] sigBytes = signer.createSignatureOfStream(new ByteArrayInputStream(bytesToSign));
-		String signature = Base64.encode(sigBytes);
+		String signature = StreamableBase64.encode(sigBytes);
 		return server.uploadBulletinChunk(authorId, localId, totalLength, offset, chunkLength, data, signature);
 	}
 	

@@ -41,7 +41,7 @@ import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.Database.RecordHiddenException;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.packet.UniversalId;
-import org.martus.util.Base64;
+import org.martus.util.StreamableBase64;
 
 class FakeServerSupplier implements ServerSupplierInterface
 {
@@ -94,7 +94,7 @@ class FakeServerSupplier implements ServerSupplierInterface
 	{
 		try
 		{
-			return Base64.decode((String)zipData.get(uid)).length;
+			return StreamableBase64.decode((String)zipData.get(uid)).length;
 		}
 		catch(Exception nothingWeCanDo)
 		{

@@ -36,7 +36,7 @@ import org.martus.common.database.BulletinUploadRecord;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.packet.UniversalId;
 import org.martus.common.utilities.MartusServerUtilities;
-import org.martus.util.Base64;
+import org.martus.util.StreamableBase64;
 import org.martus.util.TestCaseEnhanced;
 
 
@@ -68,10 +68,10 @@ public class TestBulletinUploadRecord extends TestCaseEnhanced
 		assertStartsWith(now.substring(0, 13), gotTimeStamp);
 		String gotDigest = reader.readLine();
 		byte[] partOfPrivateKey = serverSecurity.getDigestOfPartOfPrivateKey();
-		String stringToDigest = gotFileTypeIdentifier + "\n" + b1.getLocalId() + "\n" + gotTimeStamp + "\n" + Base64.encode(partOfPrivateKey) + "\n"; 
+		String stringToDigest = gotFileTypeIdentifier + "\n" + b1.getLocalId() + "\n" + gotTimeStamp + "\n" + StreamableBase64.encode(partOfPrivateKey) + "\n"; 
 		assertEquals(gotDigest, MartusCrypto.createDigestString(stringToDigest));
 
-		String bogusStringToDigest = gotFileTypeIdentifier + gotTimeStamp + b1.getLocalId() + Base64.encode(partOfPrivateKey); 
+		String bogusStringToDigest = gotFileTypeIdentifier + gotTimeStamp + b1.getLocalId() + StreamableBase64.encode(partOfPrivateKey); 
 		assertNotEquals(MartusCrypto.createDigestString(bogusStringToDigest), gotDigest);
 	}
 	

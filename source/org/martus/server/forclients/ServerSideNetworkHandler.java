@@ -33,7 +33,7 @@ import org.martus.common.LoggerInterface;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.network.NetworkInterface;
 import org.martus.common.network.NetworkInterfaceConstants;
-import org.martus.util.Base64;
+import org.martus.util.StreamableBase64;
 import org.martus.util.LoggerUtil;
 
 
@@ -338,7 +338,7 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 			{	
 				String packet = (String)legacyResult.get(0);
 				if(base64EncodeData)
-					packet = Base64.encode(packet);
+					packet = StreamableBase64.encode(packet);
 			
 				Vector newResult = new Vector();
 				newResult.add(packet);
