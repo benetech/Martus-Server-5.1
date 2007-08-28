@@ -23,5 +23,6 @@ sudo ssh -f -N -L 988:localhost:9988 $USER@localhost
 sudo ssh -f -N -L 987:localhost:9987 $USER@localhost
 sudo ssh -f -N -L 986:localhost:9986 $USER@localhost
 sudo ssh -f -N -L 985:localhost:9985 $USER@localhost
+sudo ssh -f -N -L 984:localhost:9984 $USER@localhost
 sudo ssh -f -N -L 443:localhost:9443 $USER@localhost
 sudo ssh -f -N -L  80:localhost:9080 $USER@localhost
