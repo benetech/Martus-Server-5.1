@@ -107,7 +107,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			if(!directory.exists())
 			{
 				System.out.println("ERROR: Missing directory: " + directory);
-				System.exit(EXIT_MISSING_DATA_DIRECTORY);
+				System.exit(ServerSideUtilities.EXIT_MISSING_DATA_DIRECTORY);
 			}
 			MartusServer server = new MartusServer(directory);
 
@@ -115,13 +115,13 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			server.deleteRunningFile();
 
 			if(server.anyUnexpectedFilesOrFoldersInStartupDirectory())
-				System.exit(EXIT_UNEXPECTED_FILE_STARTUP);
+				System.exit(ServerSideUtilities.EXIT_UNEXPECTED_FILE_STARTUP);
 			
 			if(!server.hasAccount())
 			{
 				System.out.println("***** Key pair file not found *****");
 				System.out.println(server.getKeyPairFile());
-				System.exit(EXIT_KEYPAIR_FILE_MISSING);
+				System.exit(ServerSideUtilities.EXIT_KEYPAIR_FILE_MISSING);
 			}
 
 			char[] passphrase = server.insecurePassword;
@@ -140,7 +140,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			server.initalizeAmplifier(passphrase);
 
 			if(!server.deleteStartupFiles())
-				System.exit(EXIT_STARTUP_DIRECTORY_NOT_EMPTY);
+				System.exit(ServerSideUtilities.EXIT_STARTUP_DIRECTORY_NOT_EMPTY);
 			
 			server.startBackgroundTimers();
 			
@@ -150,7 +150,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			   !server.isClientListenerEnabled() && !server.isMirrorListenerEnabled())
 			{				
 				server. getLogger().logError("No listeners or web amplifier enabled... Exiting.");
-				server.serverExit(EXIT_NO_LISTENERS);
+				server.serverExit(ServerSideUtilities.EXIT_NO_LISTENERS);
 			}
 			server.getLogger().logNotice("Waiting for connection...");
 		}
@@ -158,25 +158,25 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		{
 			System.out.println("Crypto Initialization Exception" + e);
 			e.printStackTrace();
-			System.exit(EXIT_CRYPTO_INITIALIZATION);			
+			System.exit(ServerSideUtilities.EXIT_CRYPTO_INITIALIZATION);			
 		}
 		catch (AuthorizationFailedException e)
 		{
 			System.out.println("Invalid password: " + e);
 			e.printStackTrace();
-			System.exit(EXIT_INVALID_PASSWORD);
+			System.exit(ServerSideUtilities.EXIT_INVALID_PASSWORD);
 		}
 		catch (UnknownHostException e)
 		{
 			System.out.println("ipAddress invalid: " + e);
 			e.printStackTrace();
-			System.exit(EXIT_INVALID_IPADDRESS);
+			System.exit(ServerSideUtilities.EXIT_INVALID_IPADDRESS);
 		}
 		catch (Exception e)
 		{
 			System.out.println("MartusServer.main: " + e);
 			e.printStackTrace();
-			System.exit(EXIT_UNEXPECTED_EXCEPTION);
+			System.exit(ServerSideUtilities.EXIT_UNEXPECTED_EXCEPTION);
 		}
 			
 	}
@@ -2029,16 +2029,6 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	
 	public char[] insecurePassword;
 	public long amplifierDataSynchIntervalMillis;
-	
-	private static final int EXIT_CRYPTO_INITIALIZATION = 1;
-	private static final int EXIT_KEYPAIR_FILE_MISSING = 2;
-	private static final int EXIT_UNEXPECTED_EXCEPTION = 3;
-	private static final int EXIT_UNEXPECTED_FILE_STARTUP = 4;
-	private static final int EXIT_STARTUP_DIRECTORY_NOT_EMPTY = 5;
-	private static final int EXIT_MISSING_DATA_DIRECTORY = 6;
-	private static final int EXIT_NO_LISTENERS = 20;
-	private static final int EXIT_INVALID_IPADDRESS = 23;
-	private static final int EXIT_INVALID_PASSWORD = 73;
 	
 	private static final String KEYPAIRFILENAME = "keypair.dat";
 	public static final String HIDDENPACKETSFILENAME = "isHidden.txt";
