@@ -29,6 +29,7 @@ package org.martus.server.main;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
+import org.martus.common.MartusLogger;
 import org.martus.server.foramplifiers.TestForAmplifiers;
 import org.martus.server.forclients.TestForClients;
 import org.martus.server.formirroring.TestForMirroring;
@@ -37,6 +38,7 @@ public class TestServer
 {
 	public static void main(String[] args) 
 	{
+		MartusLogger.disableLogging();
 		runTests();
 	}
 
