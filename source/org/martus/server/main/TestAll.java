@@ -29,12 +29,14 @@ package org.martus.server.main;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
+import org.martus.common.MartusLogger;
 import org.martus.common.test.TestCommon;
 
 public class TestAll
 {
 	public static void main(String[] args) 
 	{
+		MartusLogger.disableLogging();
 		runTests();
 	}
 
