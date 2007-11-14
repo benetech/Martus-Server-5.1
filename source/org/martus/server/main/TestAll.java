@@ -36,12 +36,12 @@ public class TestAll
 {
 	public static void main(String[] args) 
 	{
-		MartusLogger.disableLogging();
 		runTests();
 	}
 
 	public static void runTests() 
 	{
+		MartusLogger.disableLogging();
 		junit.textui.TestRunner.run(suite());
 	}
 
