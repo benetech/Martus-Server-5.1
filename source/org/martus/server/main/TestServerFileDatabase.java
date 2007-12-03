@@ -34,8 +34,10 @@ import org.martus.common.crypto.MockMartusSecurity;
 import org.martus.common.database.BulletinUploadRecord;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
+import org.martus.common.database.MSPAFileDatabase;
 import org.martus.common.database.MockServerDatabase;
 import org.martus.common.database.ServerFileDatabase;
+import org.martus.common.database.ReadableDatabase.AccountVisitor;
 import org.martus.common.packet.UniversalId;
 import org.martus.util.TestCaseEnhanced;
 
@@ -60,6 +62,43 @@ public class TestServerFileDatabase extends TestCaseEnhanced
 		serverFileDb.initialize();
 	}
 	
+	public void testDetectAccountChangesByOtherApp() throws Exception
+	{
+		class AccountCounter implements AccountVisitor
+		{
+			public AccountCounter()
+			{
+				accounts = new Vector();
+			}
+			
+			public void visit(String accountString)
+			{
+				accounts.add(accountString);
+			}
+			
+			public int getAccountCount()
+			{
+				return accounts.size();
+			}
+			
+			Vector accounts;
+		}
+		
+		MSPAFileDatabase secondDatabase = new MSPAFileDatabase(serverFileDb.absoluteBaseDir, security);
+		secondDatabase.initialize();
+
+		AccountCounter initial = new AccountCounter();
+		secondDatabase.visitAllAccounts(initial);
+		assertEquals(0, initial.getAccountCount());
+		
+		DatabaseKey key = DatabaseKey.createDraftKey(UniversalId.createDummyUniversalId());
+		serverFileDb.writeRecord(key, smallString);
+
+		AccountCounter afterWrites = new AccountCounter();
+		secondDatabase.visitAllAccounts(afterWrites);
+		assertEquals(1, afterWrites.getAccountCount());
+	}
+
 	public void testBURServer() throws Exception
 	{
 		TRACE_BEGIN("testBURHandling");
