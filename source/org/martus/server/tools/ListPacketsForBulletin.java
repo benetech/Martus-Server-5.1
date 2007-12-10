@@ -91,7 +91,7 @@ public class ListPacketsForBulletin
 				packetDir = new File(MartusServer.getDefaultDataDirectoryPath(), "packets" );
 				if(! packetDir.exists())
 				{
-					throw new IllegalArgumentException();
+					throw new IllegalArgumentException("Couldn't find packets: " + packetDir);
 				}
 			}
 			
@@ -101,18 +101,19 @@ public class ListPacketsForBulletin
 				serverKeyPairFile = new File(configDir, MartusServer.getKeypairFilename());
 				if(! serverKeyPairFile.exists())
 				{
-					throw new IllegalArgumentException();
+					throw new IllegalArgumentException("Couldn't find keypair: " + serverKeyPairFile);
 				}
 			}
 			
 			if(bulletinLocalId == null || accountPublicKey == null)
 			{
-				throw new IllegalArgumentException();
+				throw new IllegalArgumentException("Missing account or bulletin id");
 			}
 		}
 		catch(IllegalArgumentException e)
 		{
-			System.err.println("Incorrect arguments: ListPacketsForBulletin [--no-prompt --packet-directory=<pathToPacketsDirectory> --keypair=<pathToKeyPair>] --public-key=<accountPublicKey> --header-packet=<universalId>");
+			System.err.println("Incorrect arguments: " + e.getMessage());
+			System.err.println("ListPacketsForBulletin [--no-prompt --packet-directory=<pathToPacketsDirectory> --keypair=<pathToKeyPair>] --public-key=<accountPublicKey> --header-packet=<universalId>");
 			System.exit(3);
 		}
 		
@@ -145,6 +146,7 @@ public class ListPacketsForBulletin
 				if(e.getClass() == NullPointerException.class)
 				{
 					System.err.println("ListPacketsForBulletin.main: Bulletin not Found");
+					System.err.println(uId);
 					System.exit(3);
 				}
 			}
