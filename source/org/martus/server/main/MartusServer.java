@@ -1831,16 +1831,16 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		{
 			updateLastInvokedTime();
 
-			if(hasTimeExpired(getLastHourlyInvokedTime(), MILLIS_IN_ONE_HOUR))
+			if(hasTimeExpired(getLastCheckedTime(), 3 * MILLIS_IN_ONE_MINUTE))
 			{
-				logDebug(getThreadName() + ": Alive");
-				updateLastHourlyInvokedTime();
+				logDebug(getThreadName() + ": Still Alive");
+				updateLastCheckedTime();
 			}
 		}
 
-		long getLastHourlyInvokedTime()
+		long getLastCheckedTime()
 		{
-			return lastHourlyCheckInvokedAtMillis;
+			return lastCheckedInvokedAtMillis;
 		}
 
 		long getLastInvokedAtTimeMillis()
@@ -1858,14 +1858,14 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			lastInvokedAt = System.currentTimeMillis();
 		}
 		
-		private void updateLastHourlyInvokedTime()
+		private void updateLastCheckedTime()
 		{
-			lastHourlyCheckInvokedAtMillis = System.currentTimeMillis();
+			lastCheckedInvokedAtMillis = System.currentTimeMillis();
 		}
 		
 		private long lastInvokedAt;
 		private String threadName;
-		private long lastHourlyCheckInvokedAtMillis = 0;
+		private long lastCheckedInvokedAtMillis = 0;
 	}
 	
 	private class TimerWatchDogTask extends TimerTask
