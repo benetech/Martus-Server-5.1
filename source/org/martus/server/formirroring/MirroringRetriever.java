@@ -93,6 +93,7 @@ public class MirroringRetriever implements LoggerInterface
 				BulletinHeaderPacket bhp = store.saveZipFileToDatabase(zip, uid.getAccountId(), mTime);
 				store.writeBur(bhp, bur);
 				store.deleteDel(bhp.getUniversalId());
+				logNotice("Stored bulletin:  " + publicCode + "->" + uid.getLocalId());
 			}
 			finally
 			{
