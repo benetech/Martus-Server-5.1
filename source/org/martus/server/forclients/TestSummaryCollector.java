@@ -129,12 +129,8 @@ public class TestSummaryCollector extends TestCaseEnhanced
 			++i;
 		}
 		
-		Vector nonLeafUids = store.getNonLeafUids();
-		assertTrue("Must have at least one non leaf", nonLeafUids.size() > 0);
-		for(i = 0; i < nonLeafUids.size(); ++i)
-		{
-			assertFalse("Should not be a leaf:"+i, store.isLeaf((UniversalId)nonLeafUids.get(i)));
-		}
+		assertNotContains(original.getUniversalId(), leafUids);
+		assertTrue(store.hasNewerRevision(original.getUniversalId()));
 	}
 	
 	public void testTags() throws Exception
