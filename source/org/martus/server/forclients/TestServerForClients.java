@@ -33,7 +33,9 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Set;
 import java.util.Vector;
+
 import org.martus.common.HQKey;
 import org.martus.common.HQKeys;
 import org.martus.common.bulletin.AttachmentProxy;
@@ -188,28 +190,27 @@ public class TestServerForClients extends TestCaseEnhanced
 		draftThenSealedBulletin.setDraft();
 		store.saveBulletinForTesting(draftThenSealedBulletin);
 		File zipFile = createTempFileFromName("$$$MartusTestZipDraft");
-		DatabaseKey draftKey = draftThenSealedBulletin.getDatabaseKey();
+		UniversalId uid = draftThenSealedBulletin.getUniversalId();
 		BulletinForTesting.saveToFile(store.getDatabase(),draftThenSealedBulletin, zipFile, clientSecurity);
+		
 		serverStore.deleteAllData();
-		Vector draftLeaftUids = serverStore.scanForLeafKeys();
-		assertNotContains(draftKey, draftLeaftUids);
+		Set draftLeafUids = serverStore.getAllBulletinLeafUids();
+		assertNotContains(uid, draftLeafUids);
 
 		serverStore.importZipFileToStoreWithSameUids(zipFile);
 		zipFile.delete();
-		draftLeaftUids = serverStore.scanForLeafKeys();
-		assertContains(draftKey, draftLeaftUids);
+		draftLeafUids = serverStore.getAllBulletinLeafUids();
+		assertContains(uid, draftLeafUids);
 		
 		draftThenSealedBulletin.setSealed();
 		store.saveBulletinForTesting(draftThenSealedBulletin);
 		zipFile = createTempFileFromName("$$$MartusTestZipSealed");
-		DatabaseKey sealedKey = draftThenSealedBulletin.getDatabaseKey();
 		BulletinForTesting.saveToFile(store.getDatabase(),draftThenSealedBulletin, zipFile, clientSecurity);
 
 		serverStore.importZipFileToStoreWithSameUids(zipFile);
 		zipFile.delete();
-		Vector sealedUids = serverStore.scanForLeafKeys();
-		assertContains(sealedKey, sealedUids);
-		assertNotContains("Should no longer contain the Draft Key", draftKey, sealedUids);
+		Set sealedUids = serverStore.getAllBulletinLeafUids();
+		assertContains(uid, sealedUids);
 		store.deleteAllData();
 		serverStore.deleteAllData();
 		serverdb.deleteAllData();
