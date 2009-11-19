@@ -282,6 +282,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		store.saveEncryptedBulletinForTesting(privateBulletin);
 		testServer.uploadBulletin(privateBulletin.getAccount(), privateBulletin.getLocalId(), BulletinForTesting.saveToZipString(getClientDatabase(), privateBulletin, clientSecurity));
 
+		testServer.getStore().clearCache();
 		ourMockDatabase.shouldFail = true;
 		Vector list2 = testServer.listFieldOfficeAccounts(hqSecurity.getPublicKeyString());
 		assertEquals("wrong length", 1, list2.size());
