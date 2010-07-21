@@ -88,7 +88,7 @@ public abstract class SummaryCollector implements Database.PacketVisitor
 	
 	public Vector collectSummaries()
 	{
-		server.getStore().visitAllBulletins(this);
+		server.getStore().visitAllBulletinsForAccount(this, authorAccountId);
 		return summaries;	
 	}
 	
