@@ -142,6 +142,10 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			if(!server.deleteStartupFiles())
 				System.exit(ServerSideUtilities.EXIT_STARTUP_DIRECTORY_NOT_EMPTY);
 			
+			server.logNotice("Initializing cache (may take a while!)...");
+			server.store.fillHistoryAndHqCache();
+			server.logNotice("Finished initializing cache");
+
 			server.startBackgroundTimers();
 			
 			ServerSideUtilities.writeSyncFile(server.getRunningFile(), "MartusServer.main");

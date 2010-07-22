@@ -61,6 +61,10 @@ import org.martus.common.utilities.MartusServerUtilities;
 
 public class ServerBulletinStore extends BulletinStore
 {
+	public void fillHistoryAndHqCache()
+	{
+		getHistoryAndHqCache().fillCache();
+	}
 
 	public void deleteBulletinRevision(DatabaseKey keyToDelete)
 			throws IOException, CryptoException, InvalidPacketException,
