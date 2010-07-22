@@ -1694,8 +1694,6 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			{	
 				String minutes = argument.substring(indexEveryXMinutesTag.length());
 				indexEveryXMinutes = new Integer(minutes).longValue();
-				if(indexEveryXMinutes > 60)
-					indexEveryXMinutes = 60;
 				amplifierIndexingMessage = "Amplifier indexing every " + indexEveryXMinutes + " minutes";
 			}
 		}
