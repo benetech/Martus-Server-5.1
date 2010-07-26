@@ -49,6 +49,7 @@ import java.util.zip.ZipOutputStream;
 import org.martus.common.ContactInfo;
 import org.martus.common.HQKey;
 import org.martus.common.HQKeys;
+import org.martus.common.LoggerInterface;
 import org.martus.common.LoggerToNull;
 import org.martus.common.MartusUtilities;
 import org.martus.common.bulletin.AttachmentProxy;
@@ -75,6 +76,7 @@ import org.martus.common.test.MockBulletinStore;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.server.main.MartusServer;
 import org.martus.server.main.ServerBulletinStore;
+import org.martus.util.Base64;
 import org.martus.util.StreamableBase64;
 import org.martus.util.TestCaseEnhanced;
 import org.martus.util.UnicodeReader;
@@ -327,6 +329,77 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		TRACE_END();
 	}
 	
+	public void testUploadMultiChunkBulletinWithLargerChunkSize() throws Exception
+	{
+		class StringLogger implements LoggerInterface
+		{
+			@Override
+			public void logDebug(String message) {
+				addToLog(message);
+			}
+
+			@Override
+			public void logError(String message) {
+				addToLog(message);
+			}
+
+			@Override
+			public void logError(Exception e) {
+				addToLog(e.getMessage());
+			}
+
+			@Override
+			public void logError(String message, Exception e) {
+				addToLog(message);
+				addToLog(e.getClass().getName() + ": " + e.getMessage());
+				e.printStackTrace();
+			}
+
+			@Override
+			public void logInfo(String message) {
+				addToLog(message);
+			}
+
+			@Override
+			public void logNotice(String message) {
+				addToLog(message);
+			}
+
+			@Override
+			public void logWarning(String message) {
+				addToLog(message);
+			}
+
+			private void addToLog(String message) {
+				logged += message + "\n";
+			}
+
+			public String logged;
+		}
+		
+		LoggerInterface oldLogger = testServer.getLogger();
+		StringLogger logger = new StringLogger();
+		testServer.setLogger(logger);
+		try
+		{
+			testServer.setSecurity(serverSecurity);
+			testServer.serverForClients.clearCanUploadList();
+			String accountId = clientSecurity.getPublicKeyString();
+			testServer.allowUploads(accountId);
+			int largeChunkSize = NetworkInterfaceConstants.CLIENT_MAX_CHUNK_SIZE + 1;
+			byte[] rawData = new byte[largeChunkSize + 10];
+			String data = Base64.encodeBytes(rawData, 0, largeChunkSize, Base64.DONT_BREAK_LINES);
+			String result = testServer.putBulletinChunk(accountId, b1.getAccount(), b1.getLocalId(), largeChunkSize + 10, 0, largeChunkSize, data);
+			assertNotContains("Log mentioned INVALID?", "INVALID", logger.logged);
+			assertNotContains("Rejected larger chunk size?", NetworkInterfaceConstants.INVALID_DATA, result);
+		}
+		finally
+		{
+			testServer.setLogger(oldLogger);
+		}
+	}
+	
+	
 	public void testUploadNotMyBulletin() throws Exception
 	{
 		TRACE_BEGIN("testUploadNotMyBulletin");
@@ -357,7 +430,6 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		
 		TRACE_END();
 	}
-	
 	
 	public void testGetNotMyBulletin() throws Exception
 	{
