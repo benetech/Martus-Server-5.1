@@ -512,7 +512,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 				logMsg.append("  Proxy Uploader:" + getClientAliasForLogging(uploaderAccountId));
 			logMsg.append("  " + getClientAliasForLogging(authorAccountId) + " " + bulletinLocalId);
 			logMsg.append("  Total Size=" + totalSize + ", Offset=" + chunkOffset);
-			if(chunkSize != NetworkInterfaceConstants.MAX_CHUNK_SIZE)
+			if(chunkSize != NetworkInterfaceConstants.CLIENT_MAX_CHUNK_SIZE)
 				logMsg.append(" Last Chunk = " + chunkSize);
 			
 			logDebug(logMsg.toString());
@@ -560,7 +560,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			return NetworkInterfaceConstants.INVALID_DATA;
 		}
 		
-		if(chunkSize > NetworkInterfaceConstants.MAX_CHUNK_SIZE)
+		if(chunkSize > NetworkInterfaceConstants.CLIENT_MAX_CHUNK_SIZE)
 		{
 			interimZipFile.delete();
 			logError("putBulletinChunk INVALID_DATA (> MAX_CHUNK_SIZE)");
