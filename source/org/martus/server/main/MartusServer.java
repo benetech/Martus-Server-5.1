@@ -43,6 +43,7 @@ import java.util.Iterator;
 import java.util.TimerTask;
 import java.util.Vector;
 import java.util.zip.ZipFile;
+
 import org.martus.amplifier.ServerCallbackInterface;
 import org.martus.amplifier.main.MartusAmplifier;
 import org.martus.common.ContactInfo;
@@ -90,8 +91,8 @@ import org.martus.server.forclients.ServerForClients;
 import org.martus.server.formirroring.ServerForMirroring;
 import org.martus.server.main.ServerBulletinStore.DuplicatePacketException;
 import org.martus.server.main.ServerBulletinStore.SealedPacketExistsException;
-import org.martus.util.StreamableBase64;
 import org.martus.util.DirectoryUtils;
+import org.martus.util.StreamableBase64;
 import org.martus.util.UnicodeReader;
 import org.martus.util.StreamableBase64.InvalidBase64Exception;
 
@@ -1663,6 +1664,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	{
 		long indexEveryXMinutes = 0;
 		String indexEveryXMinutesTag = "--amplifier-indexing-minutes=";
+		String mirrorSleepMinutesTag = "--mirror-pull-sleep-minutes=";
 		String ampipTag = "--amplifier-ip=";
 		String listenersIpTag = "--listeners-ip=";
 		String secureModeTag = "--secure";
@@ -1702,6 +1704,13 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 				String minutes = argument.substring(indexEveryXMinutesTag.length());
 				indexEveryXMinutes = new Integer(minutes).longValue();
 				amplifierIndexingMessage = "Amplifier indexing every " + indexEveryXMinutes + " minutes";
+			}
+
+			if(argument.startsWith(mirrorSleepMinutesTag))
+			{	
+				String minutes = argument.substring(mirrorSleepMinutesTag.length());
+				ServerForMirroring.inactiveSleepMillis = new Integer(minutes).longValue() * 60 * 1000;
+				System.out.println("Mirror sleep duration: " + ServerForMirroring.inactiveSleepMillis/1000/60 + " minutes");
 			}
 		}
 		if(indexEveryXMinutes==0)

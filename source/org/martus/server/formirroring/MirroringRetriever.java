@@ -281,12 +281,12 @@ public class MirroringRetriever implements LoggerInterface
 
 		if(shouldSleepNextCycle)
 		{
-			//log("Sleeping for " + ServerForMirroring.inactiveSleepMillis / 1000 / 60 + " minutes");
 			sleepUntil = System.currentTimeMillis() + ServerForMirroring.inactiveSleepMillis;
 			shouldSleepNextCycle = false;
 			return null;
 		}
 
+		logNotice("Scheduling mirror sleep for " + ip + " of " + ServerForMirroring.inactiveSleepMillis / 1000 / 60 + " minutes");
 		shouldSleepNextCycle = true;
 
 		try

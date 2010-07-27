@@ -395,5 +395,5 @@ public class ServerForMirroring implements ServerSupplierInterface
 
 	static final String MIRRORCONFIGFILENAME = "mirrorConfig.txt";	
 	public static long mirroringIntervalMillis = 10 * 1000;	// TODO: Probably 60 seconds
-	static long inactiveSleepMillis = 15 * 60 * 1000;
+	public static long inactiveSleepMillis = 15 * 60 * 1000;
 }
