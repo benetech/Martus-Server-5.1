@@ -195,8 +195,9 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface, Lo
 				ReadableDatabase db = server.getDatabase();
 				String burInDatabase = db.readRecord(burKey, security);
 				if(burInDatabase == null)
-				{	
-					logError("Missing BUR packet for bulletin:" +key.getUniversalId());
+				{
+					String publicCode = MartusCrypto.formatAccountIdForLog(key.getAccountId());
+					logError("Missing BUR packet for bulletin:" + publicCode + " " + key.getLocalId());
 					return;
 				}
 				if(!server.amplifyMirroredBulletins)
