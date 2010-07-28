@@ -333,39 +333,32 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 	{
 		class StringLogger implements LoggerInterface
 		{
-			@Override
 			public void logDebug(String message) {
 				addToLog(message);
 			}
 
-			@Override
 			public void logError(String message) {
 				addToLog(message);
 			}
 
-			@Override
 			public void logError(Exception e) {
 				addToLog(e.getMessage());
 			}
 
-			@Override
 			public void logError(String message, Exception e) {
 				addToLog(message);
 				addToLog(e.getClass().getName() + ": " + e.getMessage());
 				e.printStackTrace();
 			}
 
-			@Override
 			public void logInfo(String message) {
 				addToLog(message);
 			}
 
-			@Override
 			public void logNotice(String message) {
 				addToLog(message);
 			}
 
-			@Override
 			public void logWarning(String message) {
 				addToLog(message);
 			}
