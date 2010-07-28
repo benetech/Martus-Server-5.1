@@ -256,7 +256,7 @@ public class MirroringRetriever implements LoggerInterface
 		}
 		catch (Exception e)
 		{
-			e.printStackTrace();
+			logError(e.getMessage(), e);
 		}
 		return false;
 	}

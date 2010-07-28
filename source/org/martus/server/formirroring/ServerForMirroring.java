@@ -269,7 +269,7 @@ public class ServerForMirroring implements ServerSupplierInterface
 				}
 				catch (Exception e)
 				{
-					logError("listAvailableIdsForMirroring ", e);
+					logError("listAvailableIdsForMirroring " + e.getMessage(), e);
 				}
 			}
 			
