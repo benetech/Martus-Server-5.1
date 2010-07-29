@@ -149,10 +149,10 @@ public class ServerForMirroring implements ServerSupplierInterface
 			long oneSecondOfMillis = 1000;
 			long oneMinuteOfMillis = 60 * oneSecondOfMillis;
 
-			MartusServer.mirroringIntervalMillis = oneSecondOfMillis;
+			MartusServer.mainTickIntervalMillis = oneSecondOfMillis;
 			inactiveSleepMillis = oneMinuteOfMillis;
 		}
-		logNotice("MirroringInterval (seconds): " + MartusServer.mirroringIntervalMillis/1000);
+		logNotice("MirroringInterval (seconds): " + MartusServer.mainTickIntervalMillis/1000);
 		logNotice("InactiveSleep (minutes): " + inactiveSleepMillis/1000/60);
 
 		File authorizedCallersDir = getAuthorizedCallersDirectory();
