@@ -1710,7 +1710,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			{	
 				String minutes = argument.substring(mirrorSleepMinutesTag.length());
 				ServerForMirroring.inactiveSleepMillis = new Integer(minutes).longValue() * 60 * 1000;
-				System.out.println("Mirror sleep duration: " + ServerForMirroring.inactiveSleepMillis/1000/60 + " minutes");
+				logNotice("Mirror sleep duration: " + ServerForMirroring.inactiveSleepMillis/1000/60 + " minutes");
 			}
 		}
 		if(indexEveryXMinutes==0)
