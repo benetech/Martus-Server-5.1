@@ -1719,6 +1719,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			amplifierIndexingMessage = "Amplifier indexing every " + indexEveryXMinutes + " minutes";
 		}
 		
+		logNotice("MainTickInterval (millis): " + mainTickIntervalMillis);
 		
 		System.out.println("");
 		if(isSecureMode())
@@ -2056,8 +2057,8 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	private static final String ADMINTRIGGERDIRECTORY = "adminTriggers";
 	private static final String ADMINSTARTUPCONFIGDIRECTORY = "deleteOnStartup";
 	
-	private final int MAX_FAILED_UPLOAD_ATTEMPTS = 100;
-	public static long mainTickIntervalMillis = 10 * 1000;
+	private final static int MAX_FAILED_UPLOAD_ATTEMPTS = 100;
+	private final static long mainTickIntervalMillis = 10 * 1000;
 	
 	private static final long MILLIS_IN_ONE_SECOND = 1000;
 	private static final long MILLIS_PER_MINUTE = 60 * MILLIS_IN_ONE_SECOND;
