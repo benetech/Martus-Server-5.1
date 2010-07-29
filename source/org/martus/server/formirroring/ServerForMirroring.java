@@ -72,7 +72,6 @@ public class ServerForMirroring implements ServerSupplierInterface
 	public Vector getDeleteOnStartupFiles()
 	{
 		Vector startupFiles = new Vector();
-		startupFiles.add(getMirrorConfigFile());
 		return startupFiles;
 	}
 
@@ -132,11 +131,6 @@ public class ServerForMirroring implements ServerSupplierInterface
 	}
 	
 	
-	public File getMirrorConfigFile()
-	{
-		return new File(coreServer.getStartupConfigDirectory(), MIRRORCONFIGFILENAME);
-	}
-	
 	public void verifyConfigurationFiles()
 	{
 		// nothing to do yet
@@ -144,15 +138,6 @@ public class ServerForMirroring implements ServerSupplierInterface
 	
 	public void loadConfigurationFiles() throws IOException, InvalidPublicKeyFileException, PublicInformationInvalidException
 	{
-		if(getMirrorConfigFile().exists())
-		{
-			long oneSecondOfMillis = 1000;
-			long oneMinuteOfMillis = 60 * oneSecondOfMillis;
-
-			inactiveSleepMillis = oneMinuteOfMillis;
-		}
-		logNotice("InactiveSleep (minutes): " + inactiveSleepMillis/1000/60);
-
 		File authorizedCallersDir = getAuthorizedCallersDirectory();
 		authorizedCallers = coreServer.loadServerPublicKeys(authorizedCallersDir, "Mirror");
 		logNotice("Authorized " + authorizedCallers.size() + " Mirrors to call us");
@@ -391,6 +376,5 @@ public class ServerForMirroring implements ServerSupplierInterface
 	MirroringRetriever retriever;
 	Vector retrieversWeWillCall;
 
-	static final String MIRRORCONFIGFILENAME = "mirrorConfig.txt";	
 	public static long inactiveSleepMillis = 15 * 60 * 1000;
 }
