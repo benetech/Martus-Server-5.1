@@ -2058,7 +2058,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	private static final String ADMINSTARTUPCONFIGDIRECTORY = "deleteOnStartup";
 	
 	private final static int MAX_FAILED_UPLOAD_ATTEMPTS = 100;
-	private final static long mainTickIntervalMillis = 10 * 1000;
+	private final static long mainTickIntervalMillis = 250;
 	
 	private static final long MILLIS_IN_ONE_SECOND = 1000;
 	private static final long MILLIS_PER_MINUTE = 60 * MILLIS_IN_ONE_SECOND;
