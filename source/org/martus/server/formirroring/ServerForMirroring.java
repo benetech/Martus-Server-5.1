@@ -149,10 +149,10 @@ public class ServerForMirroring implements ServerSupplierInterface
 			long oneSecondOfMillis = 1000;
 			long oneMinuteOfMillis = 60 * oneSecondOfMillis;
 
-			mirroringIntervalMillis = oneSecondOfMillis;
+			MartusServer.mirroringIntervalMillis = oneSecondOfMillis;
 			inactiveSleepMillis = oneMinuteOfMillis;
 		}
-		logNotice("MirroringInterval (seconds): " + mirroringIntervalMillis/1000);
+		logNotice("MirroringInterval (seconds): " + MartusServer.mirroringIntervalMillis/1000);
 		logNotice("InactiveSleep (minutes): " + inactiveSleepMillis/1000/60);
 
 		File authorizedCallersDir = getAuthorizedCallersDirectory();
@@ -394,6 +394,5 @@ public class ServerForMirroring implements ServerSupplierInterface
 	Vector retrieversWeWillCall;
 
 	static final String MIRRORCONFIGFILENAME = "mirrorConfig.txt";	
-	public static long mirroringIntervalMillis = 10 * 1000;	// TODO: Probably 60 seconds
 	public static long inactiveSleepMillis = 15 * 60 * 1000;
 }

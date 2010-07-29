@@ -256,7 +256,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		timers.add(shutdownRequestMonitor);
 		MartusUtilities.startTimer(uploadRequestsMonitor, magicWordsGuessIntervalMillis);
 		timers.add(uploadRequestsMonitor);
-		MartusUtilities.startTimer(backgroundTimerTick, ServerForMirroring.mirroringIntervalMillis);
+		MartusUtilities.startTimer(backgroundTimerTick, MartusServer.mirroringIntervalMillis);
 		timers.add(backgroundTimerTick);
 		if(isAmplifierEnabled())
 		{
@@ -2057,6 +2057,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	private static final String ADMINSTARTUPCONFIGDIRECTORY = "deleteOnStartup";
 	
 	private final int MAX_FAILED_UPLOAD_ATTEMPTS = 100;
+	public static long mirroringIntervalMillis = 10 * 1000;
 	
 	private static final long MILLIS_IN_ONE_SECOND = 1000;
 	private static final long MILLIS_PER_MINUTE = 60 * MILLIS_IN_ONE_SECOND;
