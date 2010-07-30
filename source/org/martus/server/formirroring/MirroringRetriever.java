@@ -111,23 +111,6 @@ public class MirroringRetriever implements LoggerInterface
 		
 	}
 	
-	private String retrieveBurFromMirror(UniversalId uid)
-		throws MartusSignatureException, MissingBulletinUploadRecordException, ServerNotAvailableException
-	{
-		NetworkResponse response = gateway.getBulletinUploadRecord(getSecurity(), uid);
-		String resultCode = response.getResultCode();
-		if(resultCode.equals(NetworkInterfaceConstants.NO_SERVER))
-		{
-			throw new ServerNotAvailableException();
-		}
-		if(!resultCode.equals(NetworkInterfaceConstants.OK))
-		{
-			throw new MissingBulletinUploadRecordException();
-		}
-		String bur = (String)response.getResultVector().get(0);
-		return bur;
-	}
-	
 	protected BulletinMirroringInformation getNextItemToRetrieve()
 	{
 		try
@@ -182,6 +165,65 @@ public class MirroringRetriever implements LoggerInterface
 		return null;
 	}
 
+	protected String getNextAccountToRetrieve()
+	{
+		if(accountsToRetrieve.size() > 0)
+			return (String)accountsToRetrieve.remove(0);
+
+		if(isSleeping())
+			return null;
+
+		if(shouldSleepNextCycle)
+		{
+			sleepUntil = System.currentTimeMillis() + inactiveSleepMillis;
+			shouldSleepNextCycle = false;
+			return null;
+		}
+
+		logNotice("Scheduling mirror sleep for " + ip + " of " + inactiveSleepMillis / 1000 / 60 + " minutes");
+		shouldSleepNextCycle = true;
+
+		try
+		{
+			logInfo("Getting list of accounts");
+			NetworkResponse response = gateway.listAccountsForMirroring(getSecurity());
+			String resultCode = response.getResultCode();
+			if(resultCode.equals(NetworkInterfaceConstants.OK))
+			{
+				accountsToRetrieve.addAll(response.getResultVector());
+				logNotice("Account count:" + accountsToRetrieve.size());
+			}
+			else if(!resultCode.equals(NetworkInterfaceConstants.NO_SERVER))
+			{
+				logError("error returned by " + ip + ": " + resultCode);
+			}
+		}
+		catch (Exception e)
+		{
+			logError("getNextAccountToRetrieve: ", e);
+		}
+		return null;
+	}
+
+
+	
+	private String retrieveBurFromMirror(UniversalId uid)
+		throws MartusSignatureException, MissingBulletinUploadRecordException, ServerNotAvailableException
+	{
+		NetworkResponse response = gateway.getBulletinUploadRecord(getSecurity(), uid);
+		String resultCode = response.getResultCode();
+		if(resultCode.equals(NetworkInterfaceConstants.NO_SERVER))
+		{
+			throw new ServerNotAvailableException();
+		}
+		if(!resultCode.equals(NetworkInterfaceConstants.OK))
+		{
+			throw new MissingBulletinUploadRecordException();
+		}
+		String bur = (String)response.getResultVector().get(0);
+		return bur;
+	}
+	
 	private boolean networkResponseOk(NetworkResponse response)
 	{
 		return response.getResultCode().equals(NetworkInterfaceConstants.OK);
@@ -263,46 +305,6 @@ public class MirroringRetriever implements LoggerInterface
 		return key;
 	}
 	
-	protected String getNextAccountToRetrieve()
-	{
-		if(accountsToRetrieve.size() > 0)
-			return (String)accountsToRetrieve.remove(0);
-
-		if(isSleeping())
-			return null;
-
-		if(shouldSleepNextCycle)
-		{
-			sleepUntil = System.currentTimeMillis() + inactiveSleepMillis;
-			shouldSleepNextCycle = false;
-			return null;
-		}
-
-		logNotice("Scheduling mirror sleep for " + ip + " of " + inactiveSleepMillis / 1000 / 60 + " minutes");
-		shouldSleepNextCycle = true;
-
-		try
-		{
-			logInfo("Getting list of accounts");
-			NetworkResponse response = gateway.listAccountsForMirroring(getSecurity());
-			String resultCode = response.getResultCode();
-			if(resultCode.equals(NetworkInterfaceConstants.OK))
-			{
-				accountsToRetrieve.addAll(response.getResultVector());
-				logNotice("Account count:" + accountsToRetrieve.size());
-			}
-			else if(!resultCode.equals(NetworkInterfaceConstants.NO_SERVER))
-			{
-				logError("error returned by " + ip + ": " + resultCode);
-			}
-		}
-		catch (Exception e)
-		{
-			logError("getNextAccountToRetrieve: ", e);
-		}
-		return null;
-	}
-
 	private boolean isSleeping()
 	{
 		return System.currentTimeMillis() < sleepUntil;
