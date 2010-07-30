@@ -383,11 +383,11 @@ public class MirroringRetriever implements LoggerInterface
 	{
 	}
 	
-	ServerBulletinStore store;	
-	CallerSideMirroringGatewayInterface gateway;
-	String ip;
-	LoggerInterface logger;
+	private CallerSideMirroringGatewayInterface gateway;
+	private String ip;
+	private LoggerInterface logger;
 	
+	ServerBulletinStore store;	
 	Vector itemsToRetrieve;
 	Vector accountsToRetrieve;
 
