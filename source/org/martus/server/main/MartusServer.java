@@ -88,6 +88,7 @@ import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.common.xmlrpc.XmlRpcThread;
 import org.martus.server.foramplifiers.ServerForAmplifiers;
 import org.martus.server.forclients.ServerForClients;
+import org.martus.server.formirroring.MirroringRetriever;
 import org.martus.server.formirroring.ServerForMirroring;
 import org.martus.server.main.ServerBulletinStore.DuplicatePacketException;
 import org.martus.server.main.ServerBulletinStore.SealedPacketExistsException;
@@ -1709,8 +1710,8 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			if(argument.startsWith(mirrorSleepMinutesTag))
 			{	
 				String minutes = argument.substring(mirrorSleepMinutesTag.length());
-				ServerForMirroring.inactiveSleepMillis = new Integer(minutes).longValue() * 60 * 1000;
-				logNotice("Mirror sleep duration: " + ServerForMirroring.inactiveSleepMillis/1000/60 + " minutes");
+				MirroringRetriever.inactiveSleepMillis = new Integer(minutes).longValue() * 60 * 1000;
+				logNotice("Mirror sleep duration: " + MirroringRetriever.inactiveSleepMillis/1000/60 + " minutes");
 			}
 		}
 		if(indexEveryXMinutes==0)

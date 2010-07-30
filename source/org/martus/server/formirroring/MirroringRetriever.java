@@ -277,12 +277,12 @@ public class MirroringRetriever implements LoggerInterface
 
 		if(shouldSleepNextCycle)
 		{
-			sleepUntil = System.currentTimeMillis() + ServerForMirroring.inactiveSleepMillis;
+			sleepUntil = System.currentTimeMillis() + inactiveSleepMillis;
 			shouldSleepNextCycle = false;
 			return null;
 		}
 
-		logNotice("Scheduling mirror sleep for " + ip + " of " + ServerForMirroring.inactiveSleepMillis / 1000 / 60 + " minutes");
+		logNotice("Scheduling mirror sleep for " + ip + " of " + inactiveSleepMillis / 1000 / 60 + " minutes");
 		shouldSleepNextCycle = true;
 
 		try
@@ -390,6 +390,8 @@ public class MirroringRetriever implements LoggerInterface
 	
 	Vector itemsToRetrieve;
 	Vector accountsToRetrieve;
+
+	public static long inactiveSleepMillis = 15 * 60 * 1000;
 
 	public boolean shouldSleepNextCycle;
 	public long sleepUntil;

@@ -375,6 +375,4 @@ public class ServerForMirroring implements ServerSupplierInterface
 	Vector authorizedCallers;
 	MirroringRetriever retriever;
 	Vector retrieversWeWillCall;
-
-	public static long inactiveSleepMillis = 15 * 60 * 1000;
 }
