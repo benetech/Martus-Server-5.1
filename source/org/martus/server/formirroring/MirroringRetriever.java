@@ -128,7 +128,7 @@ public class MirroringRetriever implements LoggerInterface
 		return bur;
 	}
 	
-	BulletinMirroringInformation getNextItemToRetrieve()
+	protected BulletinMirroringInformation getNextItemToRetrieve()
 	{
 		try
 		{
@@ -187,7 +187,7 @@ public class MirroringRetriever implements LoggerInterface
 		return response.getResultCode().equals(NetworkInterfaceConstants.OK);
 	}
 	
-	Vector listOnlyPacketsThatWeWantUsingLocalIds(String accountId, Vector listWithLocalIds)
+	protected Vector listOnlyPacketsThatWeWantUsingLocalIds(String accountId, Vector listWithLocalIds)
 	{
 		Vector mirroringInfo = new Vector();
 		for(int i=0; i < listWithLocalIds.size(); ++i)
@@ -200,7 +200,7 @@ public class MirroringRetriever implements LoggerInterface
 		return listOnlyPacketsThatWeWantUsingBulletinMirroringInformation(accountId, mirroringInfo);
 	}
 
-	Vector listOnlyPacketsThatWeWantUsingBulletinMirroringInformation(String accountId, Vector listWithMirroringInfo)
+	protected Vector listOnlyPacketsThatWeWantUsingBulletinMirroringInformation(String accountId, Vector listWithMirroringInfo)
 	{
 		Vector dataToRetrieve = new Vector();
 		for(int i=0; i < listWithMirroringInfo.size(); ++i)
@@ -263,7 +263,7 @@ public class MirroringRetriever implements LoggerInterface
 		return key;
 	}
 	
-	String getNextAccountToRetrieve()
+	protected String getNextAccountToRetrieve()
 	{
 		if(accountsToRetrieve.size() > 0)
 			return (String)accountsToRetrieve.remove(0);
@@ -308,7 +308,7 @@ public class MirroringRetriever implements LoggerInterface
 		return System.currentTimeMillis() < sleepUntil;
 	}
 	
-	void retrieveOneBulletin(File destFile, UniversalId uid)
+	protected void retrieveOneBulletin(File destFile, UniversalId uid)
 			throws InvalidBase64Exception, IOException,
 			MartusSignatureException, ServerErrorException,
 			NotYourBulletinErrorException, BulletinNotFoundException
