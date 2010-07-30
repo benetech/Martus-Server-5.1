@@ -111,10 +111,6 @@ public class MirroringRetriever implements LoggerInterface
 		
 	}
 	
-	static class ServerNotAvailableException extends Exception 
-	{
-	}
-
 	private String retrieveBurFromMirror(UniversalId uid)
 		throws MartusSignatureException, MissingBulletinUploadRecordException, ServerNotAvailableException
 	{
@@ -383,6 +379,10 @@ public class MirroringRetriever implements LoggerInterface
 	{
 	}
 	
+	static class ServerNotAvailableException extends Exception 
+	{
+	}
+
 	private CallerSideMirroringGatewayInterface gateway;
 	private String ip;
 	private LoggerInterface logger;
