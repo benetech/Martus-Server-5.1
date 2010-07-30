@@ -64,10 +64,6 @@ public class MirroringRetriever implements LoggerInterface
 		accountsToRetrieve = new Vector();
 	}
 	
-	static class MissingBulletinUploadRecordException extends Exception
-	{
-	}
-	
 	public void processNextBulletin()
 	{
 		BulletinMirroringInformation item = getNextItemToRetrieve();
@@ -381,6 +377,10 @@ public class MirroringRetriever implements LoggerInterface
 	public void logDebug(String message)
 	{
 		logger.logDebug(createLogString(message));
+	}
+	
+	static class MissingBulletinUploadRecordException extends Exception
+	{
 	}
 	
 	ServerBulletinStore store;	
