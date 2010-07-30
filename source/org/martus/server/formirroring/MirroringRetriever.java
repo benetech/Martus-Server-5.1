@@ -66,12 +66,17 @@ public class MirroringRetriever implements LoggerInterface
 	
 	public void processNextBulletin()
 	{
+		if(isSleeping())
+			return;
+
 		BulletinMirroringInformation item = getNextItemToRetrieve();
 		if(item == null)
+		{
+			logNotice("Scheduling mirror sleep for " + ip + " of " + inactiveSleepMillis / 1000 / 60 + " minutes");
+			sleepUntil = System.currentTimeMillis() + inactiveSleepMillis;
 			return;
+		}
 			
-		shouldSleepNextCycle = false;
-
 		//TODO handle delete requests when we are propagating deletes.
 		
 		try
@@ -115,94 +120,89 @@ public class MirroringRetriever implements LoggerInterface
 	{
 		try
 		{
-			if(itemsToRetrieve.size() > 0)
+			if(itemsToRetrieve.size() == 0)
 			{
-				return (BulletinMirroringInformation)itemsToRetrieve.remove(0);
-			}
-
-			String nextAccountId = getNextAccountToRetrieve();
-			if(nextAccountId == null)
-				return null;
-
-			int totalIdsReturned = 0;
-			String mirroringCallUsed = "listAvailableIdsForMirroring"; 
-			NetworkResponse response = gateway.listAvailableIdsForMirroring(getSecurity(), nextAccountId);
-			if(networkResponseOk(response))
-			{
-				Vector listwithBulletinMirroringInfo = response.getResultVector();
-				totalIdsReturned = listwithBulletinMirroringInfo.size();
-				itemsToRetrieve = listOnlyPacketsThatWeWantUsingBulletinMirroringInformation(nextAccountId, listwithBulletinMirroringInfo);
-			}
-			else
-			{
-				mirroringCallUsed = "OLD MIRRORING CALL(listBulletinsForMirroring)";
-				response = gateway.listBulletinsForMirroring(getSecurity(), nextAccountId);
+				String nextAccountId = getNextAccountToRetrieve();
+				if(nextAccountId == null)
+					return null;
+	
+				int totalIdsReturned = 0;
+				String mirroringCallUsed = "listAvailableIdsForMirroring"; 
+				NetworkResponse response = gateway.listAvailableIdsForMirroring(getSecurity(), nextAccountId);
 				if(networkResponseOk(response))
 				{
-					Vector listWithLocalIds = response.getResultVector();
-					totalIdsReturned = listWithLocalIds.size();
-					itemsToRetrieve = listOnlyPacketsThatWeWantUsingLocalIds(nextAccountId, listWithLocalIds);
+					Vector listwithBulletinMirroringInfo = response.getResultVector();
+					totalIdsReturned = listwithBulletinMirroringInfo.size();
+					itemsToRetrieve = listOnlyPacketsThatWeWantUsingBulletinMirroringInformation(nextAccountId, listwithBulletinMirroringInfo);
+				}
+				else
+				{
+					mirroringCallUsed = "OLD MIRRORING CALL(listBulletinsForMirroring)";
+					response = gateway.listBulletinsForMirroring(getSecurity(), nextAccountId);
+					if(networkResponseOk(response))
+					{
+						Vector listWithLocalIds = response.getResultVector();
+						totalIdsReturned = listWithLocalIds.size();
+						itemsToRetrieve = listOnlyPacketsThatWeWantUsingLocalIds(nextAccountId, listWithLocalIds);
+					}
+				}
+				
+				if(networkResponseOk(response))
+				{
+					String publicCode = MartusCrypto.getFormattedPublicCode(nextAccountId);
+					if(totalIdsReturned>0 || itemsToRetrieve.size()>0)
+						logInfo(mirroringCallUsed+": " + publicCode + 
+							" -> " + totalIdsReturned+ " -> " + itemsToRetrieve.size());
+				}
+				else
+				{
+					logWarning("MirroringRetriever.getNextItemToRetrieve: Returned NetworkResponse: " + response.getResultCode());				
 				}
 			}
+
+			if(itemsToRetrieve.size() == 0)
+				return null;
 			
-			if(networkResponseOk(response))
-			{
-				String publicCode = MartusCrypto.getFormattedPublicCode(nextAccountId);
-				if(totalIdsReturned>0 || itemsToRetrieve.size()>0)
-					logInfo(mirroringCallUsed+": " + publicCode + 
-						" -> " + totalIdsReturned+ " -> " + itemsToRetrieve.size());
-			}
-			else
-			{
-				logWarning("MirroringRetriever.getNextItemToRetrieve: Returned NetworkResponse: " + response.getResultCode());				
-			}
+			return (BulletinMirroringInformation)itemsToRetrieve.remove(0);
+
 		}
 		catch (Exception e)
 		{
 			logError("MirroringRetriever.getNextUidToRetrieve: ",e);
+			return null;
 		}
-
-		return null;
 	}
 
 	protected String getNextAccountToRetrieve()
 	{
-		if(accountsToRetrieve.size() > 0)
-			return (String)accountsToRetrieve.remove(0);
-
-		if(isSleeping())
-			return null;
-
-		if(shouldSleepNextCycle)
-		{
-			sleepUntil = System.currentTimeMillis() + inactiveSleepMillis;
-			shouldSleepNextCycle = false;
-			return null;
-		}
-
-		logNotice("Scheduling mirror sleep for " + ip + " of " + inactiveSleepMillis / 1000 / 60 + " minutes");
-		shouldSleepNextCycle = true;
-
 		try
 		{
-			logInfo("Getting list of accounts");
-			NetworkResponse response = gateway.listAccountsForMirroring(getSecurity());
-			String resultCode = response.getResultCode();
-			if(resultCode.equals(NetworkInterfaceConstants.OK))
+			if(accountsToRetrieve.size() == 0)
 			{
-				accountsToRetrieve.addAll(response.getResultVector());
-				logNotice("Account count:" + accountsToRetrieve.size());
+				logInfo("Getting list of accounts");
+				NetworkResponse response = gateway.listAccountsForMirroring(getSecurity());
+				String resultCode = response.getResultCode();
+				if(resultCode.equals(NetworkInterfaceConstants.OK))
+				{
+					accountsToRetrieve.addAll(response.getResultVector());
+					logNotice("Account count:" + accountsToRetrieve.size());
+				}
+				else if(!resultCode.equals(NetworkInterfaceConstants.NO_SERVER))
+				{
+					logError("error returned by " + ip + ": " + resultCode);
+				}
 			}
-			else if(!resultCode.equals(NetworkInterfaceConstants.NO_SERVER))
-			{
-				logError("error returned by " + ip + ": " + resultCode);
-			}
+
+			if(accountsToRetrieve.size() == 0)
+				return null;
+			
+			return (String)accountsToRetrieve.remove(0);
 		}
 		catch (Exception e)
 		{
 			logError("getNextAccountToRetrieve: ", e);
+			return null;
 		}
-		return null;
 	}
 
 
@@ -305,7 +305,7 @@ public class MirroringRetriever implements LoggerInterface
 		return key;
 	}
 	
-	private boolean isSleeping()
+	protected boolean isSleeping()
 	{
 		return System.currentTimeMillis() < sleepUntil;
 	}
@@ -395,8 +395,7 @@ public class MirroringRetriever implements LoggerInterface
 
 	public static long inactiveSleepMillis = 15 * 60 * 1000;
 
-	public boolean shouldSleepNextCycle;
-	public long sleepUntil;
+	protected long sleepUntil;
 	
 	static final int MIRRORING_MAX_CHUNK_SIZE = 1024 * 1024;
 
