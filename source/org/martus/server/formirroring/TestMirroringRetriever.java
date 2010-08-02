@@ -115,13 +115,26 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		assertNull("uid again after emptied?", realRetriever.getNextItemToRetrieve());
 	}
 	
+	public void testGetNextItemToRetrieveWithEmptyAccount()
+	{
+		assertNull(realRetriever.accountsToRetrieve);
+		realRetriever.accountsToRetrieve = new Vector();
+		realRetriever.accountsToRetrieve.add("empty account");
+		realRetriever.accountsToRetrieve.add("account that could have stuff in it");
+		
+		realRetriever.getNextItemToRetrieve();
+		assertNull("Didn't check all accounts in one pass?", realRetriever.accountsToRetrieve);
+	}
+	
 	public void testGetNextAccountToRetrieve() throws Exception
 	{
 		assertNull("account right after constructor?", realRetriever.getNextAccountToRetrieve());
 		Vector accounts = new Vector();
 		for(int i=0; i < 3; ++i)
 			accounts.add(Integer.toString(i));
-			
+		
+		assertNull(realRetriever.accountsToRetrieve);
+		realRetriever.accountsToRetrieve = new Vector();
 		realRetriever.accountsToRetrieve.addAll(accounts);
 		for (int i = 0; i < accounts.size(); i++)
 			assertEquals("wrong " + i + "?", accounts.get(i), realRetriever.getNextAccountToRetrieve());

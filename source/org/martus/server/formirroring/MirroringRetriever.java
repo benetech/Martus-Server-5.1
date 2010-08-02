@@ -61,7 +61,7 @@ public class MirroringRetriever implements LoggerInterface
 		logger = loggerToUse;
 		
 		itemsToRetrieve = new Vector();
-		accountsToRetrieve = new Vector();
+		accountsToRetrieve = null;
 	}
 	
 	public void processNextBulletin()
@@ -119,7 +119,7 @@ public class MirroringRetriever implements LoggerInterface
 	{
 		try
 		{
-			if(itemsToRetrieve.size() == 0)
+			while(itemsToRetrieve.size() == 0)
 			{
 				String nextAccountId = getNextAccountToRetrieve();
 				if(nextAccountId == null)
@@ -176,14 +176,14 @@ public class MirroringRetriever implements LoggerInterface
 	{
 		try
 		{
-			if(accountsToRetrieve.size() == 0)
+			if(accountsToRetrieve == null)
 			{
 				logInfo("Getting list of accounts");
 				NetworkResponse response = gateway.listAccountsForMirroring(getSecurity());
 				String resultCode = response.getResultCode();
 				if(resultCode.equals(NetworkInterfaceConstants.OK))
 				{
-					accountsToRetrieve.addAll(response.getResultVector());
+					accountsToRetrieve = new Vector(response.getResultVector());
 					logNotice("Account count:" + accountsToRetrieve.size());
 				}
 				else if(!resultCode.equals(NetworkInterfaceConstants.NO_SERVER))
@@ -193,7 +193,10 @@ public class MirroringRetriever implements LoggerInterface
 			}
 
 			if(accountsToRetrieve.size() == 0)
+			{
+				accountsToRetrieve = null;
 				return null;
+			}
 			
 			return (String)accountsToRetrieve.remove(0);
 		}
