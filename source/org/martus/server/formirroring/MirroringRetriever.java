@@ -72,8 +72,7 @@ public class MirroringRetriever implements LoggerInterface
 		BulletinMirroringInformation item = getNextItemToRetrieve();
 		if(item == null)
 		{
-			logNotice("Scheduling mirror sleep for " + ip + " of " + inactiveSleepMillis / 1000 / 60 + " minutes");
-			sleepUntil = System.currentTimeMillis() + inactiveSleepMillis;
+			scheduleSleep();
 			return;
 		}
 			
@@ -115,7 +114,7 @@ public class MirroringRetriever implements LoggerInterface
 		}
 		
 	}
-	
+
 	protected BulletinMirroringInformation getNextItemToRetrieve()
 	{
 		try
@@ -303,6 +302,12 @@ public class MirroringRetriever implements LoggerInterface
 		else if(mirroringInfo.isDraft())
 			key = DatabaseKey.createDraftKey(mirroringInfo.getUid());
 		return key;
+	}
+	
+	private void scheduleSleep() 
+	{
+		logNotice("Scheduling mirror sleep for " + ip + " of " + inactiveSleepMillis / 1000 / 60 + " minutes");
+		sleepUntil = System.currentTimeMillis() + inactiveSleepMillis;
 	}
 	
 	protected boolean isSleeping()
