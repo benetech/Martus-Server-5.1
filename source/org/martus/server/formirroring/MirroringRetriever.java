@@ -186,7 +186,7 @@ public class MirroringRetriever implements LoggerInterface
 					accountsToRetrieve = new Vector(response.getResultVector());
 					logNotice("Account count:" + accountsToRetrieve.size());
 				}
-				else if(!resultCode.equals(NetworkInterfaceConstants.NO_SERVER))
+				else
 				{
 					logError("error returned by " + ip + ": " + resultCode);
 				}
