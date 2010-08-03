@@ -89,11 +89,12 @@ public class MirroringRetriever implements LoggerInterface
 			{
 				zip.deleteOnExit();
 				retrieveOneBulletin(zip, uid);
+				long zipSize = zip.length();
 				long mTime = item.getmTime();
 				BulletinHeaderPacket bhp = store.saveZipFileToDatabase(zip, uid.getAccountId(), mTime);
 				store.writeBur(bhp, bur);
 				store.deleteDel(bhp.getUniversalId());
-				logNotice("Stored bulletin:  " + publicCode + "->" + uid.getLocalId());
+				logNotice("Stored bulletin:  " + publicCode + "->" + uid.getLocalId() + " Size: " + zipSize);
 			}
 			finally
 			{
