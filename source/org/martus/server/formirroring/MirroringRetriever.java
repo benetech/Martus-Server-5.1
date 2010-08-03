@@ -192,7 +192,7 @@ public class MirroringRetriever implements LoggerInterface
 				}
 			}
 
-			if(accountsToRetrieve.size() == 0)
+			if(accountsToRetrieve == null || accountsToRetrieve.size() == 0)
 			{
 				accountsToRetrieve = null;
 				return null;
