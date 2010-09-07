@@ -34,8 +34,10 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Vector;
+
 import org.martus.amplifier.main.MartusAmplifier;
 import org.martus.common.ContactInfo;
+import org.martus.common.FieldSpecCollection;
 import org.martus.common.HQKey;
 import org.martus.common.HQKeys;
 import org.martus.common.LoggerToNull;
@@ -613,7 +615,7 @@ public class CreateStatistics
 					String fieldDataPacketId = bhp.getFieldDataPacketId();
 					DatabaseKey fieldKey = DatabaseKey.createSealedKey(UniversalId.createFromAccountAndLocalId(
 						bhp.getAccountId(), fieldDataPacketId));
-					FieldSpec[] standardPublicFieldSpecs = StandardFieldSpecs.getDefaultTopSetionFieldSpecs().asArray();
+					FieldSpecCollection standardPublicFieldSpecs = StandardFieldSpecs.getDefaultTopSetionFieldSpecs();
 					FieldDataPacket fdp = new FieldDataPacket(UniversalId.createFromAccountAndLocalId(
 						bhp.getAccountId(), fieldDataPacketId), standardPublicFieldSpecs);
 					FileInputStreamWithSeek in = new FileInputStreamWithSeek(fileDatabase.getFileForRecord(fieldKey));
@@ -641,7 +643,7 @@ public class CreateStatistics
 						bulletinDateEvent = rawBeginDate;
 					}
 					
-					FieldSpec[] fieldSpecs = fdp.getFieldSpecs();
+					FieldSpec[] fieldSpecs = fdp.getFieldSpecs().asArray();
 					if(fdp.hasCustomFieldTemplate())
 						bulletinHasCustomFields = BULLETIN_HAS_CUSTOM_FIELDS_TRUE;
 					else

@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
 
+import org.martus.common.FieldSpecCollection;
 import org.martus.common.LegacyCustomFields;
 import org.martus.common.LoggerToNull;
 import org.martus.common.MartusUtilities;
@@ -93,7 +94,7 @@ public class TestServerForMirroring extends TestCaseEnhanced
 		
 		UniversalId fdpUid = FieldDataPacket.createUniversalId(clientSecurity1);
 		FieldSpec[] tags = {LegacyCustomFields.createFromLegacy("whatever")};
-		FieldDataPacket fdp1 = new FieldDataPacket(fdpUid, tags);
+		FieldDataPacket fdp1 = new FieldDataPacket(fdpUid, new FieldSpecCollection(tags));
 		fdp1.writeXmlToClientDatabase(db, false, clientSecurity1);
 		
 		UniversalId otherPacketId = UniversalIdForTesting.createFromAccountAndPrefix(clientSecurity2.getPublicKeyString(), "X");
