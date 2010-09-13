@@ -38,7 +38,6 @@ import org.martus.common.ContactInfo;
 import org.martus.common.LoggerInterface;
 import org.martus.common.MartusUtilities;
 import org.martus.common.bulletinstore.BulletinStore;
-import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MartusCrypto.CreateDigestException;
 import org.martus.common.crypto.MartusCrypto.CryptoException;
 import org.martus.common.crypto.MartusCrypto.DecryptionException;
@@ -50,7 +49,6 @@ import org.martus.common.database.DeleteRequestRecord;
 import org.martus.common.database.Database.RecordHiddenException;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.packet.BulletinHeaderPacket;
-import org.martus.common.packet.Packet;
 import org.martus.common.packet.UniversalId;
 import org.martus.common.packet.Packet.InvalidPacketException;
 import org.martus.common.packet.Packet.SignatureVerificationException;
@@ -163,14 +161,7 @@ public class ServerBulletinStore extends BulletinStore
 		}
 	}
 
-	public BulletinHeaderPacket validateZipFilePacketsForImport(ZipFile zip, String authorAccountId) throws
-			Packet.InvalidPacketException,
-			IOException,
-			Packet.SignatureVerificationException,
-			SealedPacketExistsException,
-			DuplicatePacketException,
-			Packet.WrongAccountException,
-			MartusCrypto.DecryptionException 
+	public BulletinHeaderPacket validateZipFilePacketsForImport(ZipFile zip, String authorAccountId) throws Exception 
 	{
 		BulletinHeaderPacket header = MartusUtilities.extractHeaderPacket(authorAccountId, zip, getSignatureVerifier());
 		Enumeration entries = zip.entries();

@@ -687,6 +687,11 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 				result = NetworkInterfaceConstants.INVALID_DATA;
 				logError("putBulletinChunk WrongAccountException: ", e1);
 			}
+			catch (Exception e1)
+			{
+				result = NetworkInterfaceConstants.INVALID_DATA;
+				logError("Unknown exception: ", e1);
+			}
 
 			//log("returned from saveUploadedBulletinZipFile result =" + result);
 			interimZipFile.delete();
@@ -696,10 +701,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		return result;
 	}
 
-	private boolean isAuthorizedToUpload(String uploaderAccountId, String authorAccountId, File zipFile) throws 
-		InvalidPacketException, SignatureVerificationException, 
-		DecryptionException, IOException, SealedPacketExistsException, 
-		DuplicatePacketException, WrongAccountException
+	private boolean isAuthorizedToUpload(String uploaderAccountId, String authorAccountId, File zipFile) throws Exception
 	{
 		ZipFile zip = new ZipFile(zipFile);
 		try
