@@ -32,7 +32,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.Enumeration;
 import java.util.Vector;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
 import org.martus.common.ContactInfo;
@@ -141,29 +140,13 @@ public class ServerBulletinStore extends BulletinStore
 	}
 	
 	public BulletinHeaderPacket saveZipFileToDatabase(File zipFile, String authorAccountId) throws
-	ZipException,
-	IOException,
-	Database.RecordHiddenException,
-	Packet.InvalidPacketException,
-	Packet.SignatureVerificationException,
-	SealedPacketExistsException,
-	DuplicatePacketException,
-	Packet.WrongAccountException,
-	MartusCrypto.DecryptionException
+	Exception
 	{
 		return saveZipFileToDatabase(zipFile, authorAccountId, System.currentTimeMillis());
 	}
 	
 	public BulletinHeaderPacket saveZipFileToDatabase(File zipFile, String authorAccountId, long mTime) throws
-			ZipException,
-			IOException,
-			Database.RecordHiddenException,
-			Packet.InvalidPacketException,
-			Packet.SignatureVerificationException,
-			SealedPacketExistsException,
-			DuplicatePacketException,
-			Packet.WrongAccountException,
-			MartusCrypto.DecryptionException
+			Exception
 	{
 		ZipFile zip = null;
 		try
