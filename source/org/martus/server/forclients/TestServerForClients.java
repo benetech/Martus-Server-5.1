@@ -528,17 +528,17 @@ public class TestServerForClients extends TestCaseEnhanced
 		ServerWithSettableOS server = new ServerWithSettableOS();
 		server.pretendToBeUnderWindows = true;
 		server.pretendToHaveDevelopmentFlag = true;
-		int[] windowsPorts = server.shiftToDevelopmentPortsIfRequested(ports);
+		int[] windowsPorts = server.shiftToDevelopmentPortsIfNotInSecureMode(ports);
 		assertTrue("shifted under windows?", Arrays.equals(ports, windowsPorts));
 		
 		server.pretendToBeUnderWindows = false;
 		server.pretendToHaveDevelopmentFlag = false;
-		int[] productionLinuxPorts = server.shiftToDevelopmentPortsIfRequested(ports);
+		int[] productionLinuxPorts = server.shiftToDevelopmentPortsIfNotInSecureMode(ports);
 		assertTrue("shifted under production?", Arrays.equals(ports, productionLinuxPorts));
 		
 		server.pretendToBeUnderWindows = false;
 		server.pretendToHaveDevelopmentFlag = true;
-		int[] developmentLinuxPorts = server.shiftToDevelopmentPortsIfRequested(ports);
+		int[] developmentLinuxPorts = server.shiftToDevelopmentPortsIfNotInSecureMode(ports);
 		for(int i=0; i < ports.length; ++i)
 			assertEquals("didn't shift? " + i, ports[i]+9000, developmentLinuxPorts[i]);
 		server.deleteAllFiles();

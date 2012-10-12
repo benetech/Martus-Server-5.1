@@ -131,21 +131,18 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	private int[] getNonSSLPorts()
 	{
 		int[] defaultPorts = NetworkInterfaceXmlRpcConstants.defaultNonSSLPorts;
-		return shiftToDevelopmentPortsIfRequested(defaultPorts);
+		return shiftToDevelopmentPortsIfNotInSecureMode(defaultPorts);
 	}
 
 	private int[] getSSLPorts()
 	{
 		int[] defaultPorts = NetworkInterfaceXmlRpcConstants.defaultSSLPorts;
-		return shiftToDevelopmentPortsIfRequested(defaultPorts);
+		return shiftToDevelopmentPortsIfNotInSecureMode(defaultPorts);
 	}
 
-	public int[] shiftToDevelopmentPortsIfRequested(int[] defaultPorts)
+	public int[] shiftToDevelopmentPortsIfNotInSecureMode(int[] defaultPorts)
 	{
-		if(isRunningUnderWindows())
-			return defaultPorts;
-		
-		if(!wantsDevelopmentMode())
+		if(coreServer.isSecureMode())
 			return defaultPorts;
 		
 		int[] developmentPorts = new int[defaultPorts.length];
@@ -172,11 +169,6 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		return Version.isRunningUnderWindows();
 	}
 	
-	public boolean wantsDevelopmentMode()
-	{
-		return coreServer.wantsDevelopmentMode();
-	}
-
 	private String createLogString(String message)
 	{
 		return message;

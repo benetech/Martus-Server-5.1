@@ -149,9 +149,8 @@ public class ServerForMirroring implements ServerSupplierInterface
 		
 		InetAddress mainIpAddress = MartusServer.getMainIpAddress();
 		int port = MirroringInterface.MARTUS_PORT_FOR_MIRRORING;
-		if(coreServer.wantsDevelopmentMode())
-			port += 
-				ServerCallbackInterface.DEVELOPMENT_MODE_PORT_DELTA;
+		if(!coreServer.isSecureMode())
+			port += ServerCallbackInterface.DEVELOPMENT_MODE_PORT_DELTA;
 		logNotice("Opening port " + mainIpAddress +":" + port + " for mirroring...");
 		SupplierSideMirroringHandler supplierHandler = new SupplierSideMirroringHandler(this, getSecurity());
 		MartusXmlRpcServer.createSSLXmlRpcServer(supplierHandler, MirroringInterface.DEST_OBJECT_NAME, port, mainIpAddress);

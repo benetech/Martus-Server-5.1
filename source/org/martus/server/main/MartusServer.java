@@ -1818,20 +1818,6 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		return dataDirectory;
 	}
 
-	public boolean wantsDevelopmentMode()
-	{
-		if(isRunningUnderWindows())
-			return false;
-		if(MartusServer.class.getResource("ForceListenOnNonPrivilegedPorts.txt") == null)
-			return false;
-		
-		logWarning("*********************************************");
-		logWarning("         Development mode selected.");
-		logWarning("         Using non-privileged ports!");
-		logWarning("*********************************************");
-		return true;
-	}
-
 	boolean isRunningUnderWindows()
 	{
 		return Version.isRunningUnderWindows();

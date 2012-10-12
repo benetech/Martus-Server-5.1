@@ -225,7 +225,7 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants, LoggerInt
 	public void createAmplifierXmlRpcServer() throws UnknownHostException
 	{
 		int port = AmplifierInterfaceXmlRpcConstants.MARTUS_PORT_FOR_AMPLIFIER;
-		if(coreServer.wantsDevelopmentMode())
+		if(!coreServer.isSecureMode())
 			port += ServerCallbackInterface.DEVELOPMENT_MODE_PORT_DELTA;
 		createAmplifierXmlRpcServerOnPort(port);
 	}
