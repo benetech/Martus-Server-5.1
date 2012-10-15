@@ -29,9 +29,7 @@ package org.martus.server.forclients;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Set;
 import java.util.Vector;
@@ -496,52 +494,22 @@ public class TestServerForClients extends TestCaseEnhanced
 
 	public void testShiftToDevelopmentPortsIfRequested() throws Exception
 	{
-		class ServerWithSettableOS extends ServerForClients
-		{
-			public ServerWithSettableOS() throws Exception
-			{
-				super(new MockMartusServer());
-			}
-			
-			public void deleteAllFiles() throws IOException
-			{
-				((MockMartusServer)coreServer).deleteAllFiles();	
-			}
-			
-			public boolean wantsDevelopmentMode()
-			{
-				return pretendToHaveDevelopmentFlag;
-			}
-			
-			boolean isRunningUnderWindows()
-			{
-				return pretendToBeUnderWindows;
-			}
-
-			
-			public boolean pretendToBeUnderWindows = false;
-			public boolean pretendToHaveDevelopmentFlag = false;
-		}
-		
 		int ports[] = {1,2};
 		
-		ServerWithSettableOS server = new ServerWithSettableOS();
-		server.pretendToBeUnderWindows = true;
-		server.pretendToHaveDevelopmentFlag = true;
-		int[] windowsPorts = server.shiftToDevelopmentPortsIfNotInSecureMode(ports);
-		assertTrue("shifted under windows?", Arrays.equals(ports, windowsPorts));
+		MockMartusServer mainServer = new MockMartusServer();
+		ServerForClients server = new ServerForClients(mainServer);
 		
-		server.pretendToBeUnderWindows = false;
-		server.pretendToHaveDevelopmentFlag = false;
-		int[] productionLinuxPorts = server.shiftToDevelopmentPortsIfNotInSecureMode(ports);
-		assertTrue("shifted under production?", Arrays.equals(ports, productionLinuxPorts));
-		
-		server.pretendToBeUnderWindows = false;
-		server.pretendToHaveDevelopmentFlag = true;
 		int[] developmentLinuxPorts = server.shiftToDevelopmentPortsIfNotInSecureMode(ports);
 		for(int i=0; i < ports.length; ++i)
 			assertEquals("didn't shift? " + i, ports[i]+9000, developmentLinuxPorts[i]);
-		server.deleteAllFiles();
+		mainServer.deleteAllFiles();
+
+		mainServer.enterSecureMode();
+		int[] productionLinuxPorts = server.shiftToDevelopmentPortsIfNotInSecureMode(ports);
+		assertEquals("wrong port count?", ports.length, productionLinuxPorts.length);
+		for(int i=0; i < ports.length; ++i)
+			assertEquals("shifted? " + i, ports[i], productionLinuxPorts[i]);
+		
 	}
 
 	public void testBannedClients()
