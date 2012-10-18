@@ -2002,7 +2002,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			if(MartusServer.needsAmpSync)
 			{
 				logDebug("amp.pullNewDataFromServers(): Begin Pull");
-				amp.pullNewDataFromServers();
+				amp.pullNewDataFromNextServer();
 				MartusServer.needsAmpSync = false;
 				logDebug("amp.pullNewDataFromServers(): End Pull");
 			}
