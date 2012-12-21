@@ -27,6 +27,7 @@ Boston, MA 02111-1307, USA.
 package org.martus.server.forclients;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 import java.util.Vector;
 
 import org.martus.common.LoggerInterface;
@@ -109,8 +110,7 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 			}
 			
 			String version = server.ping();
-			Vector data = new Vector();
-			data.add(version);
+			Object[] data = new Object[] {version};
 			
 			Vector result = new Vector();
 			result.add(OK);
@@ -198,7 +198,7 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 			String authorAccountId = (String)parameters.get(index++);
 			Vector retrieveTags = new Vector();
 			if(index < parameters.size())
-				retrieveTags = (Vector)parameters.get(index++);
+				retrieveTags = new Vector(Arrays.asList((Object[])parameters.get(index++)));
 
 			if(myAccountId.equals(authorAccountId))
 				result = server.listMyDraftBulletinIds(authorAccountId, retrieveTags);
@@ -234,7 +234,7 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 			legacyResult.remove(0);
 			
 			result.add(resultCode);
-			result.add(legacyResult);
+			result.add(legacyResult.toArray());
 			logDebug("getFieldOfficeAccountIds: Exit");
 			return result;
 		}
@@ -300,7 +300,7 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 			legacyResult.remove(0);
 					
 			result.add(resultCode);
-			result.add(legacyResult);
+			result.add(legacyResult.toArray());
 			logDebug("getBulletinChunk: Exit");
 			return result;
 		}
@@ -346,7 +346,7 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 			}
 			
 			result.add(resultCode);
-			result.add(legacyResult);
+			result.add(legacyResult.toArray());
 			logDebug("getPacket: Exit");
 			return result;
 		}
@@ -465,7 +465,7 @@ public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterf
 	{
 		if(!isSignatureOk(myAccountId, parameters, signature, server.getSecurity()))
 		{
-			logError("Signature Failed");
+			logError("ServerSideNetworkHandler Signature Failed");
 			logError("Account: " + MartusCrypto.formatAccountIdForLog(myAccountId));
 			logError("parameters: " + parameters.toString());
 			logError("signature: " + signature);

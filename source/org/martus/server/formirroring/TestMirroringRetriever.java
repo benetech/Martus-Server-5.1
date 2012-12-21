@@ -172,8 +172,8 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		TestCallerSideMirroringGateway newGateway = new TestCallerSideMirroringGateway(handler);
 		LoggerToNull logger = new LoggerToNull();
 		MirroringRetriever newMirroringRetriever = new MirroringRetriever(server.getStore(), newGateway, "Dummy IP", logger);
-		boolean makeSureDaftsAreMirrored = true;
-		internalTestTick(newMirroringRetriever, makeSureDaftsAreMirrored);
+		boolean makeSureDraftsAreMirrored = true;
+		internalTestTick(newMirroringRetriever, makeSureDraftsAreMirrored);
 		assertTrue(newGateway.listAvailableIdsForMirroringCalled);
 		assertFalse(newGateway.listBulletinsForMirroringCalled);
 	}
@@ -185,8 +185,8 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		LoggerToNull logger = new LoggerToNull();
 
 		MirroringRetriever mirroringRetriever = new MirroringRetriever(server.getStore(), oldGateway, "Dummy IP", logger);
-		boolean makeSureDaftsAreMirrored = false;
-		internalTestTick(mirroringRetriever, makeSureDaftsAreMirrored);
+		boolean shouldDraftsBeMirrored = false;
+		internalTestTick(mirroringRetriever, shouldDraftsBeMirrored);
 		assertTrue(oldGateway.listBulletinsForMirroringCalled);
 	}
 	
@@ -240,97 +240,105 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		assertTrue("not ready to sleep?", mirroringRetriever.isSleeping());
 		
 		BulletinStore serverStore = new MockBulletinStore(this);
-		MockDatabase db = (MockDatabase)serverStore.getDatabase();
 		MartusCrypto otherServerSecurity = MockMartusSecurity.createOtherServer();
 
 		MartusCrypto clientSecurity = MockMartusSecurity.createClient();
 		supplier.addAccountToMirror(clientSecurity.getPublicKeyString());
 		Vector expectedBulletinLocalIds = new Vector();
-		boolean sealed = true;
-		int totalBulletinsToMirror = 0;
 		HashMap delRecords = new HashMap();
 		for(int i=0; i < 3; ++i)
 		{
-			Bulletin b = new Bulletin(clientSecurity);
-			DatabaseKey key = null;
-			if(sealed)
-			{
-				b.setSealed();
-				key = DatabaseKey.createSealedKey(b.getUniversalId());
-				expectedBulletinLocalIds.add(b.getLocalId());
-				++totalBulletinsToMirror;
-			}
-			else
-			{
-				b.setDraft();
-				key = DatabaseKey.createDraftKey(b.getUniversalId());
-				if(draftsShouldBeMirrored)
-				{
-					expectedBulletinLocalIds.add(b.getLocalId());
-					++totalBulletinsToMirror;
-				}
-			}
-			serverStore.saveBulletinForTesting(b);
+			boolean sealed = false;
+			if(i == 0 || i == 2)
+				sealed = true;
+			boolean shouldCreateDeleteRequest = i < 2;
+
+			MockDatabase db = (MockDatabase)serverStore.getDatabase();
+			int countBeforeSave = db.getRecordCount();
+			Bulletin b = createAndSaveBulletin(serverStore, clientSecurity, sealed);
 			
-			if(i < 2)
+			String bur = BulletinUploadRecord.createBulletinUploadRecord(b.getLocalId(), otherServerSecurity);
+			BulletinUploadRecord.writeSpecificBurToDatabase(db, b.getBulletinHeaderPacket(), bur);
+
+			if(shouldCreateDeleteRequest)
 			{
 				DeleteRequestRecord delRecord = new DeleteRequestRecord(b.getAccount(), new Vector(), "signature");
 				mirroringRetriever.store.writeDel(b.getUniversalId(), delRecord);
-				if(sealed)
-					delRecords.put(BulletinConstants.STATUSSEALED, b.getUniversalId());
-				else
-					delRecords.put(BulletinConstants.STATUSDRAFT, b.getUniversalId());
 			}
 
-			String bur = BulletinUploadRecord.createBulletinUploadRecord(b.getLocalId(), otherServerSecurity);
+			DatabaseKey key = DatabaseKey.createKey(b.getUniversalId(), b.getStatus());
+			String sigString = extractSigString(db, key, otherServerSecurity);
+			
+			supplier.addAvailableIdsToMirror(db, key, sigString);
 			supplier.addBur(b.getUniversalId(), bur, b.getStatus());
 			supplier.addZipData(b.getUniversalId(), getZipString(db, b, clientSecurity));
-			BulletinUploadRecord.writeSpecificBurToDatabase(db, b.getBulletinHeaderPacket(), bur);
-			assertEquals("after write bur" + i, (i+1)*databaseRecordsPerBulletin, db.getRecordCount());
-
-			InputStreamWithSeek in = db.openInputStream(key, otherServerSecurity);
-			byte[] sigBytes = BulletinHeaderPacket.verifyPacketSignature(in, otherServerSecurity);
-			in.close();
-			String sigString = StreamableBase64.encode(sigBytes);
-			supplier.addAvailableIdsToMirror(db, key, sigString);
-			if(sealed)
+			if(b.isSealed() || draftsShouldBeMirrored)
+			{
 				supplier.addBulletinToMirror(key, sigString);
-			sealed = !sealed;
+			}
+			
+			if(b.isSealed() || draftsShouldBeMirrored)
+			{
+				expectedBulletinLocalIds.add(b.getLocalId());
+			}
+			
+			if(shouldCreateDeleteRequest)
+				delRecords.put(b.getStatus(), b.getUniversalId());
+
+			assertEquals(countBeforeSave + databaseRecordsPerBulletin, db.getRecordCount());
 		}
 
+		int totalBulletinsToMirror = expectedBulletinLocalIds.size();
+		
 		ReadableDatabase mirroringDataBase = mirroringRetriever.store.getDatabase();
-		for(int i = 0; i < delRecords.size(); ++i)
-		{
-			UniversalId uid = (UniversalId)delRecords.get(BulletinConstants.STATUSSEALED);
-			assertTrue("DEL record should exist for sealed", mirroringDataBase.doesRecordExist(DeleteRequestRecord.getDelKey(uid)));
-			uid = (UniversalId)delRecords.get(BulletinConstants.STATUSDRAFT);
-			assertTrue("DEL record should exist for draft", mirroringDataBase.doesRecordExist(DeleteRequestRecord.getDelKey(uid)));
-		}
+		verifyDeleteRecords(mirroringDataBase, delRecords);
 
-		ServerBulletinStore store = server.getStore();
+		ServerBulletinStore retrievingStore = server.getStore();
 		mirroringRetriever.sleepUntil = System.currentTimeMillis() -1;
-		assertEquals("before tick a", 0, store.getBulletinCount());
+		assertEquals("before tick a", 0, retrievingStore.getBulletinCount());
 
 		assertFalse("already sleeping?", mirroringRetriever.isSleeping());
 		supplier.returnResultTag = MirroringInterface.RESULT_OK;
 		Vector bulletinLocalIdsRetrieved = new Vector();
-		for(int goodTick = 0; goodTick < 3; ++goodTick)
+		
+		mirroringRetriever.processNextBulletin();
+		assertEquals("tick1 wrong account?", clientSecurity.getPublicKeyString(), supplier.gotAccount);
+		bulletinLocalIdsRetrieved.add(supplier.gotLocalId);
+		assertEquals("tick1 bulletin count", 1, retrievingStore.getBulletinCount());
+		assertFalse("tick1 fell asleep?", mirroringRetriever.isSleeping());
+
+		mirroringRetriever.processNextBulletin();
+		assertEquals("tick2 wrong account?", clientSecurity.getPublicKeyString(), supplier.gotAccount);
+		bulletinLocalIdsRetrieved.add(supplier.gotLocalId);
+		assertEquals("tick2 bulletin count", 2, retrievingStore.getBulletinCount());
+		assertFalse("tick2 fell asleep?", mirroringRetriever.isSleeping());
+
+		if(draftsShouldBeMirrored)
 		{
 			mirroringRetriever.processNextBulletin();
-			if(goodTick < 2 || (goodTick == 2 && draftsShouldBeMirrored))
-			{
-				assertEquals("tick " + goodTick + " wrong account?", clientSecurity.getPublicKeyString(), supplier.gotAccount);
-				bulletinLocalIdsRetrieved.add(supplier.gotLocalId);
-				assertEquals("after tick " + goodTick, (goodTick+1), store.getBulletinCount());
-				assertFalse("after tick " + goodTick + " fell asleep?", mirroringRetriever.isSleeping());
-			}
+			assertEquals("tick3 wrong account?", clientSecurity.getPublicKeyString(), supplier.gotAccount);
+			bulletinLocalIdsRetrieved.add(supplier.gotLocalId);
+			assertEquals("tick3 bulletin count", 3, retrievingStore.getBulletinCount());
+			assertFalse("tick3 fell asleep?", mirroringRetriever.isSleeping());
 		}
+
+		verifyGotAllExpectedIds(expectedBulletinLocalIds, bulletinLocalIdsRetrieved);
 		
-		for(int i = 0; i < expectedBulletinLocalIds.size(); ++i)
-		{
-			assertContains(expectedBulletinLocalIds.get(i), bulletinLocalIdsRetrieved);
-		}
+		verifyDeleteRecordsAreCorrectAfterPull(mirroringDataBase, delRecords, draftsShouldBeMirrored);
 		
+		mirroringRetriever.processNextBulletin();
+		assertEquals("after extra tick", totalBulletinsToMirror, retrievingStore.getBulletinCount());
+		assertEquals("extra tick got uids?", 0, mirroringRetriever.itemsToRetrieve.size());
+		assertTrue("not sleeping after extra tick?", mirroringRetriever.isSleeping());
+
+		mirroringRetriever.processNextBulletin();
+		assertEquals("after extra tick2", totalBulletinsToMirror, retrievingStore.getBulletinCount());
+		assertEquals("extra tick2 got uids?", 0, mirroringRetriever.itemsToRetrieve.size());
+	}
+
+	private void verifyDeleteRecordsAreCorrectAfterPull(
+			ReadableDatabase mirroringDataBase, HashMap delRecords,
+			boolean draftsShouldBeMirrored) {
 		for(int i = 0; i < delRecords.size(); ++i)
 		{
 			UniversalId uid = (UniversalId)delRecords.get(BulletinConstants.STATUSSEALED);
@@ -341,14 +349,46 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 			else
 				assertTrue("DEL record should not have been deleted for skipped draft", mirroringDataBase.doesRecordExist(DeleteRequestRecord.getDelKey(uid)));				
 		}
-		
-		mirroringRetriever.processNextBulletin();
-		assertEquals("after extra tick", totalBulletinsToMirror, store.getBulletinCount());
-		assertEquals("extra tick got uids?", 0, mirroringRetriever.itemsToRetrieve.size());
-		assertTrue("not sleeping after extra tick?", mirroringRetriever.isSleeping());
-		mirroringRetriever.processNextBulletin();
-		assertEquals("after extra tick2", totalBulletinsToMirror, store.getBulletinCount());
-		assertEquals("extra tick2 got uids?", 0, mirroringRetriever.itemsToRetrieve.size());
+	}
+
+	private void verifyGotAllExpectedIds(Vector expectedBulletinLocalIds,
+			Vector bulletinLocalIdsRetrieved) {
+		for(int i = 0; i < expectedBulletinLocalIds.size(); ++i)
+		{
+			assertContains(expectedBulletinLocalIds.get(i), bulletinLocalIdsRetrieved);
+		}
+	}
+
+	private void verifyDeleteRecords(ReadableDatabase mirroringDataBase,
+			HashMap delRecords) {
+		for(int i = 0; i < delRecords.size(); ++i)
+		{
+			UniversalId uid = (UniversalId)delRecords.get(BulletinConstants.STATUSSEALED);
+			assertTrue("DEL record should exist for sealed", mirroringDataBase.doesRecordExist(DeleteRequestRecord.getDelKey(uid)));
+			uid = (UniversalId)delRecords.get(BulletinConstants.STATUSDRAFT);
+			assertTrue("DEL record should exist for draft", mirroringDataBase.doesRecordExist(DeleteRequestRecord.getDelKey(uid)));
+		}
+	}
+
+	private String extractSigString(MockDatabase db, DatabaseKey key,
+			MartusCrypto otherServerSecurity) throws IOException,
+			InvalidPacketException, SignatureVerificationException {
+		InputStreamWithSeek in = db.openInputStream(key, otherServerSecurity);
+		byte[] sigBytes = BulletinHeaderPacket.verifyPacketSignature(in, otherServerSecurity);
+		in.close();
+		String sigString = StreamableBase64.encode(sigBytes);
+		return sigString;
+	}
+
+	private Bulletin createAndSaveBulletin(BulletinStore serverStore,
+			MartusCrypto clientSecurity, boolean sealed) throws Exception {
+		Bulletin b = new Bulletin(clientSecurity);
+		if(sealed)
+			b.setSealed();
+		else
+			b.setDraft();
+		serverStore.saveBulletinForTesting(b);
+		return b;
 	}
 	
 	public void testListPacketsWeWant() throws Exception
@@ -498,7 +538,7 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		UniversalId newUid = UniversalIdForTesting.createFromAccountAndPrefix(accountId, "H");
 		Vector newInfo = new Vector();
 		newInfo.add(newUid.getLocalId());
-		infos.add(newInfo);
+		infos.add(newInfo.toArray());
 		return newUid;
 	}
 	

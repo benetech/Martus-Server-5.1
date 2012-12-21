@@ -504,9 +504,9 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		Vector compliance = testServer.getServerCompliance();
 		assertEquals(2, compliance.size());
 		assertEquals("ok", compliance.get(0));
-		Vector result = (Vector)compliance.get(1);
-		assertEquals(1, result.size());
-		assertEquals(serverComplianceString, result.get(0));
+		Object[] result = (Object[])compliance.get(1);
+		assertEquals(1, result.length);
+		assertEquals(serverComplianceString, result[0]);
 		TRACE_END();
 	}
 	

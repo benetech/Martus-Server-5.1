@@ -28,10 +28,10 @@ package org.martus.server.forclients;
 
 import java.util.Vector;
 
-import org.martus.common.network.NonSSLNetworkAPI;
+import org.martus.common.network.NonSSLNetworkAPIWithHelpers;
 
 
-public class ServerSideNetworkHandlerForNonSSL extends NonSSLNetworkAPI
+public class ServerSideNetworkHandlerForNonSSL extends NonSSLNetworkAPIWithHelpers
 {
 
 	public ServerSideNetworkHandlerForNonSSL(ServerForNonSSLClientsInterface serverToUse)

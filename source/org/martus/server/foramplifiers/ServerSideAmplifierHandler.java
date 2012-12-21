@@ -231,7 +231,7 @@ public class ServerSideAmplifierHandler implements AmplifierNetworkInterface, Lo
 	{
 		if(!isSignatureOk(myAccountId, parameters, signature, server.getSecurity()))
 		{
-			logError("Signature Failed");
+			logError("AmplifierHandler Signature Failed");
 			logError("Account: " + MartusCrypto.formatAccountIdForLog(myAccountId));
 			logError("parameters: " + parameters.toString());
 			logError("signature: " + signature);
