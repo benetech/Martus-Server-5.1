@@ -32,13 +32,13 @@ import java.util.Vector;
 
 import org.martus.common.LoggerInterface;
 import org.martus.common.crypto.MartusCrypto;
-import org.martus.common.network.NetworkInterface;
 import org.martus.common.network.NetworkInterfaceConstants;
-import org.martus.util.StreamableBase64;
+import org.martus.common.network.ServerSideNetworkInterface;
 import org.martus.util.LoggerUtil;
+import org.martus.util.StreamableBase64;
 
 
-public class ServerSideNetworkHandler implements NetworkInterface, NetworkInterfaceConstants, LoggerInterface
+public class ServerSideNetworkHandler implements ServerSideNetworkInterface, NetworkInterfaceConstants, LoggerInterface
 {
 
 	public ServerSideNetworkHandler(ServerForClientsInterface serverToUse)
