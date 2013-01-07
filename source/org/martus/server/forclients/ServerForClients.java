@@ -39,15 +39,17 @@ import org.martus.amplifier.ServerCallbackInterface;
 import org.martus.common.MagicWordEntry;
 import org.martus.common.MagicWords;
 import org.martus.common.MartusUtilities;
-import org.martus.common.Version;
 import org.martus.common.MartusUtilities.FileVerificationException;
+import org.martus.common.Version;
 import org.martus.common.crypto.MartusCrypto;
+import org.martus.common.database.Database.RecordHiddenException;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.DeleteRequestRecord;
-import org.martus.common.database.Database.RecordHiddenException;
 import org.martus.common.network.MartusXmlRpcServer;
+import org.martus.common.network.NetworkInterface;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.network.NetworkInterfaceXmlRpcConstants;
+import org.martus.common.network.NonSSLNetworkAPI;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
 import org.martus.common.utilities.MartusServerUtilities;
@@ -344,7 +346,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		{	
 			InetAddress mainIpAddress = MartusServer.getMainIpAddress();
 			logNotice("Opening NonSSL port " + mainIpAddress +":" + ports[i] + " for clients...");
-			activeWebServers.add(MartusXmlRpcServer.createNonSSLXmlRpcServer(nonSSLServerHandler, "MartusServer", ports[i], mainIpAddress));
+			activeWebServers.add(MartusXmlRpcServer.createNonSSLXmlRpcServer(nonSSLServerHandler, NonSSLNetworkAPI.class, "MartusServer", ports[i], mainIpAddress));
 		}
 	}
 	
@@ -355,7 +357,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		{	
 			InetAddress mainIpAddress = MartusServer.getMainIpAddress();
 			logNotice("Opening SSL port " + mainIpAddress +":" + ports[i] + " for clients...");
-			activeWebServers.add(MartusXmlRpcServer.createSSLXmlRpcServer(serverHandler, "MartusServer", ports[i], mainIpAddress));
+			activeWebServers.add(MartusXmlRpcServer.createSSLXmlRpcServer(serverHandler, NetworkInterface.class, "MartusServer", ports[i], mainIpAddress));
 		}
 	}
 
@@ -387,7 +389,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		
 		items.addAll(newsItems);
 		result.add(NetworkInterfaceConstants.OK);
-		result.add(items);
+		result.add(items.toArray());
 		return result;
 	}
 
@@ -559,7 +561,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		Vector summaries = summaryCollector.collectSummaries();
 		Vector result = new Vector();
 		result.add(NetworkInterfaceConstants.OK);
-		result.add(summaries);
+		result.add(summaries.toArray());
 		String authorAccountId = summaryCollector.authorAccountId;
 		logNotice(methodName +"caller: "+clientAliasForLogging+
 				 " author: " + coreServer.getClientAliasForLogging(authorAccountId) + 

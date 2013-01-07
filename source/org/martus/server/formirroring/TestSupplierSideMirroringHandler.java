@@ -27,6 +27,7 @@ Boston, MA 02111-1307, USA.
 package org.martus.server.formirroring;
 
 import java.io.StringWriter;
+import java.util.Arrays;
 import java.util.Vector;
 
 import org.martus.common.LoggerToNull;
@@ -172,8 +173,8 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 		Vector result = handler.request(callerAccountId, parameters, sig);
 		assertEquals(2, result.size());
 		assertEquals(NetworkInterfaceConstants.OK, result.get(0));
-		Vector accounts = (Vector)result.get(1);
-		assertEquals(0, accounts.size());
+		Object[] accounts = (Object[])result.get(1);
+		assertEquals(0, accounts.length);
 	}
 
 	public void testGetAllAccounts() throws Exception
@@ -190,10 +191,10 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 		String sig = callerSecurity.createSignatureOfVectorOfStrings(parameters);
 		Vector result = handler.request(callerAccountId, parameters, sig);
 		assertEquals(NetworkInterfaceConstants.OK, result.get(0));
-		Vector accounts = (Vector)result.get(1);
-		assertEquals(2, accounts.size());
-		assertContains(accountId1, accounts);
-		assertContains(accountId2, accounts);
+		Object[] accounts = (Object[])result.get(1);
+		assertEquals(2, accounts.length);
+		assertContains(accountId1, Arrays.asList(accounts));
+		assertContains(accountId2, Arrays.asList(accounts));
 	}
 	
 	public void testListBulletinsNotAuthorized() throws Exception
@@ -227,14 +228,17 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 		BulletinHeaderPacket bhp1 = new BulletinHeaderPacket(authorSecurity);
 		bhp1.setStatus(BulletinConstants.STATUSSEALED);
 		Vector result1 = writeSampleHeaderPacket(bhp1);
+		String localId1 = (String) result1.get(0);
 		
 		BulletinHeaderPacket bhp2 = new BulletinHeaderPacket(authorSecurity);
 		bhp2.setStatus(BulletinConstants.STATUSSEALED);
 		Vector result2 = writeSampleHeaderPacket(bhp2);
+		String localId2 = (String) result2.get(0);
 
 		BulletinHeaderPacket bhpDraft = new BulletinHeaderPacket(authorSecurity);
 		bhpDraft.setStatus(BulletinConstants.STATUSDRAFT);
 		Vector result3 = writeSampleHeaderPacket(bhpDraft);
+		assertNull("Can't mirror drafts", result3);
 		
 		supplier.authorizedCaller = callerAccountId;
 
@@ -244,11 +248,16 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 		String sig = callerSecurity.createSignatureOfVectorOfStrings(parameters);
 		Vector result = handler.request(callerAccountId, parameters, sig);
 		assertEquals(NetworkInterfaceConstants.OK, result.get(0));
-		Vector infos = (Vector)result.get(1);
-		assertEquals(2, infos.size());
-		assertContains(result1, infos);
-		assertContains(result2, infos);
-		assertNull(result3);
+		Object[] infos = (Object[])result.get(1);
+		assertEquals(2, infos.length);
+		Object[] info1 = (Object[]) infos[0];
+		Object[] info2 = (Object[]) infos[1];
+		
+		Vector ids = new Vector();
+		ids.add(info1[0]);
+		ids.add(info2[0]);
+		assertContains(localId1, ids);
+		assertContains(localId2, ids);
 	}
 	
 	public void testListAvailableIds() throws Exception
@@ -275,8 +284,9 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 		String sig = callerSecurity.createSignatureOfVectorOfStrings(parameters);
 		Vector result = handler.request(callerAccountId, parameters, sig);
 		assertEquals(NetworkInterfaceConstants.OK, result.get(0));
-		Vector infos = (Vector)result.get(1);
-		assertEquals(3, infos.size());
+		Object[] rawInfos = (Object[])result.get(1);
+		assertEquals(3, rawInfos.length);
+		Vector infos = new Vector(Arrays.asList(rawInfos));
 		assertContains("result1 missing?", result1, infos);
 		assertContains("result2 missing?",result2, infos);
 		assertContains("result3 missing?",result3, infos);
@@ -338,7 +348,7 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 		Vector result = handler.request(callerAccountId, parameters, sig);
 		assertEquals(NetworkInterfaceConstants.OK, result.get(0));
 		assertEquals(2, result.size());
-		assertEquals(bur, ((Vector)result.get(1)).get(0));
+		assertEquals(bur, ((Object[])result.get(1))[0]);
 	}
 
 	public void testGetBulletinUploadRecordSealedNew() throws Exception
@@ -357,7 +367,7 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 		Vector result = handler.request(callerAccountId, parameters, sig);
 		assertEquals(NetworkInterfaceConstants.OK, result.get(0));
 		assertEquals(2, result.size());
-		assertEquals(bur, ((Vector)result.get(1)).get(0));
+		assertEquals(bur, ((Object[])result.get(1))[0]);
 	}
 
 	public void testGetBulletinUploadRecordDraft() throws Exception
@@ -376,7 +386,7 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 		Vector result = handler.request(callerAccountId, parameters, sig);
 		assertEquals(NetworkInterfaceConstants.OK, result.get(0));
 		assertEquals(2, result.size());
-		assertEquals(bur, ((Vector)result.get(1)).get(0));
+		assertEquals(bur, ((Object[])result.get(1))[0]);
 	}
 
 	public void testGetBulletinChunkNotAuthorized() throws Exception
@@ -448,10 +458,10 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 	
 		assertEquals(2, result.size());
 		assertEquals(NetworkInterfaceConstants.CHUNK_OK, result.get(0));
-		Vector details = (Vector)result.get(1);
-		assertEquals(new Integer(supplier.getChunkSize(uid) * 3), details.get(0));
-		assertEquals(new Integer(supplier.getChunkSize(uid)), details.get(1));
-		assertEquals(returnZipData, details.get(2));
+		Object[] details = (Object[])result.get(1);
+		assertEquals(new Integer(supplier.getChunkSize(uid) * 3), details[0]);
+		assertEquals(new Integer(supplier.getChunkSize(uid)), details[1]);
+		assertEquals(returnZipData, details[2]);
 	}
 
 	public void testGetBulletinChunkTypo() throws Exception
@@ -484,10 +494,10 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 	
 		assertEquals(2, result.size());
 		assertEquals(NetworkInterfaceConstants.CHUNK_OK, result.get(0));
-		Vector details = (Vector)result.get(1);
-		assertEquals(new Integer(supplier.getChunkSize(uid) * 3), details.get(0));
-		assertEquals(new Integer(supplier.getChunkSize(uid)), details.get(1));
-		assertEquals(returnZipData, details.get(2));
+		Object[] details = (Object[])result.get(1);
+		assertEquals(new Integer(supplier.getChunkSize(uid) * 3), details[0]);
+		assertEquals(new Integer(supplier.getChunkSize(uid)), details[1]);
+		assertEquals(returnZipData, details[2]);
 	}
 
 	Vector writeSampleHeaderPacket(BulletinHeaderPacket bhp) throws Exception

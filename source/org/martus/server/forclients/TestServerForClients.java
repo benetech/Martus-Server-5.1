@@ -30,10 +30,13 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 
+import org.martus.amplifier.ServerCallbackInterface;
 import org.martus.common.HQKey;
 import org.martus.common.HQKeys;
 import org.martus.common.bulletin.AttachmentProxy;
@@ -257,15 +260,20 @@ public class TestServerForClients extends TestCaseEnhanced
 		assertNotNull("null id1 [0] list2", list2.get(0));
 		assertEquals(NetworkInterfaceConstants.OK, list2.get(0));
 		String b1Summary = bulletinDraft.getLocalId() + "=" + bulletinDraft.getFieldDataPacket().getLocalId();
-		assertContains("missing bulletin Draft?",b1Summary , (Vector)list2.get(1));
-
+		
+		Object[] rawInfos = (Object[]) list2.get(1);
+		List<Object> infoList = Arrays.asList(rawInfos);
+		Vector infos = new Vector(infoList);
+		assertContains("missing bulletin Draft?",b1Summary, infos);
 		
 		Vector list3 = testServer.listFieldOfficeDraftBulletinIds(otherServerSecurity.getPublicKeyString(), fieldSecurity1.getPublicKeyString(), new Vector());
 		assertEquals("wrong length list hq2", 2, list3.size());
 		assertNotNull("null id1 [0] list hq2", list3.get(0));
 		assertEquals(NetworkInterfaceConstants.OK, list3.get(0));
 		String b1Summaryhq2 = bulletinDraft.getLocalId() + "=" + bulletinDraft.getFieldDataPacket().getLocalId();
-		assertContains("missing bulletin Draft for HQ2?",b1Summaryhq2 , (Vector)list3.get(1));
+		Object[] rawList3 = (Object[]) list3.get(1);
+		Vector list3Ids = new Vector(Arrays.asList(rawList3));
+		assertContains("missing bulletin Draft for HQ2?",b1Summaryhq2, list3Ids);
 		
 		TRACE_END();
 	}
@@ -501,7 +509,7 @@ public class TestServerForClients extends TestCaseEnhanced
 		
 		int[] developmentLinuxPorts = server.shiftToDevelopmentPortsIfNotInSecureMode(ports);
 		for(int i=0; i < ports.length; ++i)
-			assertEquals("didn't shift? " + i, ports[i]+9000, developmentLinuxPorts[i]);
+			assertEquals("didn't shift? " + i, ports[i]+ServerCallbackInterface.DEVELOPMENT_MODE_PORT_DELTA, developmentLinuxPorts[i]);
 		mainServer.deleteAllFiles();
 
 		mainServer.enterSecureMode();
@@ -619,8 +627,8 @@ public class TestServerForClients extends TestCaseEnhanced
 
 		Vector noNewsForThisVersion = mockServerForClients.getNews(clientAccountId, "wrong version label" , "wrong version build date");
 		assertEquals(2, noNewsForThisVersion.size());
-		Vector noNewsItems = (Vector)noNewsForThisVersion.get(1);
-		assertEquals(0, noNewsItems.size());
+		Object[] noNewsItems = (Object[]) noNewsForThisVersion.get(1);
+		assertEquals(0, noNewsItems.length);
 		
 
 		String versionToUse = "2.3.4";
@@ -659,18 +667,18 @@ public class TestServerForClients extends TestCaseEnhanced
 		Vector noNews = testServer.getNews(clientAccountId, "1.0.2", "03/03/03");
 		assertEquals(2, noNews.size());
 		assertEquals("ok", noNews.get(0));
-		assertEquals(0, ((Vector)noNews.get(1)).size());
+		assertEquals(0, ((Object[])noNews.get(1)).length);
 
 		testServer.clientsBanned.add(clientAccountId);
 		Vector bannedNews = testServer.getNews(clientAccountId, "1.0.1", "01/01/03");
 		testServer.clientsBanned.remove(clientAccountId);
 		assertEquals(2, bannedNews.size());
 		assertEquals("ok", bannedNews.get(0));
-		Vector newsItems = (Vector)bannedNews.get(1);
-		assertEquals(1, newsItems.size());
-		assertContains("account", (String)newsItems.get(0));
-		assertContains("blocked", (String)newsItems.get(0));
-		assertContains("Administrator", (String)newsItems.get(0));
+		Object[] newsItems = (Object[])bannedNews.get(1);
+		assertEquals(1, newsItems.length);
+		assertContains("account", (String)newsItems[0]);
+		assertContains("blocked", (String)newsItems[0]);
+		assertContains("Administrator", (String)newsItems[0]);
 
 		TRACE_END();
 	}
@@ -687,7 +695,7 @@ public class TestServerForClients extends TestCaseEnhanced
 		Vector noNews = newsTestServer.getNews(clientAccountId, "1.0.2", "03/03/03");
 		assertEquals(2, noNews.size());
 		assertEquals("ok", noNews.get(0));
-		assertEquals(0, ((Vector)noNews.get(1)).size());
+		assertEquals(0, ((Object[])noNews.get(1)).length);
 		
 		File newsDirectory = newsTestServer.getNewsDirectory();
 		newsDirectory.deleteOnExit();
@@ -696,7 +704,7 @@ public class TestServerForClients extends TestCaseEnhanced
 		noNews = newsTestServer.getNews(clientAccountId, "1.0.2", "03/03/03");
 		assertEquals(2, noNews.size());
 		assertEquals("ok", noNews.get(0));
-		assertEquals(0, ((Vector)noNews.get(1)).size());
+		assertEquals(0, ((Object[])noNews.get(1)).length);
 		
 		
 		File newsFile1 = new File(newsDirectory, "$$$news1.txt");
@@ -744,13 +752,13 @@ public class TestServerForClients extends TestCaseEnhanced
 
 		assertEquals(2, newsItems.size());
 		assertEquals("ok", newsItems.get(0));
-		Vector news = (Vector)newsItems.get(1);
-		assertEquals(1, news.size());
+		Object[] news = (Object[])newsItems.get(1);
+		assertEquals(1, news.length);
 
 		final String bannedText = "Your account has been blocked from accessing this server. " + 
 		"Please contact the Server Policy Administrator for more information.";
 
-		assertEquals(bannedText, news.get(0));
+		assertEquals(bannedText, news[0]);
 		
 		Date fileDate = new Date(newsFile1.lastModified());
 		SimpleDateFormat format = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
@@ -767,12 +775,12 @@ public class TestServerForClients extends TestCaseEnhanced
 		newsItems = newsTestServer.getNews(clientAccountId, "1.0.2", "03/03/03");
 		assertEquals(2, newsItems.size());
 		assertEquals("ok", newsItems.get(0));
-		news = (Vector)newsItems.get(1);
-		assertEquals(3, news.size());
+		news = (Object[])newsItems.get(1);
+		assertEquals(3, news.length);
 		
-		assertEquals(NewsFileText2, news.get(0));
-		assertEquals(NewsFileText3, news.get(1));
-		assertEquals(NewsFileText1, news.get(2));
+		assertEquals(NewsFileText2, news[0]);
+		assertEquals(NewsFileText3, news[1]);
+		assertEquals(NewsFileText1, news[2]);
 		TRACE_END();
 	}
 	

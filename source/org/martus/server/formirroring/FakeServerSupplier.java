@@ -145,7 +145,7 @@ class FakeServerSupplier implements ServerSupplierInterface
 				Vector info = new Vector();
 				info.add(uid.getLocalId());
 				info.add(data.get(1));
-				bulletins.add(info);
+				bulletins.add(info.toArray());
 			}
 		}
 		return bulletins;

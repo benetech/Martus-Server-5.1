@@ -153,7 +153,7 @@ public class ServerForMirroring implements ServerSupplierInterface
 			port += ServerCallbackInterface.DEVELOPMENT_MODE_PORT_DELTA;
 		logNotice("Opening port " + mainIpAddress +":" + port + " for mirroring...");
 		SupplierSideMirroringHandler supplierHandler = new SupplierSideMirroringHandler(this, getSecurity());
-		MartusXmlRpcServer.createSSLXmlRpcServer(supplierHandler, MirroringInterface.DEST_OBJECT_NAME, port, mainIpAddress);
+		MartusXmlRpcServer.createSSLXmlRpcServer(supplierHandler, MirroringInterface.class, MirroringInterface.DEST_OBJECT_NAME, port, mainIpAddress);
 
 		logNotice("Mirroring port opened");
 	}

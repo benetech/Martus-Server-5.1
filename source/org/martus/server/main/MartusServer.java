@@ -887,8 +887,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		logInfo("getServerCompliance");
 		Vector result = new Vector();
 		result.add(OK);
-		Vector compliance = new Vector();
-		compliance.add(complianceStatement);
+		Object[] compliance = new Object[] {complianceStatement};
 		result.add(compliance);
 		return result;
 	}	

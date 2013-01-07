@@ -237,7 +237,7 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants, LoggerInt
 
 		InetAddress mainIpAddress = MartusServer.getMainIpAddress();
 		logNotice("Opening port "+ mainIpAddress + ":" + port + " for amplifiers...");
-		MartusXmlRpcServer.createSSLXmlRpcServer(getAmplifierHandler(),"MartusAmplifierServer", port, mainIpAddress);
+		MartusXmlRpcServer.createSSLXmlRpcServer(getAmplifierHandler(), AmplifierNetworkInterface.class, "MartusAmplifierServer", port, mainIpAddress);
 	}
 
 	public Vector getServerInformation()

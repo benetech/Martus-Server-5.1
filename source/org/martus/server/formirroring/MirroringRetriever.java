@@ -237,7 +237,8 @@ public class MirroringRetriever implements LoggerInterface
 		Vector mirroringInfo = new Vector();
 		for(int i=0; i < listWithLocalIds.size(); ++i)
 		{
-			UniversalId uid = UniversalId.createFromAccountAndLocalId(accountId, (String)((Vector)listWithLocalIds.get(i)).get(0));
+			Object[] infos = (Object[])listWithLocalIds.get(i);
+			UniversalId uid = UniversalId.createFromAccountAndLocalId(accountId, (String)infos[0]);
 			BulletinMirroringInformation mirroringData = new BulletinMirroringInformation(uid);
 			mirroringInfo.add(mirroringData.getInfoWithLocalId());
 		}

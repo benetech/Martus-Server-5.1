@@ -48,7 +48,7 @@ public class SupplierSideMirroringHandler implements MirroringInterface, Network
 		{
 			if(!isSignatureOk(callerAccountId, parameters, signature))
 			{
-				logError("Signature Failed");
+				logError("SupplierSideMirroringHandler Signature Failed");
 				logError("Account: " + MartusCrypto.formatAccountIdForLog(callerAccountId));
 				logError("parameters: " + parameters.toString());
 				logError("signature: " + signature);
@@ -105,7 +105,7 @@ public class SupplierSideMirroringHandler implements MirroringInterface, Network
 				logNotice("listAccounts -> " + accounts.size());
 	
 				result.add(OK);
-				result.add(accounts);
+				result.add(accounts.toArray());
 				return result;
 			}
 			case cmdListBulletinsForMirroring:
@@ -140,7 +140,7 @@ public class SupplierSideMirroringHandler implements MirroringInterface, Network
 					logInfo("listBulletins: None");
 				
 				result.add(OK);
-				result.add(infos);
+				result.add(infos.toArray());
 				return result;
 			}
 			case cmdListAvailableIdsForMirroring:
@@ -175,7 +175,7 @@ public class SupplierSideMirroringHandler implements MirroringInterface, Network
 					logInfo("listAvailableIds: None");
 				
 				result.add(OK);
-				result.add(new Vector(infos));
+				result.add(infos.toArray());
 				return result;
 			}
 			case cmdGetBulletinUploadRecordForMirroring:
@@ -197,7 +197,7 @@ public class SupplierSideMirroringHandler implements MirroringInterface, Network
 					burs.add(bur);
 					
 					result.add(OK);
-					result.add(burs);
+					result.add(burs.toArray());
 				}
 				return result;
 			}
@@ -214,7 +214,7 @@ public class SupplierSideMirroringHandler implements MirroringInterface, Network
 				logNotice("getBulletinChunk: Exit");
 				
 				result.add(resultTag);
-				result.add(data);
+				result.add(data.toArray());
 				return result;
 			}
 			default:
