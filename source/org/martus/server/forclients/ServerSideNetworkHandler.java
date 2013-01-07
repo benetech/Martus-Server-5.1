@@ -167,7 +167,7 @@ public class ServerSideNetworkHandler implements ServerSideNetworkInterface, Net
 			String authorAccountId = (String)parameters.get(index++);
 			Vector retrieveTags = new Vector();
 			if(index < parameters.size())
-				retrieveTags = (Vector)parameters.get(index++);
+				retrieveTags = new Vector(Arrays.asList((Object[])parameters.get(index++)));
 			
 			if(myAccountId.equals(authorAccountId))
 				result = server.listMySealedBulletinIds(authorAccountId, retrieveTags);
