@@ -27,7 +27,9 @@ Boston, MA 02111-1307, USA.
 package org.martus.server.tools;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Set;
 
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.database.BulletinUploadRecord;
@@ -46,7 +48,7 @@ public class ListPublicKeysThatHaveUploaded
 	
 	public ListPublicKeysThatHaveUploaded(String[] args)
 	{
-		accountsThatHaveUploaded = new HashSet();
+		accountsThatHaveUploaded = Collections.synchronizedSet(new HashSet());
 		
 		try
 		{
@@ -148,5 +150,5 @@ public class ListPublicKeysThatHaveUploaded
 	String keyPairFileName;
 	MartusCrypto security;
 	ServerFileDatabase db;
-	HashSet accountsThatHaveUploaded;
+	Set accountsThatHaveUploaded;
 }
