@@ -37,6 +37,7 @@ import org.martus.common.crypto.MartusSecurity;
 import org.martus.common.database.ServerFileDatabase;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.utilities.MartusServerUtilities;
+import org.martus.util.UnicodeWriter;
 import org.martus.util.inputstreamwithseek.FileInputStreamWithSeek;
 
 public class CreateAccountMap 
@@ -51,13 +52,15 @@ public class CreateAccountMap
 		processArgs(args);
 		if(prompt)
 			System.out.println("CreateAccountMap");
-		security = MartusServerUtilities.loadKeyPair(keyPairFileName, prompt);
 
 		File packetsDirectory = new File(packetDirName);
 		if(noisy)
 			MartusLogger.log("Packets directory: " + packetsDirectory);
+
+		security = MartusServerUtilities.loadKeyPair(keyPairFileName, prompt);
 		db = new ServerFileDatabase(packetsDirectory, security);
 		File mapFile = db.getAccountMapFile();
+
 		if(noisy)
 			MartusLogger.log("Account map file: " + mapFile.getAbsolutePath());
 		if(mapFile.exists())
@@ -127,8 +130,21 @@ public class CreateAccountMap
 	private void writeAccountDirectoryIdentificationFile(File accountDirectory, String accountId) throws Exception
 	{
 		String publicCode = MartusSecurity.computeFormattedPublicCode(accountId);
-		File identificationFile = new File(accountDirectory, "account-" + publicCode);
-		identificationFile.createNewFile();
+		File metadataDirectory = new File(accountDirectory, "metadata");
+		metadataDirectory.mkdirs();
+		File identificationFile = new File(metadataDirectory, "acct-" + publicCode + ".txt");
+		UnicodeWriter writer = new UnicodeWriter(identificationFile);
+		try
+		{
+			writer.writeln(accountId);
+		}
+		finally
+		{
+			writer.close();
+		}
+
+		MartusServerUtilities.createSignatureFileFromFileOnServer(identificationFile, security);
+
 	}
 
 	private String getAccountIdFromAccountDirectory(File accountDirectory) throws Exception 
