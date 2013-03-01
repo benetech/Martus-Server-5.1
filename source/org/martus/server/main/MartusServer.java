@@ -50,16 +50,15 @@ import org.martus.common.ContactInfo;
 import org.martus.common.LoggerInterface;
 import org.martus.common.LoggerToConsole;
 import org.martus.common.MartusUtilities;
-import org.martus.common.Version;
-import org.martus.common.VersionBuildDate;
 import org.martus.common.MartusUtilities.FileTooLargeException;
 import org.martus.common.MartusUtilities.FileVerificationException;
 import org.martus.common.MartusUtilities.InvalidPublicKeyFileException;
 import org.martus.common.MartusUtilities.PublicInformationInvalidException;
+import org.martus.common.Version;
+import org.martus.common.VersionBuildDate;
 import org.martus.common.bulletin.BulletinZipUtilities;
 import org.martus.common.bulletinstore.BulletinStore;
 import org.martus.common.crypto.MartusCrypto;
-import org.martus.common.crypto.MartusSecurity;
 import org.martus.common.crypto.MartusCrypto.AuthorizationFailedException;
 import org.martus.common.crypto.MartusCrypto.CryptoException;
 import org.martus.common.crypto.MartusCrypto.CryptoInitializationException;
@@ -67,22 +66,23 @@ import org.martus.common.crypto.MartusCrypto.DecryptionException;
 import org.martus.common.crypto.MartusCrypto.InvalidKeyPairFileVersionException;
 import org.martus.common.crypto.MartusCrypto.MartusSignatureException;
 import org.martus.common.crypto.MartusCrypto.NoKeyPairException;
+import org.martus.common.crypto.MartusSecurity;
 import org.martus.common.database.Database;
+import org.martus.common.database.Database.RecordHiddenException;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.FileDatabase;
 import org.martus.common.database.ReadableDatabase;
 import org.martus.common.database.ServerFileDatabase;
-import org.martus.common.database.Database.RecordHiddenException;
 import org.martus.common.network.MartusSecureWebServer;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.FieldDataPacket;
 import org.martus.common.packet.Packet;
-import org.martus.common.packet.UniversalId;
 import org.martus.common.packet.Packet.InvalidPacketException;
 import org.martus.common.packet.Packet.SignatureVerificationException;
 import org.martus.common.packet.Packet.WrongAccountException;
 import org.martus.common.packet.Packet.WrongPacketTypeException;
+import org.martus.common.packet.UniversalId;
 import org.martus.common.serverside.ServerSideUtilities;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.common.xmlrpc.XmlRpcThread;
@@ -94,8 +94,8 @@ import org.martus.server.main.ServerBulletinStore.DuplicatePacketException;
 import org.martus.server.main.ServerBulletinStore.SealedPacketExistsException;
 import org.martus.util.DirectoryUtils;
 import org.martus.util.StreamableBase64;
-import org.martus.util.UnicodeReader;
 import org.martus.util.StreamableBase64.InvalidBase64Exception;
+import org.martus.util.UnicodeReader;
 
 public class MartusServer implements NetworkInterfaceConstants, ServerCallbackInterface
 {
@@ -1619,9 +1619,9 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 
 	private void initializeServerForMirroring() throws Exception
 	{
+		serverForMirroring.createGatewaysWeWillCall();
 		if(!isMirrorListenerEnabled())
 			return;
-		serverForMirroring.createGatewaysWeWillCall();
 		serverForMirroring.addListeners();
 	}
 
