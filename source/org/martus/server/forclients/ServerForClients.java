@@ -35,7 +35,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Vector;
 
-import org.martus.amplifier.ServerCallbackInterface;
 import org.martus.common.MagicWordEntry;
 import org.martus.common.MagicWords;
 import org.martus.common.MartusUtilities;
@@ -133,27 +132,15 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	private int[] getNonSSLPorts()
 	{
 		int[] defaultPorts = NetworkInterfaceXmlRpcConstants.defaultNonSSLPorts;
-		return shiftToDevelopmentPortsIfNotInSecureMode(defaultPorts);
+		return coreServer.shiftToDevelopmentPortsIfNotInSecureMode(defaultPorts);
 	}
 
 	private int[] getSSLPorts()
 	{
 		int[] defaultPorts = NetworkInterfaceXmlRpcConstants.defaultSSLPorts;
-		return shiftToDevelopmentPortsIfNotInSecureMode(defaultPorts);
+		return coreServer.shiftToDevelopmentPortsIfNotInSecureMode(defaultPorts);
 	}
 
-	public int[] shiftToDevelopmentPortsIfNotInSecureMode(int[] defaultPorts)
-	{
-		if(coreServer.isSecureMode())
-			return defaultPorts;
-		
-		int[] developmentPorts = new int[defaultPorts.length];
-		for(int p = 0; p < developmentPorts.length; ++p)
-			developmentPorts[p] = defaultPorts[p] + ServerCallbackInterface.DEVELOPMENT_MODE_PORT_DELTA;
-		
-		return developmentPorts;
-	}
-	
 	public int[] getActiveRunnerCounts()
 	{
 		int[] counts = new int[activeWebServers.size()];

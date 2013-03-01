@@ -32,7 +32,7 @@ import java.net.InetAddress;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Vector;
-import org.martus.amplifier.ServerCallbackInterface;
+
 import org.martus.common.LoggerInterface;
 import org.martus.common.MartusUtilities;
 import org.martus.common.MartusUtilities.InvalidPublicKeyFileException;
@@ -45,14 +45,14 @@ import org.martus.common.database.ReadableDatabase;
 import org.martus.common.network.MartusXmlRpcServer;
 import org.martus.common.network.mirroring.CallerSideMirroringGateway;
 import org.martus.common.network.mirroring.CallerSideMirroringGatewayForXmlRpc;
-import org.martus.common.network.mirroring.MirroringInterface;
 import org.martus.common.network.mirroring.CallerSideMirroringGatewayForXmlRpc.SSLSocketSetupException;
+import org.martus.common.network.mirroring.MirroringInterface;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.server.main.MartusServer;
 import org.martus.server.main.ServerBulletinStore;
-import org.martus.util.StreamableBase64;
 import org.martus.util.DirectoryUtils;
 import org.martus.util.LoggerUtil;
+import org.martus.util.StreamableBase64;
 import org.martus.util.inputstreamwithseek.InputStreamWithSeek;
 
 
@@ -148,9 +148,7 @@ public class ServerForMirroring implements ServerSupplierInterface
 		logInfo("Initializing ServerForMirroring");
 		
 		InetAddress mainIpAddress = MartusServer.getMainIpAddress();
-		int port = MirroringInterface.MARTUS_PORT_FOR_MIRRORING;
-		if(!coreServer.isSecureMode())
-			port += ServerCallbackInterface.DEVELOPMENT_MODE_PORT_DELTA;
+		int port = getPort();
 		logNotice("Opening port " + mainIpAddress +":" + port + " for mirroring...");
 		SupplierSideMirroringHandler supplierHandler = new SupplierSideMirroringHandler(this, getSecurity());
 		MartusXmlRpcServer.createSSLXmlRpcServer(supplierHandler, MirroringInterface.class, MirroringInterface.DEST_OBJECT_NAME, port, mainIpAddress);
@@ -351,13 +349,21 @@ public class ServerForMirroring implements ServerSupplierInterface
 			PublicInformationInvalidException, 
 			SSLSocketSetupException
 	{
-		int port = MirroringInterface.MARTUS_PORT_FOR_MIRRORING;
+		int port = getPort();
+		
 		Vector publicInfo = MartusUtilities.importServerPublicKeyFromFile(publicKeyFile, getSecurity());
 		String publicKey = (String)publicInfo.get(0);
 
 		CallerSideMirroringGatewayForXmlRpc xmlRpcGateway = new CallerSideMirroringGatewayForXmlRpc(ip, port); 
 		xmlRpcGateway.setExpectedPublicKey(publicKey);
 		return new CallerSideMirroringGateway(xmlRpcGateway);
+	}
+
+	private int getPort() 
+	{
+		int[] ports = new int[] {MirroringInterface.MARTUS_PORT_FOR_MIRRORING};
+		ports = coreServer.shiftToDevelopmentPortsIfNotInSecureMode(ports);
+		return ports[0];
 	}
 
 	

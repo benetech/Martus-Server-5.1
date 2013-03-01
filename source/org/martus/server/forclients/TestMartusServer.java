@@ -46,6 +46,7 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
+import org.martus.amplifier.ServerCallbackInterface;
 import org.martus.common.ContactInfo;
 import org.martus.common.HQKey;
 import org.martus.common.HQKeys;
@@ -59,9 +60,9 @@ import org.martus.common.bulletin.BulletinLoader;
 import org.martus.common.bulletin.BulletinZipUtilities;
 import org.martus.common.bulletinstore.BulletinStore;
 import org.martus.common.crypto.MartusCrypto;
+import org.martus.common.crypto.MartusCrypto.MartusSignatureException;
 import org.martus.common.crypto.MartusSecurity;
 import org.martus.common.crypto.MockMartusSecurity;
-import org.martus.common.crypto.MartusCrypto.MartusSignatureException;
 import org.martus.common.database.BulletinUploadRecord;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
@@ -78,9 +79,9 @@ import org.martus.server.main.MartusServer;
 import org.martus.server.main.ServerBulletinStore;
 import org.martus.util.Base64;
 import org.martus.util.StreamableBase64;
+import org.martus.util.StreamableBase64.InvalidBase64Exception;
 import org.martus.util.TestCaseEnhanced;
 import org.martus.util.UnicodeReader;
-import org.martus.util.StreamableBase64.InvalidBase64Exception;
 import org.martus.util.inputstreamwithseek.InputStreamWithSeek;
 
 
@@ -1739,6 +1740,25 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		testServer.serverForClients.clientConnectionExit();
 
 		TRACE_END();
+	}
+
+	public void testShiftToDevelopmentPortsIfRequested() throws Exception
+	{
+		int ports[] = {1,2};
+		
+		MockMartusServer mainServer = new MockMartusServer();
+		
+		int[] developmentLinuxPorts = mainServer.shiftToDevelopmentPortsIfNotInSecureMode(ports);
+		for(int i=0; i < ports.length; ++i)
+			assertEquals("didn't shift? " + i, ports[i]+ServerCallbackInterface.DEVELOPMENT_MODE_PORT_DELTA, developmentLinuxPorts[i]);
+		mainServer.deleteAllFiles();
+
+		mainServer.enterSecureMode();
+		int[] productionLinuxPorts = mainServer.shiftToDevelopmentPortsIfNotInSecureMode(ports);
+		assertEquals("wrong port count?", ports.length, productionLinuxPorts.length);
+		for(int i=0; i < ports.length; ++i)
+			assertEquals("shifted? " + i, ports[i], productionLinuxPorts[i]);
+		
 	}
 
 	Vector getBulletinChunk(MartusCrypto securityToUse, NetworkInterface server, String authorAccountId, String bulletinLocalId, int chunkOffset, int maxChunkSize) throws Exception

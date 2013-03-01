@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 
-import org.martus.amplifier.ServerCallbackInterface;
 import org.martus.common.HQKey;
 import org.martus.common.HQKeys;
 import org.martus.common.bulletin.AttachmentProxy;
@@ -498,26 +497,6 @@ public class TestServerForClients extends TestCaseEnhanced
 		other.deleteAllFiles();
 
 		TRACE_END();
-	}
-
-	public void testShiftToDevelopmentPortsIfRequested() throws Exception
-	{
-		int ports[] = {1,2};
-		
-		MockMartusServer mainServer = new MockMartusServer();
-		ServerForClients server = new ServerForClients(mainServer);
-		
-		int[] developmentLinuxPorts = server.shiftToDevelopmentPortsIfNotInSecureMode(ports);
-		for(int i=0; i < ports.length; ++i)
-			assertEquals("didn't shift? " + i, ports[i]+ServerCallbackInterface.DEVELOPMENT_MODE_PORT_DELTA, developmentLinuxPorts[i]);
-		mainServer.deleteAllFiles();
-
-		mainServer.enterSecureMode();
-		int[] productionLinuxPorts = server.shiftToDevelopmentPortsIfNotInSecureMode(ports);
-		assertEquals("wrong port count?", ports.length, productionLinuxPorts.length);
-		for(int i=0; i < ports.length; ++i)
-			assertEquals("shifted? " + i, ports[i], productionLinuxPorts[i]);
-		
 	}
 
 	public void testBannedClients()
