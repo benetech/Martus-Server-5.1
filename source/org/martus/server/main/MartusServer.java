@@ -1647,6 +1647,18 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		amp.initalizeAmplifier(keystorePassword);
 	}
 
+	public int[] shiftToDevelopmentPortsIfNotInSecureMode(int[] defaultPorts)
+	{
+		if(isSecureMode())
+			return defaultPorts;
+		
+		int[] developmentPorts = new int[defaultPorts.length];
+		for(int p = 0; p < developmentPorts.length; ++p)
+			developmentPorts[p] = defaultPorts[p] + ServerCallbackInterface.DEVELOPMENT_MODE_PORT_DELTA;
+		
+		return developmentPorts;
+	}
+
 	protected void deleteRunningFile()
 	{
 		getRunningFile().delete();
