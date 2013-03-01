@@ -105,7 +105,13 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		{
 			displayVersion();
 			System.out.println("Initializing...this will take a few seconds...");
-			final File directory = getDefaultDataDirectory();
+			File directory = getDefaultDataDirectory();
+			final String DATA_DIRECTORY = "--data-directory=";
+			for (String arg : args) 
+			{
+				if(arg.startsWith(DATA_DIRECTORY))
+					directory = new File(arg.substring(DATA_DIRECTORY.length()));
+			}
 			if(!directory.exists())
 			{
 				System.out.println("ERROR: Missing directory: " + directory);
