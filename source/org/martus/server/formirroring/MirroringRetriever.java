@@ -29,13 +29,15 @@ package org.martus.server.formirroring;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Vector;
 
 import org.martus.common.LoggerInterface;
-import org.martus.common.ProgressMeterInterface;
+import org.martus.common.MartusLogger;
 import org.martus.common.MartusUtilities.BulletinNotFoundException;
 import org.martus.common.MartusUtilities.NotYourBulletinErrorException;
 import org.martus.common.MartusUtilities.ServerErrorException;
+import org.martus.common.ProgressMeterInterface;
 import org.martus.common.bulletin.BulletinZipUtilities;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MartusCrypto.MartusSignatureException;
@@ -169,6 +171,7 @@ public class MirroringRetriever implements LoggerInterface
 		catch (Exception e)
 		{
 			logError("MirroringRetriever.getNextUidToRetrieve: ",e);
+			MartusLogger.logException(e);
 			return null;
 		}
 	}
@@ -240,7 +243,8 @@ public class MirroringRetriever implements LoggerInterface
 			Object[] infos = (Object[])listWithLocalIds.get(i);
 			UniversalId uid = UniversalId.createFromAccountAndLocalId(accountId, (String)infos[0]);
 			BulletinMirroringInformation mirroringData = new BulletinMirroringInformation(uid);
-			mirroringInfo.add(mirroringData.getInfoWithLocalId());
+			Vector infoWithLocalId = mirroringData.getInfoWithLocalId();
+			mirroringInfo.add(infoWithLocalId.toArray());
 		}
 		
 		return listOnlyPacketsThatWeWantUsingBulletinMirroringInformation(accountId, mirroringInfo);
@@ -251,7 +255,10 @@ public class MirroringRetriever implements LoggerInterface
 		Vector dataToRetrieve = new Vector();
 		for(int i=0; i < listWithMirroringInfo.size(); ++i)
 		{
-			Vector info = (Vector)listWithMirroringInfo.get(i);
+			if(listWithMirroringInfo.get(i) instanceof Vector)
+				MartusLogger.log("Found vector instead of array");
+			Object[] infoArray = (Object[])listWithMirroringInfo.get(i);
+			Vector info = new Vector(Arrays.asList(infoArray));
 			BulletinMirroringInformation mirroringInfo = new BulletinMirroringInformation(accountId, info);
 			if(doWeWantThis(mirroringInfo))
 				dataToRetrieve.add(mirroringInfo);

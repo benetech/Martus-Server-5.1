@@ -276,30 +276,48 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 
 		BulletinHeaderPacket bhpDraft = new BulletinHeaderPacket(authorSecurity);
 		bhpDraft.setStatus(BulletinConstants.STATUSDRAFT);
-		Vector result3 = writeSampleAvailableIDPacket(bhpDraft);
+		Vector resultDraft = writeSampleAvailableIDPacket(bhpDraft);
 		
 		supplier.authorizedCaller = callerAccountId;
+
+		CallerSideMirroringInterface wrappedHandler = new PassThroughMirroringGateway(handler);
 
 		Vector parameters = new Vector();
 		parameters.add(MirroringInterface.CMD_MIRRORING_LIST_AVAILABLE_IDS);
 		parameters.add(authorAccountId);
 		String sig = callerSecurity.createSignatureOfVectorOfStrings(parameters);
-		Vector result = handler.request(callerAccountId, parameters, sig);
+		Vector result = wrappedHandler.request(callerAccountId, parameters, sig);
 		assertEquals(NetworkInterfaceConstants.OK, result.get(0));
-		Object[] rawInfos = (Object[])result.get(1);
-		assertEquals(3, rawInfos.length);
-		Vector infos = new Vector(Arrays.asList(rawInfos));
-		assertContains("result1 missing?", result1, infos);
-		assertContains("result2 missing?",result2, infos);
-		assertContains("result3 missing?",result3, infos);
+		Object[] infos = (Object[])result.get(1);
+		assertEquals(3, infos.length);
+		boolean got1 = false;
+		boolean got2 = false;
+		boolean gotDraft = false;
+		for(int i = 0; i < infos.length; ++i)
+		{
+			Object[] info = (Object[])infos[i];
+			String id = (String)info[0];
+			String expectedId1 = (String)result1.get(0);
+			if(id.equals(expectedId1))
+				got1 = true;
+			String expectedId2 = (String)result2.get(0);
+			if(id.equals(expectedId2))
+				got2 = true;
+			String expectedIdDraft = (String)resultDraft.get(0);
+			if(id.equals(expectedIdDraft))
+				gotDraft = true;
+		}
+		assertTrue("Didn't get bhp1?", got1);
+		assertTrue("Didn't get bhp2?", got2);
+		assertTrue("Didn't get bhpDraft?", gotDraft);
+		Vector infosAsVector = new Vector(Arrays.asList(infos));
 		
-		CallerSideMirroringInterface wrappedHandler = new PassThroughMirroringGateway(handler);
 		CallerSideMirroringGateway gateway = new CallerSideMirroringGateway(wrappedHandler);
 		LoggerToNull logger = new LoggerToNull();
 		MockMartusServer server = new MockMartusServer();
 
 		MirroringRetriever mirroringRetriever = new MirroringRetriever(server.getStore(), gateway, "Dummy IP", logger);
-		Vector returnedListWeWantToMirror = mirroringRetriever.listOnlyPacketsThatWeWantUsingBulletinMirroringInformation(authorSecurity.getPublicKeyString(), infos);
+		Vector returnedListWeWantToMirror = mirroringRetriever.listOnlyPacketsThatWeWantUsingBulletinMirroringInformation(authorSecurity.getPublicKeyString(), infosAsVector);
 		int bulletinsVerified = 0;
 		for (int i = 0; i < returnedListWeWantToMirror.size(); i++)
 		{
