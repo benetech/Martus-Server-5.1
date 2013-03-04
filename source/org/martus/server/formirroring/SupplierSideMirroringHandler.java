@@ -28,13 +28,14 @@ package org.martus.server.formirroring;
 
 import java.util.Set;
 import java.util.Vector;
+
 import org.martus.common.LoggerInterface;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.network.NetworkInterfaceConstants;
-import org.martus.common.network.mirroring.MirroringInterface;
+import org.martus.common.network.mirroring.SupplierSideMirroringInterface;
 import org.martus.util.LoggerUtil;
 
-public class SupplierSideMirroringHandler implements MirroringInterface, NetworkInterfaceConstants, LoggerInterface
+public class SupplierSideMirroringHandler implements SupplierSideMirroringInterface, NetworkInterfaceConstants, LoggerInterface
 {
 	public SupplierSideMirroringHandler(ServerSupplierInterface supplierToUse, MartusCrypto verifierToUse)
 	{

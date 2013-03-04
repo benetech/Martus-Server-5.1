@@ -40,7 +40,9 @@ import org.martus.common.database.MockDatabase;
 import org.martus.common.database.MockServerDatabase;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.network.mirroring.CallerSideMirroringGateway;
+import org.martus.common.network.mirroring.CallerSideMirroringInterface;
 import org.martus.common.network.mirroring.MirroringInterface;
+import org.martus.common.network.mirroring.PassThroughMirroringGateway;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
 import org.martus.server.forclients.MockMartusServer;
@@ -291,7 +293,8 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 		assertContains("result2 missing?",result2, infos);
 		assertContains("result3 missing?",result3, infos);
 		
-		CallerSideMirroringGateway gateway = new CallerSideMirroringGateway(handler);
+		CallerSideMirroringInterface wrappedHandler = new PassThroughMirroringGateway(handler);
+		CallerSideMirroringGateway gateway = new CallerSideMirroringGateway(wrappedHandler);
 		LoggerToNull logger = new LoggerToNull();
 		MockMartusServer server = new MockMartusServer();
 

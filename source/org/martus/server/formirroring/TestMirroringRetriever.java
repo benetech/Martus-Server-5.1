@@ -31,38 +31,41 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Vector;
+
 import org.martus.common.LoggerToNull;
 import org.martus.common.bulletin.Bulletin;
 import org.martus.common.bulletin.BulletinConstants;
 import org.martus.common.bulletin.BulletinZipUtilities;
 import org.martus.common.bulletinstore.BulletinStore;
 import org.martus.common.crypto.MartusCrypto;
-import org.martus.common.crypto.MockMartusSecurity;
 import org.martus.common.crypto.MartusCrypto.CreateDigestException;
 import org.martus.common.crypto.MartusCrypto.CryptoException;
 import org.martus.common.crypto.MartusCrypto.MartusSignatureException;
+import org.martus.common.crypto.MockMartusSecurity;
 import org.martus.common.database.BulletinUploadRecord;
 import org.martus.common.database.Database;
+import org.martus.common.database.Database.RecordHiddenException;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.DeleteRequestRecord;
 import org.martus.common.database.MockDatabase;
 import org.martus.common.database.ReadableDatabase;
 import org.martus.common.database.ServerFileDatabase;
-import org.martus.common.database.Database.RecordHiddenException;
 import org.martus.common.network.NetworkResponse;
 import org.martus.common.network.mirroring.CallerSideMirroringGateway;
+import org.martus.common.network.mirroring.CallerSideMirroringInterface;
 import org.martus.common.network.mirroring.MirroringInterface;
+import org.martus.common.network.mirroring.PassThroughMirroringGateway;
 import org.martus.common.packet.BulletinHeaderPacket;
-import org.martus.common.packet.UniversalId;
 import org.martus.common.packet.Packet.InvalidPacketException;
 import org.martus.common.packet.Packet.SignatureVerificationException;
+import org.martus.common.packet.UniversalId;
 import org.martus.common.test.MockBulletinStore;
 import org.martus.common.test.UniversalIdForTesting;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.server.forclients.MockMartusServer;
 import org.martus.server.main.ServerBulletinStore;
-import org.martus.util.StreamableBase64;
 import org.martus.util.DirectoryUtils;
+import org.martus.util.StreamableBase64;
 import org.martus.util.TestCaseEnhanced;
 import org.martus.util.inputstreamwithseek.InputStreamWithSeek;
 
@@ -83,8 +86,9 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		supplier = new FakeServerSupplier();
 		supplier.authorizedCaller = security.getPublicKeyString();
 
-		handler = new SupplierSideMirroringHandler(supplier, security);
-		realGateway = new CallerSideMirroringGateway(handler);
+		realHandler = new SupplierSideMirroringHandler(supplier, security);
+		wrappedHandler = new PassThroughMirroringGateway(realHandler);
+		realGateway = new CallerSideMirroringGateway(wrappedHandler);
 		LoggerToNull logger = new LoggerToNull();
 		realRetriever = new MirroringRetriever(server.getStore(), realGateway, "Dummy IP", logger);
 		
@@ -169,7 +173,7 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 	
 	public void testTickWithNewMirroringServer() throws Exception
 	{
-		TestCallerSideMirroringGateway newGateway = new TestCallerSideMirroringGateway(handler);
+		TestCallerSideMirroringGateway newGateway = new TestCallerSideMirroringGateway(wrappedHandler);
 		LoggerToNull logger = new LoggerToNull();
 		MirroringRetriever newMirroringRetriever = new MirroringRetriever(server.getStore(), newGateway, "Dummy IP", logger);
 		boolean makeSureDraftsAreMirrored = true;
@@ -181,7 +185,8 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 	public void testTickWithOldMirroringServer() throws Exception
 	{
 		SupplierSideMirroringHandler oldHandler = new OldSupplierSideMirroringHandler(supplier, server.getSecurity());
-		TestCallerSideMirroringGateway oldGateway = new TestCallerSideMirroringGateway(oldHandler);
+		CallerSideMirroringInterface wrappedOldHandler = new PassThroughMirroringGateway(oldHandler);
+		TestCallerSideMirroringGateway oldGateway = new TestCallerSideMirroringGateway(wrappedOldHandler);
 		LoggerToNull logger = new LoggerToNull();
 
 		MirroringRetriever mirroringRetriever = new MirroringRetriever(server.getStore(), oldGateway, "Dummy IP", logger);
@@ -192,7 +197,7 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 	
 	class TestCallerSideMirroringGateway extends CallerSideMirroringGateway
 	{
-		public TestCallerSideMirroringGateway(MirroringInterface handlerToUse)
+		public TestCallerSideMirroringGateway(CallerSideMirroringInterface handlerToUse)
 		{
 			super(handlerToUse);
 		}
@@ -556,7 +561,8 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 
 	MockMartusServer server;
 	FakeServerSupplier supplier;
-	SupplierSideMirroringHandler handler;
+	SupplierSideMirroringHandler realHandler;
+	CallerSideMirroringInterface wrappedHandler;
 	CallerSideMirroringGateway realGateway;
 	MirroringRetriever realRetriever;
 }

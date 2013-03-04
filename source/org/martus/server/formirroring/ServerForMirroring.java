@@ -47,6 +47,7 @@ import org.martus.common.network.mirroring.CallerSideMirroringGateway;
 import org.martus.common.network.mirroring.CallerSideMirroringGatewayForXmlRpc;
 import org.martus.common.network.mirroring.CallerSideMirroringGatewayForXmlRpc.SSLSocketSetupException;
 import org.martus.common.network.mirroring.MirroringInterface;
+import org.martus.common.network.mirroring.SupplierSideMirroringInterface;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.server.main.MartusServer;
 import org.martus.server.main.ServerBulletinStore;
@@ -151,7 +152,7 @@ public class ServerForMirroring implements ServerSupplierInterface
 		int port = getPort();
 		logNotice("Opening port " + mainIpAddress +":" + port + " for mirroring...");
 		SupplierSideMirroringHandler supplierHandler = new SupplierSideMirroringHandler(this, getSecurity());
-		MartusXmlRpcServer.createSSLXmlRpcServer(supplierHandler, MirroringInterface.class, MirroringInterface.DEST_OBJECT_NAME, port, mainIpAddress);
+		MartusXmlRpcServer.createSSLXmlRpcServer(supplierHandler, SupplierSideMirroringInterface.class, MirroringInterface.DEST_OBJECT_NAME, port, mainIpAddress);
 
 		logNotice("Mirroring port opened");
 	}
