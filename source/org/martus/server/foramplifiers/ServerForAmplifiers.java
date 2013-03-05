@@ -43,28 +43,29 @@ import org.martus.common.MartusUtilities.FileTooLargeException;
 import org.martus.common.MartusUtilities.FileVerificationException;
 import org.martus.common.MartusUtilities.InvalidPublicKeyFileException;
 import org.martus.common.MartusUtilities.PublicInformationInvalidException;
+import org.martus.common.SupplierSideAmplifierNetworkInterface;
 import org.martus.common.bulletin.BulletinZipUtilities;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MartusCrypto.CryptoException;
 import org.martus.common.crypto.MartusCrypto.DecryptionException;
 import org.martus.common.crypto.MartusCrypto.MartusSignatureException;
 import org.martus.common.crypto.MartusCrypto.NoKeyPairException;
+import org.martus.common.database.Database.RecordHiddenException;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.ReadableDatabase;
-import org.martus.common.database.Database.RecordHiddenException;
 import org.martus.common.network.MartusSecureWebServer;
 import org.martus.common.network.MartusXmlRpcServer;
 import org.martus.common.network.NetworkInterfaceConstants;
-import org.martus.common.packet.UniversalId;
 import org.martus.common.packet.Packet.InvalidPacketException;
 import org.martus.common.packet.Packet.SignatureVerificationException;
 import org.martus.common.packet.Packet.WrongPacketTypeException;
+import org.martus.common.packet.UniversalId;
 import org.martus.common.xmlrpc.XmlRpcThread;
 import org.martus.server.main.MartusServer;
 import org.martus.server.main.ServerBulletinStore;
-import org.martus.util.StreamableBase64;
 import org.martus.util.DirectoryUtils;
 import org.martus.util.LoggerUtil;
+import org.martus.util.StreamableBase64;
 import org.martus.util.StreamableBase64.InvalidBase64Exception;
 
 public class ServerForAmplifiers implements NetworkInterfaceConstants, LoggerInterface
@@ -151,7 +152,7 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants, LoggerInt
 		return coreServer.getDatabase();
 	}
 	
-	AmplifierNetworkInterface getAmplifierHandler()
+	SupplierSideAmplifierNetworkInterface getAmplifierHandler()
 	{
 		return amplifierHandler;
 	}
@@ -237,7 +238,8 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants, LoggerInt
 
 		InetAddress mainIpAddress = MartusServer.getMainIpAddress();
 		logNotice("Opening port "+ mainIpAddress + ":" + port + " for amplifiers...");
-		MartusXmlRpcServer.createSSLXmlRpcServer(getAmplifierHandler(), AmplifierNetworkInterface.class, "MartusAmplifierServer", port, mainIpAddress);
+		SupplierSideAmplifierNetworkInterface handler = getAmplifierHandler();
+		MartusXmlRpcServer.createSSLXmlRpcServer(handler, AmplifierNetworkInterface.class, "MartusAmplifierServer", port, mainIpAddress);
 	}
 
 	public Vector getServerInformation()
@@ -526,7 +528,7 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants, LoggerInt
 	MartusServer coreServer;
 	LoggerInterface logger;
 
-	ServerSideAmplifierHandler amplifierHandler;
+	private ServerSideAmplifierHandler amplifierHandler;
 	Vector authorizedAmps;
 	Vector clientsNotAmplified;
 	public boolean amplifyMirroredBulletins;

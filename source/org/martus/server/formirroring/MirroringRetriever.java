@@ -28,14 +28,11 @@ package org.martus.server.formirroring;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Vector;
 
 import org.martus.common.LoggerInterface;
 import org.martus.common.MartusLogger;
-import org.martus.common.MartusUtilities.BulletinNotFoundException;
-import org.martus.common.MartusUtilities.NotYourBulletinErrorException;
 import org.martus.common.MartusUtilities.ServerErrorException;
 import org.martus.common.ProgressMeterInterface;
 import org.martus.common.bulletin.BulletinZipUtilities;
@@ -50,7 +47,6 @@ import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
 import org.martus.server.main.ServerBulletinStore;
 import org.martus.util.LoggerUtil;
-import org.martus.util.StreamableBase64.InvalidBase64Exception;
 
 public class MirroringRetriever implements LoggerInterface
 {
@@ -328,9 +324,7 @@ public class MirroringRetriever implements LoggerInterface
 	}
 	
 	protected void retrieveOneBulletin(File destFile, UniversalId uid)
-			throws InvalidBase64Exception, IOException,
-			MartusSignatureException, ServerErrorException,
-			NotYourBulletinErrorException, BulletinNotFoundException
+			throws Exception
 	{
 		FileOutputStream out = new FileOutputStream(destFile);
 

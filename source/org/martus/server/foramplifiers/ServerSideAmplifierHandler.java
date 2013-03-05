@@ -28,8 +28,8 @@ package org.martus.server.foramplifiers;
 
 import java.util.Vector;
 
-import org.martus.common.AmplifierNetworkInterface;
 import org.martus.common.LoggerInterface;
+import org.martus.common.SupplierSideAmplifierNetworkInterface;
 import org.martus.common.bulletinstore.BulletinStore;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.database.BulletinUploadRecord;
@@ -40,7 +40,7 @@ import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.util.LoggerUtil;
 
-public class ServerSideAmplifierHandler implements AmplifierNetworkInterface, LoggerInterface
+public class ServerSideAmplifierHandler implements SupplierSideAmplifierNetworkInterface, LoggerInterface
 {
 	public ServerSideAmplifierHandler(ServerForAmplifiers serverToUse)
 	{
