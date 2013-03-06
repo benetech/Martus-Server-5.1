@@ -388,6 +388,11 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		secureMode = true;
 	}
 	
+	public boolean useEmbeddedPresentationFiles()
+	{
+		return useEmbeddedPresentationFiles;
+	}
+	
 	
 	private void setAmplifierEnabled(boolean amplifierEnabled)
 	{
@@ -1694,6 +1699,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		String enableMirrorListenerTag = "--mirror-listener";
 		String enableAmplifierListenerTag = "--amplifier-listener";
 		String simulateBadConnectionTag = "--simulate-bad-connection";
+		String embeddedPresentationFiles = "--embedded-presentation";
 		
 		setAmplifierEnabled(false);
 		String amplifierIndexingMessage = "";
@@ -1716,6 +1722,8 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 				insecurePassword = "password".toCharArray();
 			if(argument.equals(simulateBadConnectionTag))
 				simulateBadConnection = true;
+			if(argument.equals(embeddedPresentationFiles))
+				useEmbeddedPresentationFiles = true;
 			if(argument.startsWith(ampipTag))
 				setAmpIpAddress(argument.substring(ampipTag.length()));
 
@@ -2050,6 +2058,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	private static String listenersIpAddress; 
 	private String ampIpAddress;
 	public boolean simulateBadConnection;
+	public boolean useEmbeddedPresentationFiles;
 	private boolean loggedShutdownRequested;
 	
 	public char[] insecurePassword;
