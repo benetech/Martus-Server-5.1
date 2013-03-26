@@ -48,8 +48,8 @@ import java.util.zip.ZipOutputStream;
 
 import org.martus.amplifier.ServerCallbackInterface;
 import org.martus.common.ContactInfo;
-import org.martus.common.HQKey;
-import org.martus.common.HQKeys;
+import org.martus.common.HeadquartersKey;
+import org.martus.common.HeadquartersKeys;
 import org.martus.common.LoggerInterface;
 import org.martus.common.LoggerToNull;
 import org.martus.common.MartusUtilities;
@@ -146,8 +146,8 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 			out.close();
 			b1.addPublicAttachment(new AttachmentProxy(attachment));
 			b1.addPrivateAttachment(new AttachmentProxy(attachment));
-			HQKeys keys = new HQKeys();
-			HQKey key1 = new HQKey(hqSecurity.getPublicKeyString());
+			HeadquartersKeys keys = new HeadquartersKeys();
+			HeadquartersKey key1 = new HeadquartersKey(hqSecurity.getPublicKeyString());
 			keys.add(key1);
 			b1.setAuthorizedToReadKeys(keys);
 			b1.setSealed();
@@ -273,8 +273,8 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		MartusCrypto fieldSecurity1 = clientSecurity;
 		testServer.allowUploads(fieldSecurity1.getPublicKeyString());
 		Bulletin bulletin = new Bulletin(clientSecurity);
-		HQKeys keys = new HQKeys();
-		HQKey key = new HQKey(hqSecurity.getPublicKeyString());
+		HeadquartersKeys keys = new HeadquartersKeys();
+		HeadquartersKey key = new HeadquartersKey(hqSecurity.getPublicKeyString());
 		keys.add(key);
 		bulletin.setAuthorizedToReadKeys(keys);
 		bulletin.setSealed();
@@ -308,8 +308,8 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		b.set(Bulletin.TAGTITLE, "Title1");
 		b.set(Bulletin.TAGPUBLICINFO, "Details1");
 		b.set(Bulletin.TAGPRIVATEINFO, "PrivateDetails1");
-		HQKeys hqKey = new HQKeys();
-		HQKey key1 = new HQKey(hqAccountId);
+		HeadquartersKeys hqKey = new HeadquartersKeys();
+		HeadquartersKey key1 = new HeadquartersKey(hqAccountId);
 		hqKey.add(key1);
 		b.setAuthorizedToReadKeys(hqKey);
 		b.setSealed();
@@ -1045,8 +1045,8 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		draftBulletin.set(Bulletin.TAGTITLE, "Title1");
 		draftBulletin.set(Bulletin.TAGPUBLICINFO, "Details1");
 		draftBulletin.set(Bulletin.TAGPRIVATEINFO, "PrivateDetails1");
-		HQKeys keys = new HQKeys();
-		HQKey key1 = new HQKey(hqSecurity.getPublicKeyString());
+		HeadquartersKeys keys = new HeadquartersKeys();
+		HeadquartersKey key1 = new HeadquartersKey(hqSecurity.getPublicKeyString());
 		keys.add(key1);
 		draftBulletin.setAuthorizedToReadKeys(keys);
 		store.saveEncryptedBulletinForTesting(draftBulletin);
@@ -1103,8 +1103,8 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		out.write(b1AttachmentBytes);
 		out.close();
 		b.addPublicAttachment(new AttachmentProxy(attachment));
-		HQKeys keys = new HQKeys();
-		HQKey key1 = new HQKey(hqSecurity.getPublicKeyString());
+		HeadquartersKeys keys = new HeadquartersKeys();
+		HeadquartersKey key1 = new HeadquartersKey(hqSecurity.getPublicKeyString());
 		keys.add(key1);
 		b.setAuthorizedToReadKeys(keys);
 		b.setDraft();
@@ -1327,9 +1327,9 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		MartusCrypto fieldSecurity1 = clientSecurity;
 		testServer.allowUploads(fieldSecurity1.getPublicKeyString());
 		Bulletin bulletin = new Bulletin(clientSecurity);
-		HQKeys keys = new HQKeys();
-		HQKey key1 = new HQKey(hqSecurity.getPublicKeyString());
-		HQKey key2 = new HQKey(otherServerSecurity.getPublicKeyString());
+		HeadquartersKeys keys = new HeadquartersKeys();
+		HeadquartersKey key1 = new HeadquartersKey(hqSecurity.getPublicKeyString());
+		HeadquartersKey key2 = new HeadquartersKey(otherServerSecurity.getPublicKeyString());
 		keys.add(key1);
 		keys.add(key2);
 		bulletin.setAuthorizedToReadKeys(keys);

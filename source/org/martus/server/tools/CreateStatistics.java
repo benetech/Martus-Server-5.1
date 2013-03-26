@@ -38,8 +38,8 @@ import java.util.Vector;
 import org.martus.amplifier.main.MartusAmplifier;
 import org.martus.common.ContactInfo;
 import org.martus.common.FieldSpecCollection;
-import org.martus.common.HQKey;
-import org.martus.common.HQKeys;
+import org.martus.common.HeadquartersKey;
+import org.martus.common.HeadquartersKeys;
 import org.martus.common.LoggerToNull;
 import org.martus.common.MartusUtilities;
 import org.martus.common.MartusXml;
@@ -787,14 +787,14 @@ public class CreateStatistics
 				return bulletinHidden;
 			}
 			
-			private String getListOfHQKeys(HQKeys keys)
+			private String getListOfHQKeys(HeadquartersKeys keys)
 			{
 				String keyList = "";
 				try
 				{
 					for(int i = 0; i < keys.size(); i++)
 					{
-						HQKey key = keys.get(i);
+						HeadquartersKey key = keys.get(i);
 						if(keyList.length()>0)
 							keyList += ", ";
 						keyList += key.getPublicCode();

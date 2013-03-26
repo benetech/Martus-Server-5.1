@@ -28,8 +28,8 @@ package org.martus.server.main;
 
 import java.io.File;
 import java.util.Vector;
-import org.martus.common.HQKey;
-import org.martus.common.HQKeys;
+import org.martus.common.HeadquartersKey;
+import org.martus.common.HeadquartersKeys;
 import org.martus.common.LoggerInterface;
 import org.martus.common.LoggerToNull;
 import org.martus.common.bulletin.Bulletin;
@@ -74,7 +74,7 @@ public class TestServerBulletinStore extends TestCaseEnhanced
 			try
 			{
 				Bulletin b1 = new Bulletin(fieldOfficeSecurity1);
-				b1.setAuthorizedToReadKeys(new HQKeys(new HQKey(hqSecurity.getPublicKeyString())));
+				b1.setAuthorizedToReadKeys(new HeadquartersKeys(new HeadquartersKey(hqSecurity.getPublicKeyString())));
 				foStore1.saveBulletinForTesting(b1);
 				
 				DatabaseKey key1 = b1.getDatabaseKey();

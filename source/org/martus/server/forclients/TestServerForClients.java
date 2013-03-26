@@ -36,8 +36,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 
-import org.martus.common.HQKey;
-import org.martus.common.HQKeys;
+import org.martus.common.HeadquartersKey;
+import org.martus.common.HeadquartersKeys;
 import org.martus.common.bulletin.AttachmentProxy;
 import org.martus.common.bulletin.Bulletin;
 import org.martus.common.bulletin.BulletinForTesting;
@@ -115,8 +115,8 @@ public class TestServerForClients extends TestCaseEnhanced
 			out.close();
 			b1.addPublicAttachment(new AttachmentProxy(attachment));
 			b1.addPrivateAttachment(new AttachmentProxy(attachment));
-			HQKeys keys = new HQKeys();
-			HQKey key1 = new HQKey(hqSecurity.getPublicKeyString());
+			HeadquartersKeys keys = new HeadquartersKeys();
+			HeadquartersKey key1 = new HeadquartersKey(hqSecurity.getPublicKeyString());
 			keys.add(key1);
 			b1.setAuthorizedToReadKeys(keys);
 			b1.setSealed();
@@ -237,9 +237,9 @@ public class TestServerForClients extends TestCaseEnhanced
 		MartusCrypto otherServerSecurity = MockMartusSecurity.createOtherServer();
 
 		Bulletin bulletinSealed = new Bulletin(clientSecurity);
-		HQKeys keys = new HQKeys();
-		HQKey key1 = new HQKey(hqSecurity.getPublicKeyString());
-		HQKey key2 = new HQKey(otherServerSecurity.getPublicKeyString());
+		HeadquartersKeys keys = new HeadquartersKeys();
+		HeadquartersKey key1 = new HeadquartersKey(hqSecurity.getPublicKeyString());
+		HeadquartersKey key2 = new HeadquartersKey(otherServerSecurity.getPublicKeyString());
 		keys.add(key1);
 		keys.add(key2);
 		bulletinSealed.setAuthorizedToReadKeys(keys);
