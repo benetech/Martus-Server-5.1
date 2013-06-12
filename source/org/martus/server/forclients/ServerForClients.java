@@ -131,7 +131,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	
 	private int[] getNonSSLPorts()
 	{
-		int[] defaultPorts = NetworkInterfaceXmlRpcConstants.defaultNonSSLPorts;
+		int[] defaultPorts = defaultNonSSLPorts;
 		return coreServer.shiftToDevelopmentPortsIfNotInSecureMode(defaultPorts);
 	}
 
@@ -842,4 +842,5 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	private static final String MAGICWORDSFILENAME = "magicwords.txt";
 	private static final String CLIENTNEWSDIRECTORY = "news";
 	
+	private static final int[] defaultNonSSLPorts = {988, 80};
 }
