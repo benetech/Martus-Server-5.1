@@ -41,7 +41,6 @@ import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.server.main.MartusServer;
 import org.martus.util.StreamableBase64;
-import org.martus.util.TestCaseEnhanced;
 
 public class MockMartusServer extends MartusServer
 {
@@ -237,7 +236,7 @@ public class MockMartusServer extends MartusServer
 	{
 		public TempDirectory() throws IOException
 		{
-			super(File.createTempFile("$$$MockMartusServer_" + TestCaseEnhanced.getCallingTestClass(), null).getPath());
+			super(File.createTempFile("$$$MockMartusServer", null).getPath());
 			deleteOnExit();
 			delete();
 			mkdir();
