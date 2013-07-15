@@ -106,7 +106,7 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		Vector items = new Vector();
 		for(int i=0; i < 3; ++i)
 		{
-			UniversalId uid = UniversalId.createDummyUniversalId();
+			UniversalId uid = UniversalIdForTesting.createDummyUniversalId();
 			BulletinMirroringInformation info = new BulletinMirroringInformation(uid);
 			items.add(info);
 			realRetriever.itemsToRetrieve.add(info);
@@ -158,7 +158,7 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 	{
 		supplier.returnResultTag = MirroringInterface.RESULT_OK;
 		
-		UniversalId uid = UniversalId.createDummyUniversalId();
+		UniversalId uid = UniversalIdForTesting.createDummyUniversalId();
 		supplier.addZipData(uid, StreamableBase64.encode("some text"));
 		File tempFile = createTempFile();
 		tempFile.deleteOnExit();

@@ -35,6 +35,7 @@ import org.martus.common.crypto.MockMartusSecurity;
 import org.martus.common.database.BulletinUploadRecord;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.packet.UniversalId;
+import org.martus.common.test.UniversalIdForTesting;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.util.StreamableBase64;
 import org.martus.util.TestCaseEnhanced;
@@ -77,7 +78,7 @@ public class TestBulletinUploadRecord extends TestCaseEnhanced
 	
 	public void testGetBurKey() throws Exception
 	{
-		UniversalId uid = UniversalId.createDummyUniversalId();
+		UniversalId uid = UniversalIdForTesting.createDummyUniversalId();
 
 		DatabaseKey draftKey = DatabaseKey.createDraftKey(uid);
 		assertTrue("not draft?", BulletinUploadRecord.getBurKey(draftKey).isDraft());
@@ -94,7 +95,7 @@ public class TestBulletinUploadRecord extends TestCaseEnhanced
 	{
 		MartusCrypto serverSecurity = MockMartusSecurity.createServer();
 		MockMartusSecurity otherSecurity = MockMartusSecurity.createOtherServer();
-		UniversalId uid = UniversalId.createDummyUniversalId();
+		UniversalId uid = UniversalIdForTesting.createDummyUniversalId();
 		String burRecord = BulletinUploadRecord.createBulletinUploadRecord(uid.getLocalId(), otherSecurity);
 		assertTrue("This burRecord was not created by this security?", BulletinUploadRecord.wasBurCreatedByThisCrypto(burRecord, otherSecurity));
 		assertFalse("This burRecord was created by this security?", BulletinUploadRecord.wasBurCreatedByThisCrypto(burRecord, serverSecurity));

@@ -35,6 +35,7 @@ import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.DeleteRequestRecord;
 import org.martus.common.database.MockServerDatabase;
 import org.martus.common.packet.UniversalId;
+import org.martus.common.test.UniversalIdForTesting;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.server.forclients.MockMartusServer;
 import org.martus.util.TestCaseEnhanced;
@@ -73,7 +74,7 @@ public class TestDeleteRequestRecord extends TestCaseEnhanced
 	
 	public void testGetDELKey() throws Exception
 	{
-		UniversalId uid = UniversalId.createDummyUniversalId();
+		UniversalId uid = UniversalIdForTesting.createDummyUniversalId();
 		DatabaseKey draftDELKey = DeleteRequestRecord.getDelKey(uid);
 		assertEquals("DEL-" + uid.getLocalId(), draftDELKey.getLocalId());
 	}

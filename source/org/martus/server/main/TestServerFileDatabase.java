@@ -39,6 +39,7 @@ import org.martus.common.database.MockServerDatabase;
 import org.martus.common.database.ServerFileDatabase;
 import org.martus.common.database.ReadableDatabase.AccountVisitor;
 import org.martus.common.packet.UniversalId;
+import org.martus.common.test.UniversalIdForTesting;
 import org.martus.util.TestCaseEnhanced;
 
 public class TestServerFileDatabase extends TestCaseEnhanced 
@@ -91,7 +92,7 @@ public class TestServerFileDatabase extends TestCaseEnhanced
 		secondDatabase.visitAllAccounts(initial);
 		assertEquals(0, initial.getAccountCount());
 		
-		DatabaseKey key = DatabaseKey.createDraftKey(UniversalId.createDummyUniversalId());
+		DatabaseKey key = DatabaseKey.createDraftKey(UniversalIdForTesting.createDummyUniversalId());
 		serverFileDb.writeRecord(key, smallString);
 
 		AccountCounter afterWrites = new AccountCounter();
@@ -140,7 +141,7 @@ public class TestServerFileDatabase extends TestCaseEnhanced
 	
 	public void testBasics() throws Exception
 	{
-		UniversalId uid = UniversalId.createDummyUniversalId();
+		UniversalId uid = UniversalIdForTesting.createDummyUniversalId();
 		DatabaseKey key = DatabaseKey.createSealedKey(uid);
 		File dir = createTempFileFromName("$$$MartusTestServerFileDatabase");
 		dir.delete();
@@ -172,7 +173,7 @@ public class TestServerFileDatabase extends TestCaseEnhanced
 	
 	private void internalTestDrafts(Database db) throws Exception
 	{
-		UniversalId uid = UniversalId.createDummyUniversalId();
+		UniversalId uid = UniversalIdForTesting.createDummyUniversalId();
 		DatabaseKey draftKey = DatabaseKey.createDraftKey(uid);
 		DatabaseKey sealedKey = DatabaseKey.createSealedKey(uid);
 		

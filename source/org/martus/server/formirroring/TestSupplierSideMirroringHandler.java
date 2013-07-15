@@ -45,6 +45,7 @@ import org.martus.common.network.mirroring.MirroringInterface;
 import org.martus.common.network.mirroring.PassThroughMirroringGateway;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
+import org.martus.common.test.UniversalIdForTesting;
 import org.martus.server.forclients.MockMartusServer;
 import org.martus.util.StreamableBase64;
 import org.martus.util.TestCaseEnhanced;
@@ -358,7 +359,7 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 	{
 		supplier.authorizedCaller = callerAccountId;
 
-		UniversalId uid = UniversalId.createDummyUniversalId();
+		UniversalId uid = UniversalIdForTesting.createDummyUniversalId();
 		String bur = "This pretends to be a BUR";
 		supplier.addBur(uid, bur, BulletinConstants.STATUSSEALED);
 		Vector parameters = new Vector();
@@ -376,7 +377,7 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 	{
 		supplier.authorizedCaller = callerAccountId;
 
-		UniversalId uid = UniversalId.createDummyUniversalId();
+		UniversalId uid = UniversalIdForTesting.createDummyUniversalId();
 		String bur = "This pretends to be a BUR";
 		supplier.addBur(uid, bur, BulletinConstants.STATUSSEALED);
 		Vector parameters = new Vector();
@@ -395,7 +396,7 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 	{
 		supplier.authorizedCaller = callerAccountId;
 
-		UniversalId uid = UniversalId.createDummyUniversalId();
+		UniversalId uid = UniversalIdForTesting.createDummyUniversalId();
 		String bur = "This pretends to be a BUR";
 		supplier.addBur(uid, bur, BulletinConstants.STATUSDRAFT);
 		Vector parameters = new Vector();
