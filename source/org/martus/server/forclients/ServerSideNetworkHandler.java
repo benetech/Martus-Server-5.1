@@ -474,9 +474,16 @@ public class ServerSideNetworkHandler implements ServerSideNetworkInterface, Net
 			int index = 0;
 			String authorAccountId = (String)parameters.get(index++);
 			String bulletinLocalId= (String)parameters.get(index++);
-			Vector extraParameters = (Vector)parameters.get(index++);
+			Object[] extraParametersArray = (Object[])parameters.get(index++);
+			Vector extraParameters = new Vector(Arrays.asList(extraParametersArray));
 
 			result = new Vector();
+			if(!myAccountId.equals(authorAccountId))
+			{
+				result.add(NetworkInterfaceConstants.NOT_AUTHORIZED);
+				return result;
+			}
+			
 			result = server.getPartialUploadStatus(authorAccountId, bulletinLocalId, extraParameters);
 			logDebug("getPartialUploadStatus: Exit");
 			return result;
