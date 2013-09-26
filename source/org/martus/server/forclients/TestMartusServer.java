@@ -71,6 +71,8 @@ import org.martus.common.database.MockServerDatabase;
 import org.martus.common.database.ReadableDatabase;
 import org.martus.common.network.NetworkInterface;
 import org.martus.common.network.NetworkInterfaceConstants;
+import org.martus.common.network.NetworkResponse;
+import org.martus.common.network.PartialUploadStatus;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
 import org.martus.common.test.MockBulletinStore;
@@ -82,6 +84,7 @@ import org.martus.util.StreamableBase64;
 import org.martus.util.StreamableBase64.InvalidBase64Exception;
 import org.martus.util.TestCaseEnhanced;
 import org.martus.util.UnicodeReader;
+import org.martus.util.UnicodeWriter;
 import org.martus.util.inputstreamwithseek.InputStreamWithSeek;
 
 
@@ -205,6 +208,34 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 
 		TRACE_END();
 		super.tearDown();
+	}
+	
+	public void testGetPartialUploadStatus() throws Exception
+	{
+		Vector emptyRawResult = testServer.getPartialUploadStatus(b1.getAccount(), b1.getLocalId(), new Vector());
+		NetworkResponse emptyResponse = new NetworkResponse(emptyRawResult);
+		Vector emptyResult = emptyResponse.getResultVector();
+		Long emptyLength = new Long((String)emptyResult.get(0));
+		String emptySha = (String) emptyResult.get(1);
+		PartialUploadStatus emptyStatus = new PartialUploadStatus(emptyLength, emptySha);
+		assertFalse("Partial upload already exists?", emptyStatus.hasPartialUpload());
+
+		ServerBulletinStore serverStore = testServer.getStore();
+		File interim = serverStore.getIncomingInterimFile(b1.getUniversalId());
+		UnicodeWriter writer = new UnicodeWriter(interim);
+		String sampleText = "This is just some sample text";
+		writer.write(sampleText);
+		writer.close();
+		
+		Vector partialRawResult = testServer.getPartialUploadStatus(b1.getAccount(), b1.getLocalId(), new Vector());
+		NetworkResponse partialResponse = new NetworkResponse(partialRawResult);
+		Vector partialResult = partialResponse.getResultVector();
+		Long partialLength = new Long((String)partialResult.get(0));
+		String partialSha = (String) partialResult.get(1);
+		PartialUploadStatus partialStatus = new PartialUploadStatus(partialLength, partialSha);
+		assertTrue("No partial upload?", partialStatus.hasPartialUpload());
+		assertEquals("Wrong length?", sampleText.length(), partialStatus.lengthOfPartialUpload());
+		assertEquals("Wrong SHA1?", MartusCrypto.createDigestString(sampleText), partialStatus.sha1OfPartialUpload());
 	}
 	
 	public void testDoesDraftExist() throws Exception

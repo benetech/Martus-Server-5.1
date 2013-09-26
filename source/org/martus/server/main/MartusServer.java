@@ -49,6 +49,7 @@ import org.martus.amplifier.main.MartusAmplifier;
 import org.martus.common.ContactInfo;
 import org.martus.common.LoggerInterface;
 import org.martus.common.LoggerToConsole;
+import org.martus.common.MartusLogger;
 import org.martus.common.MartusUtilities;
 import org.martus.common.MartusUtilities.FileTooLargeException;
 import org.martus.common.MartusUtilities.FileVerificationException;
@@ -96,6 +97,7 @@ import org.martus.server.main.ServerBulletinStore.SealedPacketExistsException;
 import org.martus.util.DirectoryUtils;
 import org.martus.util.StreamableBase64;
 import org.martus.util.StreamableBase64.InvalidBase64Exception;
+import org.martus.util.inputstreamwithseek.FileInputStreamWithSeek;
 import org.martus.util.UnicodeReader;
 
 public class MartusServer implements NetworkInterfaceConstants, ServerCallbackInterface
@@ -907,14 +909,65 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	public Vector getPartialUploadStatus(String authorAccountId, String bulletinLocalId, Vector extraParameters) 
 	{
 		logInfo("getPartialUploadStatus");
+		UniversalId uid = UniversalId.createFromAccountAndLocalId(authorAccountId, bulletinLocalId);
+		PartialUploadStatus status = new PartialUploadStatus(0L, "");
+		
+		File partialUploadFile;
+		try 
+		{
+			partialUploadFile = getStore().getIncomingInterimFile(uid);
+			status = getPartialUploadStatus(partialUploadFile);
+		} 
+		catch (Exception e) 
+		{
+			MartusLogger.logException(e);
+		}
+		
 		Vector result = new Vector();
 		result.add(OK);
-		PartialUploadStatus status = new PartialUploadStatus(0L, "");
-		Vector statusVector = new Vector();
-		statusVector.add(status.lengthOfPartialUpload());
-		statusVector.add(status.sha256OfPartialUpload());
-		result.add(statusVector.toArray());
+		result.add(getStatusAsArray(status));
 		return result;
+	}
+
+	private PartialUploadStatus getPartialUploadStatus(File partialUploadFile) 
+	{
+		PartialUploadStatus emptyStatus = new PartialUploadStatus(0L, "");
+		
+		if(!partialUploadFile.exists())
+			return emptyStatus;
+
+		try
+		{
+			long length = partialUploadFile.length();
+			FileInputStreamWithSeek input = new FileInputStreamWithSeek(partialUploadFile);
+			try
+			{
+				String partialSha1 = MartusSecurity.createBase64Digest(input);
+				input.seek(0L);
+				UnicodeReader reader = new UnicodeReader(input);
+				String text = reader.readAll();
+				String sha1 = MartusCrypto.createDigestString(text);
+				reader.close();
+				return new PartialUploadStatus(length, partialSha1);
+			}
+			finally
+			{
+				input.close();
+			}
+		}
+		catch(Exception e)
+		{
+			return emptyStatus;
+		}
+	}
+
+	public Object[] getStatusAsArray(PartialUploadStatus status) 
+	{
+		Vector statusVector = new Vector();
+		statusVector.add(new Long(status.lengthOfPartialUpload()).toString());
+		statusVector.add(status.sha1OfPartialUpload());
+		Object[] array = statusVector.toArray();
+		return array;
 	}
 
 	public Vector downloadFieldDataPacket(String authorAccountId, String bulletinLocalId, String packetLocalId, String myAccountId, String signature)
