@@ -389,6 +389,11 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	{
 		return coreServer.getServerCompliance();
 	}
+	
+	public Vector getPartialUploadStatus(String authorAccountId, String bulletinLocalId, Vector extraParameters)
+	{
+		return coreServer.getPartialUploadStatus(authorAccountId, bulletinLocalId, extraParameters);
+	}
 
 	public String putBulletinChunk(String myAccountId, String authorAccountId, String bulletinLocalId, int totalSize, int chunkOffset, int chunkSize, String data)
 	{

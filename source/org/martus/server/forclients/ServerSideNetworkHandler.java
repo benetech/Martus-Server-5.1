@@ -461,6 +461,32 @@ public class ServerSideNetworkHandler implements ServerSideNetworkInterface, Net
 		}
 	}
 
+	public Vector getPartialUploadStatus(String myAccountId, Vector parameters, String signature) 
+	{
+		server.clientConnectionStart();
+		try
+		{
+			logInfo("getPartialUploadStatus");
+			Vector result = checkSignature(myAccountId, parameters, signature);
+			if(result != null)
+				return result;
+			
+			int index = 0;
+			String authorAccountId = (String)parameters.get(index++);
+			String bulletinLocalId= (String)parameters.get(index++);
+			Vector extraParameters = (Vector)parameters.get(index++);
+
+			result = new Vector();
+			result = server.getPartialUploadStatus(authorAccountId, bulletinLocalId, extraParameters);
+			logDebug("getPartialUploadStatus: Exit");
+			return result;
+		}
+		finally
+		{
+			server.clientConnectionExit();
+		}
+	}
+
 	private Vector checkSignature(String myAccountId, Vector parameters, String signature)
 	{
 		if(!isSignatureOk(myAccountId, parameters, signature, server.getSecurity()))

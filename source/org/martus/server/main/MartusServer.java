@@ -75,6 +75,7 @@ import org.martus.common.database.ReadableDatabase;
 import org.martus.common.database.ServerFileDatabase;
 import org.martus.common.network.MartusSecureWebServer;
 import org.martus.common.network.NetworkInterfaceConstants;
+import org.martus.common.network.PartialUploadStatus;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.FieldDataPacket;
 import org.martus.common.packet.Packet;
@@ -902,6 +903,19 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		result.add(compliance);
 		return result;
 	}	
+
+	public Vector getPartialUploadStatus(String authorAccountId, String bulletinLocalId, Vector extraParameters) 
+	{
+		logInfo("getPartialUploadStatus");
+		Vector result = new Vector();
+		result.add(OK);
+		PartialUploadStatus status = new PartialUploadStatus(0L, "");
+		Vector statusVector = new Vector();
+		statusVector.add(status.lengthOfPartialUpload());
+		statusVector.add(status.sha256OfPartialUpload());
+		result.add(statusVector.toArray());
+		return result;
+	}
 
 	public Vector downloadFieldDataPacket(String authorAccountId, String bulletinLocalId, String packetLocalId, String myAccountId, String signature)
 	{
