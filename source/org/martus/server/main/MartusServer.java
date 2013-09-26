@@ -26,6 +26,7 @@ Boston, MA 02111-1307, USA.
 
 package org.martus.server.main;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -925,7 +926,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		
 		Vector result = new Vector();
 		result.add(OK);
-		result.add(getStatusAsArray(status));
+		result.add(getStatusAsVector(status));
 		return result;
 	}
 
@@ -940,18 +941,16 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		{
 			long length = partialUploadFile.length();
 			FileInputStreamWithSeek input = new FileInputStreamWithSeek(partialUploadFile);
+			BufferedInputStream buffered = new BufferedInputStream(input);
 			try
 			{
-				String partialSha1 = MartusSecurity.createBase64Digest(input);
-				input.seek(0L);
-				UnicodeReader reader = new UnicodeReader(input);
-				String text = reader.readAll();
-				String sha1 = MartusCrypto.createDigestString(text);
-				reader.close();
+				String partialSha1 = MartusSecurity.createBase64Digest(buffered);
+				logInfo("getPartialUploadStatus found file of length " + length);
 				return new PartialUploadStatus(length, partialSha1);
 			}
 			finally
 			{
+				buffered.close();
 				input.close();
 			}
 		}
@@ -961,13 +960,12 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		}
 	}
 
-	public Object[] getStatusAsArray(PartialUploadStatus status) 
+	public Vector getStatusAsVector(PartialUploadStatus status) 
 	{
 		Vector statusVector = new Vector();
 		statusVector.add(new Long(status.lengthOfPartialUpload()).toString());
 		statusVector.add(status.sha1OfPartialUpload());
-		Object[] array = statusVector.toArray();
-		return array;
+		return statusVector;
 	}
 
 	public Vector downloadFieldDataPacket(String authorAccountId, String bulletinLocalId, String packetLocalId, String myAccountId, String signature)
