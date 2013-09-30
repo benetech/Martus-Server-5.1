@@ -52,7 +52,6 @@ import org.martus.common.LoggerInterface;
 import org.martus.common.LoggerToConsole;
 import org.martus.common.MartusLogger;
 import org.martus.common.MartusUtilities;
-import org.martus.common.MartusUtilities.FileTooLargeException;
 import org.martus.common.MartusUtilities.FileVerificationException;
 import org.martus.common.MartusUtilities.InvalidPublicKeyFileException;
 import org.martus.common.MartusUtilities.PublicInformationInvalidException;
@@ -67,7 +66,6 @@ import org.martus.common.crypto.MartusCrypto.CryptoInitializationException;
 import org.martus.common.crypto.MartusCrypto.DecryptionException;
 import org.martus.common.crypto.MartusCrypto.InvalidKeyPairFileVersionException;
 import org.martus.common.crypto.MartusCrypto.MartusSignatureException;
-import org.martus.common.crypto.MartusCrypto.NoKeyPairException;
 import org.martus.common.crypto.MartusSecurity;
 import org.martus.common.database.Database;
 import org.martus.common.database.Database.RecordHiddenException;
@@ -98,8 +96,8 @@ import org.martus.server.main.ServerBulletinStore.SealedPacketExistsException;
 import org.martus.util.DirectoryUtils;
 import org.martus.util.StreamableBase64;
 import org.martus.util.StreamableBase64.InvalidBase64Exception;
-import org.martus.util.inputstreamwithseek.FileInputStreamWithSeek;
 import org.martus.util.UnicodeReader;
+import org.martus.util.inputstreamwithseek.FileInputStreamWithSeek;
 
 public class MartusServer implements NetworkInterfaceConstants, ServerCallbackInterface
 {
@@ -1289,17 +1287,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		return bhp.isHQAuthorizedToRead(hqPublicKey);
 	}
 	
-	private Vector buildBulletinChunkResponse(DatabaseKey headerKey, int chunkOffset, int maxChunkSize) throws
-			FileTooLargeException,
-			InvalidPacketException, 
-			WrongPacketTypeException, 
-			SignatureVerificationException, 
-			DecryptionException, 
-			NoKeyPairException, 
-			CryptoException, 
-			FileVerificationException, 
-			IOException, 
-			RecordHiddenException 
+	private Vector buildBulletinChunkResponse(DatabaseKey headerKey, int chunkOffset, int maxChunkSize) throws Exception
 	{
 		Vector result = new Vector();
 		//log("entering createInterimBulletinFile");
@@ -1337,14 +1325,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		return result;
 	}
 
-	public File createInterimBulletinFile(DatabaseKey headerKey) throws
-			CryptoException,
-			InvalidPacketException,
-			WrongPacketTypeException,
-			SignatureVerificationException,
-			DecryptionException,
-			NoKeyPairException,
-			MartusUtilities.FileVerificationException, IOException, RecordHiddenException
+	public File createInterimBulletinFile(DatabaseKey headerKey) throws Exception
 	{
 		File interimFile = getStore().getOutgoingInterimFile(headerKey.getUniversalId());
 		File interimFileSignature = MartusUtilities.getSignatureFileFromFile(interimFile);
