@@ -926,7 +926,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		
 		Vector result = new Vector();
 		result.add(OK);
-		result.add(getStatusAsVector(status));
+		result.add(getStatusAsArray(status));
 		return result;
 	}
 
@@ -960,12 +960,12 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		}
 	}
 
-	public Vector getStatusAsVector(PartialUploadStatus status) 
+	public Object[] getStatusAsArray(PartialUploadStatus status) 
 	{
 		Vector statusVector = new Vector();
 		statusVector.add(new Long(status.lengthOfPartialUpload()).toString());
 		statusVector.add(status.sha1OfPartialUpload());
-		return statusVector;
+		return statusVector.toArray();
 	}
 
 	public Vector downloadFieldDataPacket(String authorAccountId, String bulletinLocalId, String packetLocalId, String myAccountId, String signature)
