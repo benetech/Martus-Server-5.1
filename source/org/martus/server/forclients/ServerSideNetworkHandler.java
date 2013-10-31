@@ -90,7 +90,7 @@ public class ServerSideNetworkHandler implements ServerSideNetworkInterface, Net
 	// begin ServerInterface	
 	public Vector getServerInfo(Vector reservedForFuture)
 	{
-		server.clientConnectionStart();
+		server.clientConnectionStart(null);
 		try
 		{
 			logInfo("getServerInfo");
@@ -126,7 +126,7 @@ public class ServerSideNetworkHandler implements ServerSideNetworkInterface, Net
 
 	public Vector getUploadRights(String myAccountId, Vector parameters, String signature)
 	{
-		server.clientConnectionStart();
+		server.clientConnectionStart(myAccountId);
 		try
 		{
 			logInfo("getUploadRights");
@@ -153,7 +153,7 @@ public class ServerSideNetworkHandler implements ServerSideNetworkInterface, Net
 
 	public Vector getSealedBulletinIds(String myAccountId, Vector parameters, String signature)
 	{
-		server.clientConnectionStart();
+		server.clientConnectionStart(myAccountId);
 		try
 		{
 			logInfo("getSealedBulletinIds");
@@ -184,7 +184,7 @@ public class ServerSideNetworkHandler implements ServerSideNetworkInterface, Net
 
 	public Vector getDraftBulletinIds(String myAccountId, Vector parameters, String signature)
 	{
-		server.clientConnectionStart();
+		server.clientConnectionStart(myAccountId);
 		try
 		{
 			logInfo("getDraftBulletinIds");
@@ -215,7 +215,7 @@ public class ServerSideNetworkHandler implements ServerSideNetworkInterface, Net
 
 	public Vector getFieldOfficeAccountIds(String myAccountId, Vector parameters, String signature)
 	{
-		server.clientConnectionStart();
+		server.clientConnectionStart(myAccountId);
 		try
 		{
 			logInfo("getFieldOfficeAccountIds");
@@ -246,7 +246,7 @@ public class ServerSideNetworkHandler implements ServerSideNetworkInterface, Net
 
 	public Vector putBulletinChunk(String myAccountId, Vector parameters, String signature)
 	{
-		server.clientConnectionStart();
+		server.clientConnectionStart(myAccountId);
 		try
 		{
 			logInfo("putBulletinChunk");
@@ -278,7 +278,7 @@ public class ServerSideNetworkHandler implements ServerSideNetworkInterface, Net
 
 	public Vector getBulletinChunk(String myAccountId, Vector parameters, String signature)
 	{
-		server.clientConnectionStart();
+		server.clientConnectionStart(myAccountId);
 		try
 		{
 			logInfo("getBulletinChunk");
@@ -312,7 +312,7 @@ public class ServerSideNetworkHandler implements ServerSideNetworkInterface, Net
 
 	public Vector getPacket(String myAccountId, Vector parameters, String signature)
 	{
-		server.clientConnectionStart();
+		server.clientConnectionStart(myAccountId);
 		try
 		{
 			logInfo("getPacket");
@@ -365,7 +365,7 @@ public class ServerSideNetworkHandler implements ServerSideNetworkInterface, Net
 
 	public Vector deleteDraftBulletins(String myAccountId, Vector parameters, String signature)
 	{
-		server.clientConnectionStart();
+		server.clientConnectionStart(myAccountId);
 		try
 		{
 			logInfo("deleteDraftBulletins");
@@ -392,7 +392,7 @@ public class ServerSideNetworkHandler implements ServerSideNetworkInterface, Net
 	
 	public Vector putContactInfo(String myAccountId, Vector parameters, String signature) 
 	{
-		server.clientConnectionStart();
+		server.clientConnectionStart(myAccountId);
 		try
 		{
 			logInfo("putContactInfo");
@@ -412,7 +412,7 @@ public class ServerSideNetworkHandler implements ServerSideNetworkInterface, Net
 
 	public Vector getNews(String myAccountId, Vector parameters, String signature)
 	{
-		server.clientConnectionStart();
+		server.clientConnectionStart(myAccountId);
 		try
 		{
 			logInfo("getNews");
@@ -443,7 +443,7 @@ public class ServerSideNetworkHandler implements ServerSideNetworkInterface, Net
 
 	public Vector getServerCompliance(String myAccountId, Vector parameters, String signature)
 	{
-		server.clientConnectionStart();
+		server.clientConnectionStart(myAccountId);
 		try
 		{
 			logInfo("getServerCompliance");
@@ -463,7 +463,7 @@ public class ServerSideNetworkHandler implements ServerSideNetworkInterface, Net
 
 	public Vector getPartialUploadStatus(String myAccountId, Vector parameters, String signature) 
 	{
-		server.clientConnectionStart();
+		server.clientConnectionStart(myAccountId);
 		try
 		{
 			logInfo("getPartialUploadStatus");

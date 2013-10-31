@@ -25,7 +25,7 @@ Boston, MA 02111-1307, USA.
 */
 package org.martus.server.forclients;
 
-import org.martus.common.LoggerToConsole;
+import org.apache.xmlrpc.webserver.ConnectionServerWithIpTracking;
 import org.martus.util.MultiCalendar;
 
 
@@ -75,7 +75,7 @@ public class AuthorizeLogEntry
 	
 	private String getIpAddress()
 	{
-		String rawIp = LoggerToConsole.getCurrentClientAddress();
+		String rawIp = ConnectionServerWithIpTracking.getRemoteHostAddressAndPort();
 		rawIp = extractIpAddressOnly(rawIp);
 		return rawIp;
 	}

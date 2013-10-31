@@ -34,7 +34,7 @@ import org.martus.common.crypto.MartusCrypto;
 public interface ServerForClientsInterface extends LoggerInterface 
 {
 	public String getPublicCode(String clientId);
-	public void clientConnectionStart();
+	public void clientConnectionStart(String callerAccountId);
 	public void clientConnectionExit();
 	public MartusCrypto getSecurity();
 	public String ping();

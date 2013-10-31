@@ -41,7 +41,7 @@ public class ServerSideNetworkHandlerForNonSSL extends NonSSLNetworkAPIWithHelpe
 
 	public String ping()
 	{
-		server.clientConnectionStart();
+		server.clientConnectionStart(null);
 		try
 		{
 			String strResponse = server.ping();
@@ -55,7 +55,7 @@ public class ServerSideNetworkHandlerForNonSSL extends NonSSLNetworkAPIWithHelpe
 
 	public Vector getServerInformation()
 	{
-		server.clientConnectionStart();
+		server.clientConnectionStart(null);
 		try
 		{
 			Vector vecResponse = server.getServerInformation();

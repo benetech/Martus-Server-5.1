@@ -25,6 +25,8 @@ Boston, MA 02111-1307, USA.
 */
 package org.martus.server.forclients;
 
+import org.martus.common.crypto.MartusSecurity;
+import org.martus.common.crypto.MockMartusSecurity;
 import org.martus.util.MultiCalendar;
 import org.martus.util.TestCaseEnhanced;
 
@@ -36,10 +38,11 @@ public class TestAuthorizeLogEntry extends TestCaseEnhanced
 		super(name);
 	}
 	
-	public void testBasics()
+	public void testBasics() throws Exception
 	{
 		String date = "2004-02-15";
-		String code = "1234.1234.1234.1234";
+		String callerId = MockMartusSecurity.createClient().getPublicKeyString();
+		String code = MartusSecurity.computeFormattedPublicCode(callerId);
 		String group = "My group";
 		String ip = "1.2.3.4";
 		

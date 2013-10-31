@@ -789,8 +789,9 @@ public class TestServerForClients extends TestCaseEnhanced
 
 		assertEquals("getNumberActiveClients 1", 0, testServer.getNumberActiveClients());
 		
-		testServer.clientConnectionStart();
-		testServer.clientConnectionStart();
+		String clientId = clientSecurity.getPublicKeyString();
+		testServer.clientConnectionStart(clientId);
+		testServer.clientConnectionStart(clientId);
 		assertEquals("getNumberActiveClients 2", 2, testServer.getNumberActiveClients());
 		
 		testServer.clientConnectionExit();

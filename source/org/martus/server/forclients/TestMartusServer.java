@@ -1702,7 +1702,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		
 		assertEquals("testServerShutdown: incrementActiveClientsCounter 1", 0, serverForClients.getNumberActiveClients() );
 		
-		testServer.serverForClients.clientConnectionStart();
+		testServer.serverForClients.clientConnectionStart(clientId);
 		assertEquals("testServerShutdown: incrementActiveClientsCounter 2", 1, serverForClients.getNumberActiveClients() );
 		File exitFile = testServer.getShutdownFile();
 		exitFile.createNewFile();
@@ -1760,7 +1760,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 
 		Vector reply;
 		
-		testServer.serverForClients.clientConnectionStart();
+		testServer.serverForClients.clientConnectionStart(null);
 		File exitFile = testServer.getShutdownFile();
 		exitFile.createNewFile();
 		
