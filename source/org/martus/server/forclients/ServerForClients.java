@@ -162,21 +162,31 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	
 	private String createLogString(String message)
 	{
-		String threadId = getLoggableCallerIpAndPort();
-		String accountId = getLoggableCallerPublicCode();
-		String callerInfo = threadId + accountId;
-		if(callerInfo.length() > 0)
-			callerInfo += ": ";
-		return callerInfo + message;
+		if(message.length() == 0)
+			return message;
+		
+		StringBuilder result = new StringBuilder();
+		appendWithColonTerminator(result, getLoggableCallerIpAndPort());
+		appendWithColonTerminator(result, getThreadId());
+		appendWithColonTerminator(result, getLoggableCallerPublicCode());
+		if(result.length() > 0)
+			result.append(' ');
+		result.append(message);
+		return result.toString();
+	}
+	
+	public void appendWithColonTerminator(StringBuilder existing, String toAppend)
+	{
+		if(toAppend == null || toAppend.length() == 0)
+			return;
+		
+		existing.append(toAppend);
+		existing.append(":");
 	}
 
 	public String getLoggableCallerIpAndPort() 
 	{
-		String threadId = ConnectionServerWithIpTracking.getRemoteHostAddressAndPort();
-		if(threadId == null)
-			return "";
-
-		return threadId + ":";
+		return ConnectionServerWithIpTracking.getRemoteHostAddressAndPort();
 	}
 
 	public String getLoggableCallerPublicCode() 
@@ -187,7 +197,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 
 		try 
 		{
-			return MartusSecurity.computeFormattedPublicCode(accountId) + ":";
+			return MartusSecurity.computeFormattedPublicCode(accountId);
 		} 
 		catch (Exception e) 
 		{
@@ -195,6 +205,13 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			e.printStackTrace();
 			return "";
 		}
+	}
+
+	private String getThreadId() 
+	{
+		String rawName = Thread.currentThread().getName();
+		rawName = rawName.replaceAll(" ", "_");
+		return "tname=" + rawName;
 	}
 
 	public synchronized void logError(String message)
