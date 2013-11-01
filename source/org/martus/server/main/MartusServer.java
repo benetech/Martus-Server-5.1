@@ -1298,6 +1298,13 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		int chunkSize = totalLength - chunkOffset;
 		if(chunkSize > maxChunkSize)
 			chunkSize = maxChunkSize;
+		
+		if(chunkSize < 0)
+		{
+			logError("Illegal chunk request, offset=" + chunkOffset + ", totalLength=" + totalLength);
+			result.add(NetworkInterfaceConstants.INVALID_DATA);
+			return result;
+		}
 			
 		byte[] rawData = new byte[chunkSize];
 		
