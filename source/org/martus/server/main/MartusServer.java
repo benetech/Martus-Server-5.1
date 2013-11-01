@@ -265,7 +265,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		timers.add(shutdownRequestMonitor);
 		MartusUtilities.startTimer(uploadRequestsMonitor, magicWordsGuessIntervalMillis);
 		timers.add(uploadRequestsMonitor);
-		MartusUtilities.startTimer(backgroundTimerTick, MartusServer.mainTickIntervalMillis);
+		MartusUtilities.startTimerWithDelayInMillis(backgroundTimerTick, MartusServer.mainTickDelayMillis, MartusServer.mainTickIntervalMillis);
 		timers.add(backgroundTimerTick);
 		if(isAmplifierEnabled())
 		{
@@ -1794,6 +1794,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		}
 		
 		logNotice("MainTickInterval (millis): " + mainTickIntervalMillis);
+		logNotice("MainTickDelay (millis):    " + mainTickDelayMillis);
 		
 		System.out.println("");
 		if(isSecureMode())
@@ -2118,15 +2119,16 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	private static final String ADMINTRIGGERDIRECTORY = "adminTriggers";
 	private static final String ADMINSTARTUPCONFIGDIRECTORY = "deleteOnStartup";
 	
-	private final static int MAX_FAILED_UPLOAD_ATTEMPTS = 100;
-	private final static long mainTickIntervalMillis = 250;
-	
 	private static final long MILLIS_IN_ONE_SECOND = 1000;
 	private static final long MILLIS_PER_MINUTE = 60 * MILLIS_IN_ONE_SECOND;
 	private static final long MILLIS_IN_ONE_MINUTE = 1 * MILLIS_PER_MINUTE;
 	private static final long MILLIS_PER_HOUR = 60 * MILLIS_PER_MINUTE;
 	private static final long MILLIS_IN_ONE_HOUR = 1 * MILLIS_PER_HOUR;
 
+	private final static int MAX_FAILED_UPLOAD_ATTEMPTS = 100;
+	private final static long mainTickDelayMillis = 1 * MILLIS_IN_ONE_MINUTE;
+	private final static long mainTickIntervalMillis = 250;
+	
 	private static final long shutdownRequestIntervalMillis = MILLIS_IN_ONE_SECOND;
 	private static final long magicWordsGuessIntervalMillis = MILLIS_IN_ONE_MINUTE;
 	private static final long timerWatchDogIntervalMillis = (long)(1.5 * MILLIS_IN_ONE_HOUR);
