@@ -599,7 +599,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		if(oldFileLength != chunkOffset)
 		{
 			interimZipFile.delete();
-			logError("putBulletinChunk INVALID_DATA (!= file length)");
+			logError("putBulletinChunk INVALID_DATA (existing interim length was " + oldFileLength + ")");
 			return NetworkInterfaceConstants.INVALID_DATA;
 		}
 		
