@@ -177,10 +177,9 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	
 	public void appendWithColonTerminator(StringBuilder existing, String toAppend)
 	{
-		if(toAppend == null || toAppend.length() == 0)
-			return;
+		if(toAppend != null)
+			existing.append(toAppend);
 		
-		existing.append(toAppend);
 		existing.append(":");
 	}
 
