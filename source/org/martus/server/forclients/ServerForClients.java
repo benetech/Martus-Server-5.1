@@ -35,14 +35,12 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Vector;
 
-import org.apache.xmlrpc.webserver.ConnectionServerWithIpTracking;
 import org.martus.common.MagicWordEntry;
 import org.martus.common.MagicWords;
 import org.martus.common.MartusUtilities;
 import org.martus.common.MartusUtilities.FileVerificationException;
 import org.martus.common.Version;
 import org.martus.common.crypto.MartusCrypto;
-import org.martus.common.crypto.MartusSecurity;
 import org.martus.common.database.Database.RecordHiddenException;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.DeleteRequestRecord;
@@ -160,59 +158,6 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		return Version.isRunningUnderWindows();
 	}
 	
-	private String createLogString(String message)
-	{
-		if(message.length() == 0)
-			return message;
-		
-		StringBuilder result = new StringBuilder();
-		appendWithColonTerminator(result, getLoggableCallerIpAndPort());
-		appendWithColonTerminator(result, getThreadId());
-		appendWithColonTerminator(result, getLoggableCallerPublicCode());
-		if(result.length() > 0)
-			result.append(' ');
-		result.append(message);
-		return result.toString();
-	}
-	
-	public void appendWithColonTerminator(StringBuilder existing, String toAppend)
-	{
-		if(toAppend != null)
-			existing.append(toAppend);
-		
-		existing.append(":");
-	}
-
-	public String getLoggableCallerIpAndPort() 
-	{
-		return ConnectionServerWithIpTracking.getRemoteHostAddressAndPort();
-	}
-
-	public String getLoggableCallerPublicCode() 
-	{
-		String accountId = getCallerAccountId();
-		if(accountId == null)
-			return "";
-
-		try 
-		{
-			return MartusSecurity.computeFormattedPublicCode(accountId);
-		} 
-		catch (Exception e) 
-		{
-			// NOTE: can't call logError because it might recurse here
-			e.printStackTrace();
-			return "";
-		}
-	}
-
-	private String getThreadId() 
-	{
-		String rawName = Thread.currentThread().getName();
-		rawName = rawName.replaceAll(" ", "_");
-		return "tname=" + rawName;
-	}
-
 	public synchronized void logError(String message)
 	{
 		coreServer.logError(createLogString(message));
@@ -249,8 +194,11 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		coreServer.logDebug(createLogString(message));
 	}
 
-	
-	
+	private String createLogString(String message) 
+	{
+		return message;
+	}
+
 	public void displayClientStatistics()
 	{
 		System.out.println();
@@ -363,32 +311,16 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	
 	public synchronized void clientConnectionStart(String newCallerAccountId)
 	{
-		setThreadCallerAccountId(newCallerAccountId);
+		MartusServer.setThreadCallerAccountId(newCallerAccountId);
 		activeClientsCounter++;
 	}
 	
 	public synchronized void clientConnectionExit()
 	{
-		setThreadCallerAccountId(null);
+		MartusServer.setThreadCallerAccountId(null);
 		activeClientsCounter--;
 	}
 	
-	private void setThreadCallerAccountId(String newCallerAccountId) 
-	{
-		if(callerAccountId == null)
-			callerAccountId = new ThreadLocal<String>();
-		
-		callerAccountId.set(newCallerAccountId);
-	}
-	
-	public String getCallerAccountId()
-	{
-		if(callerAccountId == null)
-			return null;
-		
-		return callerAccountId.get();
-	}
-
 	public boolean shouldSimulateBadConnection()
 	{
 		return coreServer.simulateBadConnection;
@@ -908,8 +840,6 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	private Vector activeWebServers;
 	private Vector newsItems;
 	
-	private static ThreadLocal<String> callerAccountId;
-
 	public static final String TESTACCOUNTSFILENAME = "isTester.txt";
 	public static final String BANNEDCLIENTSFILENAME = "banned.txt";
 	public static final String UPLOADSOKFILENAME = "uploadsok.txt";

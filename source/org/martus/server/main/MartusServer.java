@@ -45,6 +45,7 @@ import java.util.TimerTask;
 import java.util.Vector;
 import java.util.zip.ZipFile;
 
+import org.apache.xmlrpc.webserver.ConnectionServerWithIpTracking;
 import org.martus.amplifier.ServerCallbackInterface;
 import org.martus.amplifier.main.MartusAmplifier;
 import org.martus.common.ContactInfo;
@@ -219,8 +220,8 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		getTriggerDirectory().mkdirs();
 		getStartupConfigDirectory().mkdirs();
 		serverForClients = createServerForClients();
-		serverForMirroring = new ServerForMirroring(this, getLogger());
-		serverForAmplifiers = new ServerForAmplifiers(this, getLogger());
+		serverForMirroring = new ServerForMirroring(this, this);
+		serverForAmplifiers = new ServerForAmplifiers(this, this);
 		amp = new MartusAmplifier(this);
 		failedUploadRequestsPerIp = new Hashtable();
 	}
@@ -1583,7 +1584,55 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 
 	private String createLogString(String message)
 	{
-		return message;
+		if(message.length() == 0)
+			return message;
+		
+		StringBuilder result = new StringBuilder();
+		appendWithColonTerminator(result, getLoggableCallerIpAndPort());
+		appendWithColonTerminator(result, getThreadId());
+		appendWithColonTerminator(result, getLoggableCallerPublicCode());
+		if(result.length() > 0)
+			result.append(' ');
+		result.append(message);
+		return result.toString();
+	}
+	
+	public void appendWithColonTerminator(StringBuilder existing, String toAppend)
+	{
+		if(toAppend != null)
+			existing.append(toAppend);
+		
+		existing.append(":");
+	}
+
+	public String getLoggableCallerIpAndPort() 
+	{
+		return ConnectionServerWithIpTracking.getRemoteHostAddressAndPort();
+	}
+
+	public String getLoggableCallerPublicCode() 
+	{
+		String accountId = getCallerAccountId();
+		if(accountId == null)
+			return "";
+
+		try 
+		{
+			return MartusSecurity.computeFormattedPublicCode(accountId);
+		} 
+		catch (Exception e) 
+		{
+			// NOTE: can't call logError because it might recurse here
+			e.printStackTrace();
+			return "";
+		}
+	}
+
+	private String getThreadId() 
+	{
+		String rawName = Thread.currentThread().getName();
+		rawName = rawName.replaceAll(" ", "_");
+		return "tname=" + rawName;
 	}
 
 	public synchronized void logError(String message)
@@ -1907,6 +1956,22 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		return (System.currentTimeMillis() - previousTime) > elapsedTimeInMillisToCheck;
 	}
 
+	public static void setThreadCallerAccountId(String newCallerAccountId) 
+	{
+		if(callerAccountId == null)
+			callerAccountId = new ThreadLocal<String>();
+		
+		callerAccountId.set(newCallerAccountId);
+	}
+
+	public static String getCallerAccountId()
+	{
+		if(callerAccountId == null)
+			return null;
+		
+		return callerAccountId.get();
+	}
+
 	abstract private class BackgroundServerTimerTask extends TimerTask
 	{
 		BackgroundServerTimerTask(String threadNameToUse)
@@ -2088,6 +2153,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		}
 	}
 	
+	private static ThreadLocal<String> callerAccountId;
 
 	ServerForMirroring serverForMirroring;
 	public ServerForClients serverForClients;
