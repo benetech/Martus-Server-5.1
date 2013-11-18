@@ -1607,7 +1607,11 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 
 	public String getLoggableCallerIpAndPort() 
 	{
-		return ConnectionServerWithIpTracking.getRemoteHostAddressAndPort();
+		String remoteHostAddressAndPort = ConnectionServerWithIpTracking.getRemoteHostAddressAndPort();
+		if(remoteHostAddressAndPort == null)
+			return ":";
+		
+		return remoteHostAddressAndPort;
 	}
 
 	public String getLoggableCallerPublicCode() 
