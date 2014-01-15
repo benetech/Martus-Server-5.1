@@ -380,6 +380,28 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		return result;
 	}
 
+	public Vector getMartusAccountAccessToken(String accountId)
+	{
+		Vector result = new Vector();
+		String loggingData = "getMartusAccountAccessToken: " + coreServer.getClientAliasForLogging(accountId);
+		logInfo(loggingData);
+
+		if(isClientBanned(accountId))
+		{
+			result.add(NetworkInterfaceConstants.REJECTED);
+		}
+		else
+		{
+			result.add(NetworkInterfaceConstants.OK);
+			//TODO: get and store real token from Martus Central Token Authority (Martus.org)
+			String validToken = "3841590";
+			Vector token = new Vector();
+			token.add(validToken);
+			result.add(token.toArray());
+		}
+		return result;
+	}
+
 	public Vector getPacket(String myAccountId, String authorAccountId, String bulletinLocalId, String packetLocalId)
 	{
 		return coreServer.getPacket(myAccountId, authorAccountId, bulletinLocalId, packetLocalId);

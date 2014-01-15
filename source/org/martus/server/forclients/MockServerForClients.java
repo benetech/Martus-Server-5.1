@@ -220,6 +220,15 @@ public class MockServerForClients extends ServerForClients implements ServerForN
 		return super.getNews(accountId, versionLabel, versionBuildDate);
 	}
 	
+	public Vector getMartusAccountAccessToken(String accountId)
+	{
+		if(martusAccountAccessTokenResponse != null)
+		{
+			return martusAccountAccessTokenResponse;
+		}
+		return super.getMartusAccountAccessToken(accountId);
+	}
+	
 	public Vector getServerCompliance()
 	{
 		if(complianceResponse != null)
@@ -284,6 +293,7 @@ public class MockServerForClients extends ServerForClients implements ServerForN
 	public Vector newsResponse;
 	public String newsVersionLabelToCheck;
 	public String newsVersionBuildDateToCheck;
+	public Vector martusAccountAccessTokenResponse;
 	public Vector infoResponse;
 	public String uploadResponse;
 	public Vector downloadResponse;

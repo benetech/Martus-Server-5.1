@@ -38,6 +38,8 @@ import java.util.Vector;
 
 import org.martus.common.HeadquartersKey;
 import org.martus.common.HeadquartersKeys;
+import org.martus.common.MartusAccountAccessToken;
+import org.martus.common.MartusAccountAccessToken.TokenInvalidException;
 import org.martus.common.bulletin.AttachmentProxy;
 import org.martus.common.bulletin.Bulletin;
 import org.martus.common.bulletin.BulletinForTesting;
@@ -661,6 +663,47 @@ public class TestServerForClients extends TestCaseEnhanced
 
 		TRACE_END();
 	}
+
+	public void testGetMartusAccountAccessToken() throws Exception
+	{
+		TRACE_BEGIN("testGetMartusAccountAccessToken");
+
+		ServerForClients maatTestServer = testServer;
+		maatTestServer.loadBannedClients();
+		maatTestServer.loadConfigurationFiles();
+		
+		Vector clientTokenInfo = maatTestServer.getMartusAccountAccessToken(clientAccountId);
+		assertEquals(2, clientTokenInfo.size());
+		assertEquals("ok", clientTokenInfo.get(0));
+		try 
+		{
+			assertEquals(1, ((Object[])clientTokenInfo.get(1)).length);
+			Object[] rawToken = (Object[])clientTokenInfo.get(1);
+			new MartusAccountAccessToken(rawToken[0].toString());
+		} 
+		catch (TokenInvalidException e) 
+		{
+			fail("Should have a valid token for a valid client");
+		}
+		TRACE_END();
+	}	
+	
+	public void testGetMartusAccountAccessTokenBannedClients() throws Exception
+	{
+		TRACE_BEGIN("testGetMartusAccountAccessTokenBannedClients");
+
+		ServerForClients maatTestServerBannedClients = testServer;
+		maatTestServerBannedClients.loadBannedClients();
+		maatTestServerBannedClients.loadConfigurationFiles();
+		
+		maatTestServerBannedClients.clientsBanned.add(clientAccountId);
+		Vector bannedClientTokenInfo = maatTestServerBannedClients.getMartusAccountAccessToken(clientAccountId);
+		maatTestServerBannedClients.clientsBanned.remove(clientAccountId);
+		assertEquals(1, bannedClientTokenInfo.size());
+		assertEquals(NetworkInterfaceConstants.REJECTED, bannedClientTokenInfo.get(0));
+		
+		TRACE_END();
+	}	
 
 	public void testGetNews() throws Exception
 	{

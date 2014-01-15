@@ -53,4 +53,5 @@ public interface ServerForClientsInterface extends LoggerInterface
 	public Vector listMyDraftBulletinIds(String authorAccountId, Vector retrieveTags);
 	public boolean shouldSimulateBadConnection();
 	public Vector getPartialUploadStatus(String authorAccountId, String bulletinLocalId, Vector extraParameters);
+	public Vector getMartusAccountAccessToken(String myAccountId);
 }
