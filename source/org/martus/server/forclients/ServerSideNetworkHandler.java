@@ -441,15 +441,18 @@ public class ServerSideNetworkHandler implements ServerSideNetworkInterface, Net
 		}
 	}
 
-	public Vector getMartusAccountAccessToken(String myAccountId)
+	public Vector getMartusAccountAccessToken(String myAccountId, Vector parameters, String signature)
 	{
 		server.clientConnectionStart(myAccountId);
 		try
 		{
 			logInfo("getMartusAccountAccessToken");
-			Vector result = server.getMartusAccountAccessToken(myAccountId);
+			Vector result = checkSignature(myAccountId, parameters, signature);
+			if(result != null)
+				return result;
+			Vector resultTokens = server.getMartusAccountAccessToken(myAccountId);
 			logDebug("getMartusAccountAccessToken: Exit");
-			return result;
+			return resultTokens;
 		}
 		finally
 		{
