@@ -39,7 +39,6 @@ import java.util.Vector;
 import org.martus.common.HeadquartersKey;
 import org.martus.common.HeadquartersKeys;
 import org.martus.common.MartusAccountAccessToken;
-import org.martus.common.MartusAccountAccessToken.TokenInvalidException;
 import org.martus.common.bulletin.AttachmentProxy;
 import org.martus.common.bulletin.Bulletin;
 import org.martus.common.bulletin.BulletinForTesting;
@@ -668,23 +667,85 @@ public class TestServerForClients extends TestCaseEnhanced
 	{
 		TRACE_BEGIN("testGetMartusAccountAccessToken");
 
-		ServerForClients maatTestServer = testServer;
-		maatTestServer.loadBannedClients();
-		maatTestServer.loadConfigurationFiles();
+		MockServerForClients mockServerForClients = (MockServerForClients)testServer;
+		mockServerForClients.loadBannedClients();
+		mockServerForClients.loadConfigurationFiles();
+		String emptyTokenInitiallyIndicatesNonResponseFromTokenAuthority = "";
+		mockServerForClients.setAccessAccountToken(emptyTokenInitiallyIndicatesNonResponseFromTokenAuthority);
 		
-		Vector clientTokenInfo = maatTestServer.getMartusAccountAccessToken(clientAccountId);
+		Vector clientTokenInfo = mockServerForClients.getMartusAccountAccessToken(clientAccountId);
+		assertEquals(1, clientTokenInfo.size());
+		assertEquals("no token available", clientTokenInfo.get(0));
+
+		String invalidTokenGivenByTokenAuthority = "123456789";
+		mockServerForClients.setAccessAccountToken(invalidTokenGivenByTokenAuthority);
+		
+		clientTokenInfo = mockServerForClients.getMartusAccountAccessToken(clientAccountId);
+		assertEquals(1, clientTokenInfo.size());
+		assertEquals("server error", clientTokenInfo.get(0));
+		
+		String validTokenGivenByTokenAuthority = "11223344";
+		mockServerForClients.setAccessAccountToken(validTokenGivenByTokenAuthority);
+		
+		clientTokenInfo = mockServerForClients.getMartusAccountAccessToken(clientAccountId);
 		assertEquals(2, clientTokenInfo.size());
 		assertEquals("ok", clientTokenInfo.get(0));
-		try 
-		{
-			assertEquals(1, ((Object[])clientTokenInfo.get(1)).length);
-			Object[] rawToken = (Object[])clientTokenInfo.get(1);
-			new MartusAccountAccessToken(rawToken[0].toString());
-		} 
-		catch (TokenInvalidException e) 
-		{
-			fail("Should have a valid token for a valid client");
-		}
+		assertEquals(1, ((Object[])clientTokenInfo.get(1)).length);
+		Object[] rawToken = (Object[])clientTokenInfo.get(1);
+		MartusAccountAccessToken accessToken = new MartusAccountAccessToken(rawToken[0].toString());
+		assertEquals("Should be same token as MTA was given", validTokenGivenByTokenAuthority, accessToken.getToken());
+
+		String tokenAuthorityDownAfterGivenTokenForClient = "";
+		mockServerForClients.setAccessAccountToken(tokenAuthorityDownAfterGivenTokenForClient);
+		
+		clientTokenInfo = mockServerForClients.getMartusAccountAccessToken(clientAccountId);
+		assertEquals(2, clientTokenInfo.size());
+		assertEquals("ok", clientTokenInfo.get(0));
+		assertEquals(1, ((Object[])clientTokenInfo.get(1)).length);
+		rawToken = (Object[])clientTokenInfo.get(1);
+		accessToken = new MartusAccountAccessToken(rawToken[0].toString());
+		assertEquals("Should be same token as MTA was given initially", validTokenGivenByTokenAuthority, accessToken.getToken());
+		
+		MockMartusSecurity client2Security = MockMartusSecurity.createOtherClient();
+		String clientAccount2Id = client2Security.getPublicKeyString();
+		
+		String validToken2GivenByTokenAuthority = "34482187";
+		mockServerForClients.setAccessAccountToken(validToken2GivenByTokenAuthority);
+		
+		Vector clientTokenInfo2 = mockServerForClients.getMartusAccountAccessToken(clientAccount2Id);
+		assertEquals(2, clientTokenInfo2.size());
+		assertEquals("ok", clientTokenInfo2.get(0));
+		assertEquals(1, ((Object[])clientTokenInfo2.get(1)).length);
+		rawToken = (Object[])clientTokenInfo2.get(1);
+		accessToken = new MartusAccountAccessToken(rawToken[0].toString());
+		assertEquals("Should be same token as MTA was given for the second client", validToken2GivenByTokenAuthority, accessToken.getToken());
+		
+		clientTokenInfo2 = mockServerForClients.getMartusAccountAccessToken(clientAccount2Id);
+		assertEquals(2, clientTokenInfo2.size());
+		assertEquals("ok", clientTokenInfo2.get(0));
+		assertEquals(1, ((Object[])clientTokenInfo2.get(1)).length);
+		rawToken = (Object[])clientTokenInfo2.get(1);
+		accessToken = new MartusAccountAccessToken(rawToken[0].toString());
+		assertEquals("Calling a 2nd time with MTA returning same token should be same token as MTA was given for the second client", validToken2GivenByTokenAuthority, accessToken.getToken());
+
+		mockServerForClients.setAccessAccountToken(tokenAuthorityDownAfterGivenTokenForClient);
+		
+		clientTokenInfo = mockServerForClients.getMartusAccountAccessToken(clientAccountId);
+		assertEquals(2, clientTokenInfo.size());
+		assertEquals("ok", clientTokenInfo.get(0));
+		assertEquals(1, ((Object[])clientTokenInfo.get(1)).length);
+		rawToken = (Object[])clientTokenInfo.get(1);
+		accessToken = new MartusAccountAccessToken(rawToken[0].toString());
+		assertEquals("Should get back the original token for client1 since MTA is down.", validTokenGivenByTokenAuthority, accessToken.getToken());
+		
+		clientTokenInfo2 = mockServerForClients.getMartusAccountAccessToken(clientAccount2Id);
+		assertEquals(2, clientTokenInfo2.size());
+		assertEquals("ok", clientTokenInfo2.get(0));
+		assertEquals(1, ((Object[])clientTokenInfo2.get(1)).length);
+		rawToken = (Object[])clientTokenInfo2.get(1);
+		accessToken = new MartusAccountAccessToken(rawToken[0].toString());
+		assertEquals("Should be same token as MTA was given for the second client since MTA is down.", validToken2GivenByTokenAuthority, accessToken.getToken());
+		
 		TRACE_END();
 	}	
 	

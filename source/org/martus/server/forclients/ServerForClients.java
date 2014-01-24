@@ -1,7 +1,7 @@
 /*
 
 The Martus(tm) free, social justice documentation and
-monitoring software. Copyright (C) 2002-2007, Beneficent
+monitoring software. Copyright (C) 2002-2014, Beneficent
 Technology, Inc. (The Benetech Initiative).
 
 Martus is free software; you can redistribute it and/or
@@ -28,15 +28,19 @@ package org.martus.server.forclients;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Vector;
 
 import org.martus.common.MagicWordEntry;
 import org.martus.common.MagicWords;
+import org.martus.common.MartusAccountAccessToken;
+import org.martus.common.MartusAccountAccessToken.TokenInvalidException;
 import org.martus.common.MartusUtilities;
 import org.martus.common.MartusUtilities.FileVerificationException;
 import org.martus.common.Version;
@@ -52,6 +56,7 @@ import org.martus.common.network.NonSSLNetworkAPI;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
 import org.martus.common.utilities.MartusServerUtilities;
+import org.martus.common.utilities.MartusServerUtilities.MartusSignatureFileDoesntExistsException;
 import org.martus.common.xmlrpc.WebServerWithClientId;
 import org.martus.server.main.MartusServer;
 import org.martus.server.main.ServerBulletinStore;
@@ -379,26 +384,87 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		result.add(items.toArray());
 		return result;
 	}
-
-	public Vector getMartusAccountAccessToken(String accountId)
+	
+	public String getTokensFromMartusCentralTokenAuthority(String accountId)
 	{
-		Vector result = new Vector();
-		String loggingData = "getMartusAccountAccessToken: " + coreServer.getClientAliasForLogging(accountId);
-		logInfo(loggingData);
-
-		if(isClientBanned(accountId))
+		//TODO: get and store real token from Martus Central Token Authority (Martus.org)
+		String validToken = "3841590";  //TODO: This should be a JSON object
+		return validToken;  
+	}
+	
+	private void setStoredAccessTokenForAccountIfNecessary(String accountId, String tokenData)
+	{
+		try
 		{
-			result.add(NetworkInterfaceConstants.REJECTED);
+			try
+			{
+				String previousTokenString = getStoredAccessTokenForAccount(accountId);
+				MartusAccountAccessToken currentToken = MartusAccountAccessToken.loadFromString(tokenData);
+				if(currentToken.getToken().equals(previousTokenString))
+					return;
+			}
+			catch (Exception previousTokenDoesntExist)
+			{
+			}
+			getStore().writeAccessTokens(accountId, tokenData);
+		}
+		catch (Exception e)
+		{
+			logError("storeAccessTokenForAccount", e);
+		}
+	}
+	
+	private String getStoredAccessTokenForAccount(String accountId) throws FileNotFoundException, IOException, TokenInvalidException, FileVerificationException, ParseException, MartusSignatureFileDoesntExistsException
+	{
+		MartusAccountAccessToken token = getStore().readAccessTokens(accountId);
+		return token.getToken();
+	}
+	
+	private Vector getAccessTokensForAccount(String accountId) throws FileNotFoundException, IOException, TokenInvalidException, FileVerificationException, ParseException, MartusSignatureFileDoesntExistsException
+	{
+		String networkTokenData = getTokensFromMartusCentralTokenAuthority(accountId);
+		String tokenData = "";
+		if(networkTokenData.length() > 0)
+		{
+			tokenData = MartusAccountAccessToken.loadFromString(networkTokenData).getToken(); 
+			setStoredAccessTokenForAccountIfNecessary(accountId, networkTokenData);
 		}
 		else
 		{
-			result.add(NetworkInterfaceConstants.OK);
-			//TODO: get and store real token from Martus Central Token Authority (Martus.org)
-			String validToken = "3841590";
-			Vector token = new Vector();
-			token.add(validToken);
-			result.add(token.toArray());
+			tokenData = getStoredAccessTokenForAccount(accountId);
 		}
+		Vector token = new Vector();
+		if(tokenData.length() > 0)
+			token.add(tokenData);
+		return token;
+	}
+
+	public Vector getMartusAccountAccessToken(String accountId)
+	{
+		String loggingData = "getMartusAccountAccessToken: " + coreServer.getClientAliasForLogging(accountId);
+		logInfo(loggingData);
+		Vector result = new Vector();
+		if(isClientBanned(accountId))
+		{
+			result.add(NetworkInterfaceConstants.REJECTED);
+			return result;
+		}
+		try 
+		{
+			Vector tokens = getAccessTokensForAccount(accountId);
+			result.add(NetworkInterfaceConstants.OK);
+			result.add(tokens.toArray());
+		} 
+		catch (FileNotFoundException e) 
+		{
+			logWarning("Token Authority unavailable, no access token");
+			result.add(NetworkInterfaceConstants.NO_TOKEN_AVAILABLE);
+		} 
+		catch (Exception e) 
+		{
+			logError(e);
+			result.add(NetworkInterfaceConstants.SERVER_ERROR);
+		} 
 		return result;
 	}
 

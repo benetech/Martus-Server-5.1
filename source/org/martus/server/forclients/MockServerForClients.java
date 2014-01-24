@@ -29,6 +29,7 @@ package org.martus.server.forclients;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Vector;
+
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.util.StreamableBase64;
 
@@ -220,6 +221,16 @@ public class MockServerForClients extends ServerForClients implements ServerForN
 		return super.getNews(accountId, versionLabel, versionBuildDate);
 	}
 	
+	public String getTokensFromMartusCentralTokenAuthority(String accountId)
+	{
+		return martusAccountAccesstoken;
+	}	
+	
+	public void setAccessAccountToken(String tokenToUse)
+	{
+		martusAccountAccesstoken = tokenToUse;
+	}
+	
 	public Vector getMartusAccountAccessToken(String accountId)
 	{
 		if(martusAccountAccessTokenResponse != null)
@@ -309,5 +320,6 @@ public class MockServerForClients extends ServerForClients implements ServerForN
 	private boolean listFieldOfficeAccountsResponseNull;
 	
 	private String authenticateResponse;
+	private String martusAccountAccesstoken;
 	
 }
