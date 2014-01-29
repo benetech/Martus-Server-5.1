@@ -388,8 +388,10 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	public String getTokensFromMartusCentralTokenAuthority(String accountId)
 	{
 		//TODO: get and store real token from Martus Central Token Authority (Martus.org)
-		String validToken = "3841590";  //TODO: This should be a JSON object
-		return validToken;  
+		String validMartusAccessTokenString = "3841590";
+		Date currentDate = new Date();
+		String validMartusAccessJsonTokenString = "{\""+MartusAccountAccessToken.MARTUS_ACCESS_TOKEN_RESPONSE_TAG+"\":{\""+MartusAccountAccessToken.MARTUS_ACCESS_TOKEN_CREATION_DATE_JSON_TAG+"\":\""+currentDate.toString()+"\",\""+MartusAccountAccessToken.MARTUS_ACCESS_TOKEN_JSON_TAG+"\":\""+validMartusAccessTokenString+"\"}}";
+		return validMartusAccessJsonTokenString;  
 	}
 	
 	private void setStoredAccessTokenForAccountIfNecessary(String accountId, String tokenData)
@@ -424,7 +426,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	{
 		String networkTokenData = getTokensFromMartusCentralTokenAuthority(accountId);
 		String tokenData = "";
-		if(networkTokenData.length() > 0)
+		if(networkTokenData != null && networkTokenData.length() > 0)
 		{
 			tokenData = MartusAccountAccessToken.loadFromString(networkTokenData).getToken(); 
 			setStoredAccessTokenForAccountIfNecessary(accountId, networkTokenData);

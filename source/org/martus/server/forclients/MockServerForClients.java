@@ -223,12 +223,12 @@ public class MockServerForClients extends ServerForClients implements ServerForN
 	
 	public String getTokensFromMartusCentralTokenAuthority(String accountId)
 	{
-		return martusAccountAccesstoken;
+		return martusAccountAccessJsonTokenResponse;
 	}	
 	
-	public void setAccessAccountToken(String tokenToUse)
+	public void setAccessAccountJsonTokenResponse(String jsonTokenToUse)
 	{
-		martusAccountAccesstoken = tokenToUse;
+		martusAccountAccessJsonTokenResponse = jsonTokenToUse;
 	}
 	
 	public Vector getMartusAccountAccessToken(String accountId)
@@ -320,6 +320,6 @@ public class MockServerForClients extends ServerForClients implements ServerForN
 	private boolean listFieldOfficeAccountsResponseNull;
 	
 	private String authenticateResponse;
-	private String martusAccountAccesstoken;
+	private String martusAccountAccessJsonTokenResponse;
 	
 }
