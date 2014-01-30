@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Vector;
 
+import org.martus.common.MartusAccountAccessToken;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.util.StreamableBase64;
 
@@ -240,6 +241,22 @@ public class MockServerForClients extends ServerForClients implements ServerForN
 		return super.getMartusAccountAccessToken(accountId);
 	}
 	
+	
+	public String getAccountIdForTokenFromMartusCentralTokenAuthority(MartusAccountAccessToken token)
+	{
+		if(martusAccountAccessJsonTokenResponse != null)
+		{
+			return martusAccountAccessJsonTokenResponse;
+		}
+		return super.getAccountIdForTokenFromMartusCentralTokenAuthority(token);
+	
+	}
+	
+	public Vector getMartusAccountIdFromAccessToken(String accountId, MartusAccountAccessToken tokenToUse)
+	{
+		return super.getMartusAccountIdFromAccessToken(accountId, tokenToUse);
+	}
+
 	public Vector getServerCompliance()
 	{
 		if(complianceResponse != null)
@@ -305,6 +322,7 @@ public class MockServerForClients extends ServerForClients implements ServerForN
 	public String newsVersionLabelToCheck;
 	public String newsVersionBuildDateToCheck;
 	public Vector martusAccountAccessTokenResponse;
+	public String martusAccountAccessJsonTokenResponse;
 	public Vector infoResponse;
 	public String uploadResponse;
 	public Vector downloadResponse;
@@ -320,6 +338,5 @@ public class MockServerForClients extends ServerForClients implements ServerForN
 	private boolean listFieldOfficeAccountsResponseNull;
 	
 	private String authenticateResponse;
-	private String martusAccountAccessJsonTokenResponse;
 	
 }

@@ -29,6 +29,7 @@ package org.martus.server.forclients;
 import java.util.Vector;
 
 import org.martus.common.LoggerInterface;
+import org.martus.common.MartusAccountAccessToken;
 import org.martus.common.crypto.MartusCrypto;
 
 public interface ServerForClientsInterface extends LoggerInterface 
@@ -54,4 +55,6 @@ public interface ServerForClientsInterface extends LoggerInterface
 	public boolean shouldSimulateBadConnection();
 	public Vector getPartialUploadStatus(String authorAccountId, String bulletinLocalId, Vector extraParameters);
 	public Vector getMartusAccountAccessToken(String myAccountId);
+	public Vector getMartusAccountIdFromAccessToken(String myAccountId, MartusAccountAccessToken tokenToUse);
+	
 }

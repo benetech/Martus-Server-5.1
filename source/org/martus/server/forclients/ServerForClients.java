@@ -32,6 +32,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -41,11 +42,14 @@ import org.martus.common.MagicWordEntry;
 import org.martus.common.MagicWords;
 import org.martus.common.MartusAccountAccessToken;
 import org.martus.common.MartusAccountAccessToken.TokenInvalidException;
+import org.martus.common.MartusAccountAccessToken.TokenNotFoundException;
 import org.martus.common.MartusUtilities;
 import org.martus.common.MartusUtilities.FileVerificationException;
 import org.martus.common.Version;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.database.Database.RecordHiddenException;
+import org.martus.common.database.ReadableDatabase;
+import org.martus.common.database.ReadableDatabase.AccountVisitor;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.DeleteRequestRecord;
 import org.martus.common.network.MartusXmlRpcServer;
@@ -64,7 +68,7 @@ import org.martus.util.DirectoryUtils;
 import org.martus.util.LoggerUtil;
 import org.martus.util.UnicodeReader;
 import org.martus.util.UnicodeWriter;
-
+import org.miradi.utils.EnhancedJsonObject;
 
 public class ServerForClients implements ServerForNonSSLClientsInterface, ServerForClientsInterface
 {
@@ -125,6 +129,12 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	{
 		return coreServer.getStartupConfigDirectory();
 	}
+	
+	private ReadableDatabase getDatabase()
+	{
+		return coreServer.getDatabase();
+	}
+	
 
 	public void addListeners() throws UnknownHostException
 	{
@@ -390,31 +400,61 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		//TODO: get and store real token from Martus Central Token Authority (Martus.org)
 		String validMartusAccessTokenString = "3841590";
 		Date currentDate = new Date();
-		String validMartusAccessJsonTokenString = "{\""+MartusAccountAccessToken.MARTUS_ACCESS_TOKEN_RESPONSE_TAG+"\":{\""+MartusAccountAccessToken.MARTUS_ACCESS_TOKEN_CREATION_DATE_JSON_TAG+"\":\""+currentDate.toString()+"\",\""+MartusAccountAccessToken.MARTUS_ACCESS_TOKEN_JSON_TAG+"\":\""+validMartusAccessTokenString+"\"}}";
+		DateFormat df = new SimpleDateFormat("MM/dd/yy HH:mm:ss");
+		
+		String validMartusAccessJsonTokenString = "{\""
+				+MartusAccountAccessToken.MARTUS_ACCOUNT_ACCESS_TOKEN_JSON_TAG+"\":{\""
+					+MartusAccountAccessToken.MARTUS_ACCESS_TOKEN_CREATION_DATE_JSON_TAG+"\":\""
+						+df.format(currentDate)+"\",\""
+					+MartusAccountAccessToken.MARTUS_ACCESS_TOKEN_JSON_TAG+"\":\""
+						+validMartusAccessTokenString+"\",\""
+					+MartusAccountAccessToken.MARTUS_ACCESS_ACCOUNT_ID_JSON_TAG+"\":\""
+						+accountId
+				+"\"}}";
 		return validMartusAccessJsonTokenString;  
 	}
 	
-	private void setStoredAccessTokenForAccountIfNecessary(String accountId, String tokenData)
+	public String getAccountIdForTokenFromMartusCentralTokenAuthority(MartusAccountAccessToken token)
+	{
+		//TODO: get real AccountId from Martus Central Token Authority (Martus.org)
+		String fakeAccountId = "MIBsssxdfjkdfj";
+		Date currentDate = new Date();
+		DateFormat df = new SimpleDateFormat("MM/dd/yy HH:mm:ss");
+		String validMartusAccessJsonTokenString = "{\""
+				+MartusAccountAccessToken.MARTUS_ACCOUNT_ACCESS_TOKEN_JSON_TAG+"\":{\""
+					+MartusAccountAccessToken.MARTUS_ACCESS_TOKEN_CREATION_DATE_JSON_TAG+"\":\""
+						+df.format(currentDate)+"\",\""
+					+MartusAccountAccessToken.MARTUS_ACCESS_TOKEN_JSON_TAG+"\":\""
+						+token.getToken()+"\",\""
+						+MartusAccountAccessToken.MARTUS_ACCESS_ACCOUNT_ID_JSON_TAG+"\":\""
+						+fakeAccountId
+				+"\"}}";
+		return validMartusAccessJsonTokenString;  
+	}
+	
+	private void setStoredAccessTokenForAccountIfNecessary(String networkJsonData)
 	{
 		try
 		{
+			String accountId = GetAccountIdFromNetworkResponse(networkJsonData);
 			try
 			{
+				MartusAccountAccessToken currentToken = MartusAccountAccessToken.loadFromString(networkJsonData);
 				String previousTokenString = getStoredAccessTokenForAccount(accountId);
-				MartusAccountAccessToken currentToken = MartusAccountAccessToken.loadFromString(tokenData);
 				if(currentToken.getToken().equals(previousTokenString))
 					return;
 			}
 			catch (Exception previousTokenDoesntExist)
 			{
 			}
-			getStore().writeAccessTokens(accountId, tokenData);
+			getStore().writeAccessTokens(accountId, networkJsonData);
 		}
 		catch (Exception e)
 		{
-			logError("storeAccessTokenForAccount", e);
+			logError("storeAccessTokenForAccount via setStoredAccessTokenForAccountIfNecessary", e);
 		}
 	}
+	
 	
 	private String getStoredAccessTokenForAccount(String accountId) throws FileNotFoundException, IOException, TokenInvalidException, FileVerificationException, ParseException, MartusSignatureFileDoesntExistsException
 	{
@@ -422,6 +462,46 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		return token.getToken();
 	}
 	
+	class AccountTokenFinder implements AccountVisitor
+	{
+		public AccountTokenFinder(MartusAccountAccessToken token)
+		{
+			tokenFileNameToFind = token.getTokenFileName();
+			foundAccountIdForToken = null;
+		}
+		
+		public void visit(String accountString)
+		{
+			try 
+			{
+				File tokenFile = getStore().getTokenFileForAccount(accountString);
+				if(tokenFile.getName().equals(tokenFileNameToFind))
+					foundAccountIdForToken = accountString;
+			} 
+			catch (Exception ignoredExceptionTokenDoesntExist) 
+			{
+			} 
+		}
+		
+		public String getAccountIdForToken() throws TokenNotFoundException
+		{
+			if(foundAccountIdForToken == null)
+				throw new TokenNotFoundException();
+			return foundAccountIdForToken;
+			
+		}
+		String tokenFileNameToFind;
+		String foundAccountIdForToken;
+	}
+
+	private String getStoredAccountIdForToken(MartusAccountAccessToken tokenToFind) throws TokenNotFoundException
+	{
+		AccountTokenFinder visitor = new AccountTokenFinder(tokenToFind);
+		getDatabase().visitAllAccounts(visitor);
+		return visitor.getAccountIdForToken();
+	}
+	
+
 	private Vector getAccessTokensForAccount(String accountId) throws FileNotFoundException, IOException, TokenInvalidException, FileVerificationException, ParseException, MartusSignatureFileDoesntExistsException
 	{
 		String networkTokenData = getTokensFromMartusCentralTokenAuthority(accountId);
@@ -429,7 +509,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		if(networkTokenData != null && networkTokenData.length() > 0)
 		{
 			tokenData = MartusAccountAccessToken.loadFromString(networkTokenData).getToken(); 
-			setStoredAccessTokenForAccountIfNecessary(accountId, networkTokenData);
+			setStoredAccessTokenForAccountIfNecessary(networkTokenData);
 		}
 		else
 		{
@@ -460,6 +540,73 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		catch (FileNotFoundException e) 
 		{
 			logWarning("Token Authority unavailable, no access token");
+			result.add(NetworkInterfaceConstants.NO_TOKEN_AVAILABLE);
+		} 
+		catch (Exception e) 
+		{
+			logError(e);
+			result.add(NetworkInterfaceConstants.SERVER_ERROR);
+		} 
+		return result;
+	}
+	
+	public String GetAccountIdFromNetworkResponse(String networkResponseData) throws ParseException
+	{
+		EnhancedJsonObject jsonContainer = new EnhancedJsonObject(networkResponseData);
+		EnhancedJsonObject innerPackage = jsonContainer.getJson(MartusAccountAccessToken.MARTUS_ACCOUNT_ACCESS_TOKEN_JSON_TAG);
+		return innerPackage.getString(MartusAccountAccessToken.MARTUS_ACCESS_ACCOUNT_ID_JSON_TAG);
+	}
+
+	public String GetTokenFromNetworkResponse(String networkResponseData) throws ParseException
+	{
+		EnhancedJsonObject jsonContainer = new EnhancedJsonObject(networkResponseData);
+		EnhancedJsonObject innerPackage = jsonContainer.getJson(MartusAccountAccessToken.MARTUS_ACCOUNT_ACCESS_TOKEN_JSON_TAG);
+		return innerPackage.getString(MartusAccountAccessToken.MARTUS_ACCESS_TOKEN_JSON_TAG);
+	}
+
+	private String getAccountIdForToken(MartusAccountAccessToken tokenToFind) throws TokenNotFoundException, TokenInvalidException
+	{
+		String networkTokenAccountAccessData = getAccountIdForTokenFromMartusCentralTokenAuthority(tokenToFind);
+		if(networkTokenAccountAccessData != null && networkTokenAccountAccessData.length() > 0)
+		{
+			try 
+			{
+				MartusAccountAccessToken.loadFromString(networkTokenAccountAccessData);
+				String accountId = GetAccountIdFromNetworkResponse(networkTokenAccountAccessData);
+				String tokenReturned = GetTokenFromNetworkResponse(networkTokenAccountAccessData);
+				if(!tokenToFind.getToken().equals(tokenReturned))
+					throw new TokenNotFoundException();
+				setStoredAccessTokenForAccountIfNecessary(networkTokenAccountAccessData);
+				return accountId;
+			} 
+			catch (ParseException unexpectedParseErrorFromMTA) 
+			{
+				logError(unexpectedParseErrorFromMTA);
+			}
+		}
+		return getStoredAccountIdForToken(tokenToFind);
+	}
+
+	public Vector getMartusAccountIdFromAccessToken(String accountId, MartusAccountAccessToken tokenToUse)
+	{
+		String loggingData = "getMartusAccountIdFromAccessToken: " + coreServer.getClientAliasForLogging(accountId);
+		logInfo(loggingData);
+		Vector result = new Vector();
+		if(isClientBanned(accountId))
+		{
+			result.add(NetworkInterfaceConstants.REJECTED);
+			return result;
+		}
+		try 
+		{
+			String accountIdForToken = getAccountIdForToken(tokenToUse);
+			result.add(NetworkInterfaceConstants.OK);
+			Vector accountIds = new Vector();
+			accountIds.add(accountIdForToken);
+			result.add(accountIds.toArray());
+		} 
+		catch (MartusAccountAccessToken.TokenNotFoundException e) 
+		{
 			result.add(NetworkInterfaceConstants.NO_TOKEN_AVAILABLE);
 		} 
 		catch (Exception e) 

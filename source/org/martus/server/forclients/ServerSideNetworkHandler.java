@@ -31,6 +31,8 @@ import java.util.Arrays;
 import java.util.Vector;
 
 import org.martus.common.LoggerInterface;
+import org.martus.common.MartusAccountAccessToken;
+import org.martus.common.MartusAccountAccessToken.TokenInvalidException;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.network.ServerSideNetworkInterface;
@@ -453,6 +455,38 @@ public class ServerSideNetworkHandler implements ServerSideNetworkInterface, Net
 			Vector resultTokens = server.getMartusAccountAccessToken(myAccountId);
 			logDebug("getMartusAccountAccessToken: Exit");
 			return resultTokens;
+		}
+		finally
+		{
+			server.clientConnectionExit();
+		}
+	}
+	
+	
+	public Vector getMartusAccountIdFromAccessToken(String myAccountId, Vector parameters, String signature)
+	{
+		server.clientConnectionStart(myAccountId);
+		try
+		{
+			logInfo("getMartusAccountIdFromAccessToken");
+			Vector result = checkSignature(myAccountId, parameters, signature);
+			if(result != null)
+				return result;
+			MartusAccountAccessToken tokenToUse;
+			try 
+			{
+				tokenToUse = new MartusAccountAccessToken((String)parameters.get(0));
+				Vector resultAccountId = server.getMartusAccountIdFromAccessToken(myAccountId, tokenToUse);
+				logDebug("getMartusAccountIdFromAccessToken: Exit");
+				return resultAccountId;
+			} 
+			catch (TokenInvalidException e) 
+			{
+				logError(e);
+				Vector invalidTokenResult = new Vector();
+				invalidTokenResult.add(INVALID_DATA);
+				return invalidTokenResult;
+			}
 		}
 		finally
 		{

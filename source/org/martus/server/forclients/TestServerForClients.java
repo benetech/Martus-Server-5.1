@@ -1,7 +1,7 @@
 /*
 
 The Martus(tm) free, social justice documentation and
-monitoring software. Copyright (C) 2002-2007, Beneficent
+monitoring software. Copyright (C) 2002-2014, Beneficent
 Technology, Inc. (The Benetech Initiative).
 
 Martus is free software; you can redistribute it and/or
@@ -663,6 +663,11 @@ public class TestServerForClients extends TestCaseEnhanced
 		TRACE_END();
 	}
 
+	private String createJsonTokenResponse(String accountId, String token)
+	{
+		return "{\""+MartusAccountAccessToken.MARTUS_ACCOUNT_ACCESS_TOKEN_JSON_TAG+"\":{\""+MartusAccountAccessToken.MARTUS_ACCESS_TOKEN_CREATION_DATE_JSON_TAG+"\":\"02/15/2014 13:30:45\",\""+MartusAccountAccessToken.MARTUS_ACCESS_TOKEN_JSON_TAG+"\":\""+token+"\",\""+MartusAccountAccessToken.MARTUS_ACCESS_ACCOUNT_ID_JSON_TAG+"\":\""+accountId+"\"}}}";
+	}
+	
 	public void testGetMartusAccountAccessToken() throws Exception
 	{
 		TRACE_BEGIN("testGetMartusAccountAccessToken");
@@ -677,12 +682,15 @@ public class TestServerForClients extends TestCaseEnhanced
 		assertEquals(1, clientTokenInfo.size());
 		assertEquals("no token available", clientTokenInfo.get(0));
 
+		String invalidTokenGivenByTokenAuthority = createJsonTokenResponse(clientAccountId, invalidMartusAccessTokenString);
 		mockServerForClients.setAccessAccountJsonTokenResponse(invalidTokenGivenByTokenAuthority);
 		
 		clientTokenInfo = mockServerForClients.getMartusAccountAccessToken(clientAccountId);
 		assertEquals(1, clientTokenInfo.size());
 		assertEquals("server error", clientTokenInfo.get(0));
 		
+		
+		String validTokenGivenByToken1Authority = createJsonTokenResponse(clientAccountId, validMartusAccessToken1String);
 		mockServerForClients.setAccessAccountJsonTokenResponse(validTokenGivenByToken1Authority);
 		
 		clientTokenInfo = mockServerForClients.getMartusAccountAccessToken(clientAccountId);
@@ -707,6 +715,7 @@ public class TestServerForClients extends TestCaseEnhanced
 		MockMartusSecurity client2Security = MockMartusSecurity.createOtherClient();
 		String clientAccount2Id = client2Security.getPublicKeyString();
 		
+		String validTokenGivenByToken2Authority = createJsonTokenResponse(clientAccount2Id, validMartusAccessToken2String);
 		mockServerForClients.setAccessAccountJsonTokenResponse(validTokenGivenByToken2Authority);
 		
 		Vector clientTokenInfo2 = mockServerForClients.getMartusAccountAccessToken(clientAccount2Id);
@@ -756,6 +765,100 @@ public class TestServerForClients extends TestCaseEnhanced
 		
 		maatTestServerBannedClients.clientsBanned.add(clientAccountId);
 		Vector bannedClientTokenInfo = maatTestServerBannedClients.getMartusAccountAccessToken(clientAccountId);
+		maatTestServerBannedClients.clientsBanned.remove(clientAccountId);
+		assertEquals(1, bannedClientTokenInfo.size());
+		assertEquals(NetworkInterfaceConstants.REJECTED, bannedClientTokenInfo.get(0));
+		
+		TRACE_END();
+	}	
+
+	public void testGetMartusAccountIdFromAccessToken() throws Exception
+	{
+		TRACE_BEGIN("testGetMartusAccountIdFromAccessToken");
+
+		MockServerForClients mockServerForClients = (MockServerForClients)testServer;
+		mockServerForClients.loadBannedClients();
+		mockServerForClients.loadConfigurationFiles();
+		String emptyTokenInitiallyIndicatesNonResponseFromTokenAuthority = "";
+		mockServerForClients.setAccessAccountJsonTokenResponse(emptyTokenInitiallyIndicatesNonResponseFromTokenAuthority);
+
+		MockMartusSecurity client2Security = MockMartusSecurity.createOtherClient();
+		String clientAccount2Id = client2Security.getPublicKeyString();
+		MartusAccountAccessToken token1ToFind = new MartusAccountAccessToken(validMartusAccessToken1String);
+		Vector clientAccountIdsForToken = mockServerForClients.getMartusAccountIdFromAccessToken(clientAccount2Id, token1ToFind);
+		assertEquals(1, clientAccountIdsForToken.size());
+		assertEquals("no token available", clientAccountIdsForToken.get(0));
+
+		String invalidTokenGivenByTokenAuthority = createJsonTokenResponse(clientAccountId, invalidMartusAccessTokenString);
+		mockServerForClients.setAccessAccountJsonTokenResponse(invalidTokenGivenByTokenAuthority);
+		
+		clientAccountIdsForToken = mockServerForClients.getMartusAccountIdFromAccessToken(clientAccount2Id, token1ToFind);
+		assertEquals("server error", clientAccountIdsForToken.get(0));
+		assertEquals(1, clientAccountIdsForToken.size());
+		
+		String validTokenGivenByToken1Authority = createJsonTokenResponse(clientAccountId, validMartusAccessToken1String);
+		mockServerForClients.setAccessAccountJsonTokenResponse(validTokenGivenByToken1Authority);
+		
+		clientAccountIdsForToken = mockServerForClients.getMartusAccountIdFromAccessToken(clientAccount2Id, token1ToFind);
+		assertEquals("ok", clientAccountIdsForToken.get(0));
+		assertEquals(2, clientAccountIdsForToken.size());
+		Object[] accountIdOjectArray = (Object[])clientAccountIdsForToken.get(1);
+		assertEquals(1, accountIdOjectArray.length);
+	
+		assertEquals("Account for this token didn't match?", clientAccountId, (String)accountIdOjectArray[0]);
+
+		String tokenAuthorityDownAfterGivenTokenForClient = "";
+		mockServerForClients.setAccessAccountJsonTokenResponse(tokenAuthorityDownAfterGivenTokenForClient);
+		
+		clientAccountIdsForToken = mockServerForClients.getMartusAccountIdFromAccessToken(clientAccount2Id, token1ToFind);
+		assertEquals("ok", clientAccountIdsForToken.get(0));
+		assertEquals(2, clientAccountIdsForToken.size());
+		accountIdOjectArray = (Object[])clientAccountIdsForToken.get(1);
+		assertEquals("With MTA down we should still be able to get ClientId from Token", clientAccountId, (String)accountIdOjectArray[0]);
+	
+		String validTokenGivenByToken2Authority = createJsonTokenResponse(clientAccount2Id, validMartusAccessToken2String);
+		mockServerForClients.setAccessAccountJsonTokenResponse(validTokenGivenByToken2Authority);
+		MartusAccountAccessToken token2ToFind = new MartusAccountAccessToken(validMartusAccessToken2String);
+		
+		clientAccountIdsForToken = mockServerForClients.getMartusAccountIdFromAccessToken(clientAccountId, token2ToFind);
+		assertEquals("ok", clientAccountIdsForToken.get(0));
+		assertEquals(2, clientAccountIdsForToken.size());
+		accountIdOjectArray = (Object[])clientAccountIdsForToken.get(1);
+		assertEquals("Account for token2 didn't match?", clientAccount2Id, (String)accountIdOjectArray[0]);
+		
+		mockServerForClients.setAccessAccountJsonTokenResponse(tokenAuthorityDownAfterGivenTokenForClient);
+		
+		clientAccountIdsForToken = mockServerForClients.getMartusAccountIdFromAccessToken(clientAccountId, token1ToFind);
+		assertEquals("ok", clientAccountIdsForToken.get(0));
+		assertEquals(2, clientAccountIdsForToken.size());
+		accountIdOjectArray = (Object[])clientAccountIdsForToken.get(1);
+		assertEquals("MTA down Original Account1 for token1 didn't match?", clientAccountId, (String)accountIdOjectArray[0]);
+
+		clientAccountIdsForToken = mockServerForClients.getMartusAccountIdFromAccessToken(clientAccountId, token2ToFind);
+		assertEquals("ok", clientAccountIdsForToken.get(0));
+		assertEquals(2, clientAccountIdsForToken.size());
+		accountIdOjectArray = (Object[])clientAccountIdsForToken.get(1);
+		assertEquals("MTA down Account2 for token2 didn't match?", clientAccount2Id, (String)accountIdOjectArray[0]);
+
+		MartusAccountAccessToken nonExistentTokenToFind = new MartusAccountAccessToken(validMartusAccessToken3String);
+		clientAccountIdsForToken = mockServerForClients.getMartusAccountIdFromAccessToken(clientAccount2Id, nonExistentTokenToFind);
+		assertEquals(1, clientAccountIdsForToken.size());
+		assertEquals("no token available", clientAccountIdsForToken.get(0));
+		
+		TRACE_END();
+	}	
+
+	public void testGetMartusAccountIdFromAccessTokenBannedClients() throws Exception
+	{
+		TRACE_BEGIN("testGetMartusAccountIdFromAccessTokenBannedClients");
+
+		ServerForClients maatTestServerBannedClients = testServer;
+		maatTestServerBannedClients.loadBannedClients();
+		maatTestServerBannedClients.loadConfigurationFiles();
+		
+		maatTestServerBannedClients.clientsBanned.add(clientAccountId);
+		MartusAccountAccessToken tokenToUse = new MartusAccountAccessToken("11223344");
+		Vector bannedClientTokenInfo = maatTestServerBannedClients.getMartusAccountIdFromAccessToken(clientAccountId, tokenToUse);
 		maatTestServerBannedClients.clientsBanned.remove(clientAccountId);
 		assertEquals(1, bannedClientTokenInfo.size());
 		assertEquals(NetworkInterfaceConstants.REJECTED, bannedClientTokenInfo.get(0));
@@ -962,11 +1065,8 @@ public class TestServerForClients extends TestCaseEnhanced
 	
 	final static String validMartusAccessToken1String = "11223344";
 	final static String validMartusAccessToken2String = "34482187";
-	final static String validTokenGivenByToken1Authority = "{\""+MartusAccountAccessToken.MARTUS_ACCESS_TOKEN_RESPONSE_TAG+"\":{\""+MartusAccountAccessToken.MARTUS_ACCESS_TOKEN_CREATION_DATE_JSON_TAG+"\":\"Sat Feb 15 01:30:45 PST 2014\",\""+MartusAccountAccessToken.MARTUS_ACCESS_TOKEN_JSON_TAG+"\":\""+validMartusAccessToken1String+"\"}}";
-	final static String validTokenGivenByToken2Authority = "{\""+MartusAccountAccessToken.MARTUS_ACCESS_TOKEN_RESPONSE_TAG+"\":{\""+MartusAccountAccessToken.MARTUS_ACCESS_TOKEN_CREATION_DATE_JSON_TAG+"\":\"Sat Feb 15 01:30:45 PST 2014\",\""+MartusAccountAccessToken.MARTUS_ACCESS_TOKEN_JSON_TAG+"\":\""+validMartusAccessToken2String+"\"}}";
+	final static String validMartusAccessToken3String = "22334452";
 	final static String invalidMartusAccessTokenString = "123456789";
-	final static String invalidTokenGivenByTokenAuthority = "{\""+MartusAccountAccessToken.MARTUS_ACCESS_TOKEN_RESPONSE_TAG+"\":{\""+MartusAccountAccessToken.MARTUS_ACCESS_TOKEN_CREATION_DATE_JSON_TAG+"\":\"Sat Feb 15 01:30:45 PST 2014\",\""+MartusAccountAccessToken.MARTUS_ACCESS_TOKEN_JSON_TAG+"\":\""+invalidMartusAccessTokenString+"\"}}";
-	
 	
 	static Bulletin b2;
 	static Bulletin privateBulletin;

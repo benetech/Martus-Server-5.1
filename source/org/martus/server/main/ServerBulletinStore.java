@@ -140,36 +140,54 @@ public class ServerBulletinStore extends BulletinStore
 		MartusServerUtilities.writeContatctInfo(accountId, contactInfo, contactFile);
 	}
 	
-	public void writeAccessTokens(String accountId, String tokenData) throws IOException, MartusSignatureException, InterruptedException, MartusSignatureFileAlreadyExistsException
+	public void writeAccessTokens(String accountId, String tokenData) throws IOException, MartusSignatureException, InterruptedException, MartusSignatureFileAlreadyExistsException, TokenInvalidException
 	{
-		File tokenFile = getAccessTokenFileForAccount(accountId);
-		File signatureTokenFile = getAccessTokenSignatureFileForAccount(accountId);
+		MartusAccountAccessToken currentToken = MartusAccountAccessToken.loadFromString(tokenData);		
+		File tokenFile = getAccessTokenFileForAccount(accountId, currentToken);
+		File signatureTokenFile = getAccessTokenSignatureFileForAccount(tokenFile);
 		MartusServerUtilities.writeAccessTokenData(accountId, tokenData, tokenFile);
 		Date currentFileDate = new Date(tokenFile.lastModified());
 		MartusServerUtilities.writeSignatureFileWithDatestamp(signatureTokenFile, currentFileDate.toString(), tokenFile, getSignatureGenerator());
 	}
 	
+	public File getTokenFileForAccount(String accountId) throws IOException, FileNotFoundException 
+	{
+		File tokensFolder = getAbsoluteAccountAccessTokenFolderForAccount(accountId);
+		if(!tokensFolder.exists())
+			throw new FileNotFoundException();
+		File[] filesAvailable = tokensFolder.listFiles();
+		for(int i = 0; i < filesAvailable.length; ++i)
+		{
+			if(filesAvailable[i].isFile() && filesAvailable[i].getName().endsWith(".dat"))
+			{
+				return filesAvailable[i];
+			}
+		}
+		throw new FileNotFoundException();
+	}
+	
 	public MartusAccountAccessToken readAccessTokens(String accountId) throws FileNotFoundException, IOException, TokenInvalidException, FileVerificationException
 	{
-		File tokenFile = getAccessTokenFileForAccount(accountId);
-		if(!tokenFile.exists())
-			throw new FileNotFoundException();
-		File signatureTokenFile = getAccessTokenSignatureFileForAccount(accountId);
+		File tokenFile = getTokenFileForAccount(accountId);
+		File signatureTokenFile = getAccessTokenSignatureFileForAccount(tokenFile);
 		MartusCrypto security = getSignatureVerifier();
 		MartusServerUtilities.verifyFileAndSignatureOnServer(tokenFile, signatureTokenFile, security, security.getPublicKeyString());
 		return MartusAccountAccessToken.loadFromFile(tokenFile);
 	}
 
-	public File getAccessTokenFileForAccount(String accountId) throws IOException 
+	public File getAbsoluteAccountAccessTokenFolderForAccount(String accountId) throws IOException 
 	{
-		File tokenFile = getWriteableDatabase().getAccountAccessTokenFile(accountId);
-		return tokenFile;
+		return getWriteableDatabase().getAbsoluteAccountAccessTokenFolderForAccount(accountId);
 	}
 	
-	public File getAccessTokenSignatureFileForAccount(String accountId) throws IOException 
+	public File getAccessTokenFileForAccount(String accountId, MartusAccountAccessToken token) throws IOException 
 	{
-		File tokenFile = getWriteableDatabase().getAccountAccessTokenSignatureFile(accountId);
-		return tokenFile;
+		return getWriteableDatabase().getAccountAccessTokenFile(accountId, token);
+	}
+	
+	public File getAccessTokenSignatureFileForAccount(File tokenFile) throws IOException 
+	{
+		return getWriteableDatabase().getAccountAccessTokenSignatureFile(tokenFile);
 	}
 
 	public boolean isHidden(DatabaseKey key)
