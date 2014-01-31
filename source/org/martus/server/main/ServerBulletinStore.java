@@ -152,7 +152,7 @@ public class ServerBulletinStore extends BulletinStore
 	
 	public File getTokenFileForAccount(String accountId) throws IOException, FileNotFoundException 
 	{
-		File tokensFolder = getAbsoluteAccountAccessTokenFolderForAccount(accountId);
+		File tokensFolder = getAccountAccessTokenFolder(accountId);
 		if(!tokensFolder.exists())
 			throw new FileNotFoundException();
 		File[] filesAvailable = tokensFolder.listFiles();
@@ -175,17 +175,17 @@ public class ServerBulletinStore extends BulletinStore
 		return MartusAccountAccessToken.loadFromFile(tokenFile);
 	}
 
-	public File getAbsoluteAccountAccessTokenFolderForAccount(String accountId) throws IOException 
+	private File getAccountAccessTokenFolder(String accountId) throws IOException 
 	{
-		return getWriteableDatabase().getAbsoluteAccountAccessTokenFolderForAccount(accountId);
+		return getWriteableDatabase().getAccountAccessTokenFolder(accountId);
 	}
 	
-	public File getAccessTokenFileForAccount(String accountId, MartusAccountAccessToken token) throws IOException 
+	private File getAccessTokenFileForAccount(String accountId, MartusAccountAccessToken token) throws IOException 
 	{
 		return getWriteableDatabase().getAccountAccessTokenFile(accountId, token);
 	}
 	
-	public File getAccessTokenSignatureFileForAccount(File tokenFile) throws IOException 
+	private File getAccessTokenSignatureFileForAccount(File tokenFile) throws IOException 
 	{
 		return getWriteableDatabase().getAccountAccessTokenSignatureFile(tokenFile);
 	}
