@@ -472,10 +472,9 @@ public class ServerSideNetworkHandler implements ServerSideNetworkInterface, Net
 			Vector result = checkSignature(myAccountId, parameters, signature);
 			if(result != null)
 				return result;
-			MartusAccountAccessToken tokenToUse;
 			try 
 			{
-				tokenToUse = new MartusAccountAccessToken((String)parameters.get(0));
+				MartusAccountAccessToken tokenToUse = new MartusAccountAccessToken((String)parameters.get(0));
 				Vector resultAccountId = server.getMartusAccountIdFromAccessToken(myAccountId, tokenToUse);
 				logDebug("getMartusAccountIdFromAccessToken: Exit");
 				return resultAccountId;

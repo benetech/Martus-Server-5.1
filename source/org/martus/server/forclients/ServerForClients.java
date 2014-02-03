@@ -432,11 +432,11 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		return validMartusAccessJsonTokenString;  
 	}
 	
-	private void setStoredAccessTokenForAccountIfNecessary(String networkJsonData)
+	private void storeAccessTokenForAccountIfNecessary(String networkJsonData)
 	{
 		try
 		{
-			String accountId = GetAccountIdFromNetworkResponse(networkJsonData);
+			String accountId = getAccountIdFromNetworkResponse(networkJsonData);
 			try
 			{
 				MartusAccountAccessToken currentToken = MartusAccountAccessToken.loadFromString(networkJsonData);
@@ -502,14 +502,14 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	}
 	
 
-	private Vector getAccessTokensForAccount(String accountId) throws FileNotFoundException, IOException, TokenInvalidException, FileVerificationException, ParseException, MartusSignatureFileDoesntExistsException
+	private Vector getAccessTokensForAccount(String accountId) throws Exception
 	{
 		String networkTokenData = getTokensFromMartusCentralTokenAuthority(accountId);
 		String tokenData = "";
 		if(networkTokenData != null && networkTokenData.length() > 0)
 		{
 			tokenData = MartusAccountAccessToken.loadFromString(networkTokenData).getToken(); 
-			setStoredAccessTokenForAccountIfNecessary(networkTokenData);
+			storeAccessTokenForAccountIfNecessary(networkTokenData);
 		}
 		else
 		{
@@ -550,14 +550,14 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		return result;
 	}
 	
-	public String GetAccountIdFromNetworkResponse(String networkResponseData) throws ParseException
+	public String getAccountIdFromNetworkResponse(String networkResponseData) throws ParseException
 	{
 		EnhancedJsonObject jsonContainer = new EnhancedJsonObject(networkResponseData);
 		EnhancedJsonObject innerPackage = jsonContainer.getJson(MartusAccountAccessToken.MARTUS_ACCOUNT_ACCESS_TOKEN_JSON_TAG);
 		return innerPackage.getString(MartusAccountAccessToken.MARTUS_ACCESS_ACCOUNT_ID_JSON_TAG);
 	}
 
-	public String GetTokenFromNetworkResponse(String networkResponseData) throws ParseException
+	public String getTokenFromNetworkResponse(String networkResponseData) throws ParseException
 	{
 		EnhancedJsonObject jsonContainer = new EnhancedJsonObject(networkResponseData);
 		EnhancedJsonObject innerPackage = jsonContainer.getJson(MartusAccountAccessToken.MARTUS_ACCOUNT_ACCESS_TOKEN_JSON_TAG);
@@ -571,12 +571,12 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		{
 			try 
 			{
-				MartusAccountAccessToken.loadFromString(networkTokenAccountAccessData);
-				String accountId = GetAccountIdFromNetworkResponse(networkTokenAccountAccessData);
-				String tokenReturned = GetTokenFromNetworkResponse(networkTokenAccountAccessData);
+				MartusAccountAccessToken.validateTokenFromJsonObject(networkTokenAccountAccessData);
+				String accountId = getAccountIdFromNetworkResponse(networkTokenAccountAccessData);
+				String tokenReturned = getTokenFromNetworkResponse(networkTokenAccountAccessData);
 				if(!tokenToFind.getToken().equals(tokenReturned))
 					throw new TokenNotFoundException();
-				setStoredAccessTokenForAccountIfNecessary(networkTokenAccountAccessData);
+				storeAccessTokenForAccountIfNecessary(networkTokenAccountAccessData);
 				return accountId;
 			} 
 			catch (ParseException unexpectedParseErrorFromMTA) 
