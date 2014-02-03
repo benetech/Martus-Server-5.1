@@ -466,7 +466,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	{
 		public AccountTokenFinder(MartusAccountAccessToken token)
 		{
-			tokenFileNameToFind = token.getTokenFileName();
+			tokenToFind = token.getToken();
 			foundAccountIdForToken = null;
 		}
 		
@@ -475,7 +475,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			try 
 			{
 				File tokenFile = getStore().getTokenFileForAccount(accountString);
-				if(tokenFile.getName().equals(tokenFileNameToFind))
+				if(tokenFile.getName().contains(tokenToFind))
 					foundAccountIdForToken = accountString;
 			} 
 			catch (Exception ignoredExceptionTokenDoesntExist) 
@@ -490,7 +490,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			return foundAccountIdForToken;
 			
 		}
-		String tokenFileNameToFind;
+		String tokenToFind;
 		String foundAccountIdForToken;
 	}
 
