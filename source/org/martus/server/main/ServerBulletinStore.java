@@ -30,7 +30,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.Date;
+import java.text.ParseException;
 import java.util.Enumeration;
 import java.util.Vector;
 import java.util.zip.ZipEntry;
@@ -62,6 +62,7 @@ import org.martus.common.packet.Packet.SignatureVerificationException;
 import org.martus.common.packet.Packet.WrongPacketTypeException;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.common.utilities.MartusServerUtilities.MartusSignatureFileAlreadyExistsException;
+import org.martus.common.utilities.MartusServerUtilities.MartusSignatureFileDoesntExistsException;
 
 
 public class ServerBulletinStore extends BulletinStore
@@ -144,10 +145,8 @@ public class ServerBulletinStore extends BulletinStore
 	{
 		MartusAccountAccessToken currentToken = MartusAccountAccessToken.loadFromString(tokenData);		
 		File tokenFile = getAccessTokenFileForAccount(accountId, currentToken);
-		File signatureTokenFile = getAccessTokenSignatureFileForAccount(tokenFile);
 		MartusServerUtilities.writeAccessTokenData(accountId, tokenData, tokenFile);
-		Date currentFileDate = new Date(tokenFile.lastModified());
-		MartusServerUtilities.writeSignatureFileWithDatestamp(signatureTokenFile, currentFileDate.toString(), tokenFile, getSignatureGenerator());
+		MartusServerUtilities.createSignatureFileFromFileOnServer(tokenFile, getSignatureGenerator());
 	}
 	
 	public File getTokenFileForAccount(String accountId) throws IOException, FileNotFoundException 
@@ -166,10 +165,10 @@ public class ServerBulletinStore extends BulletinStore
 		throw new FileNotFoundException();
 	}
 	
-	public MartusAccountAccessToken readAccessTokens(String accountId) throws FileNotFoundException, IOException, TokenInvalidException, FileVerificationException
+	public MartusAccountAccessToken readAccessTokens(String accountId) throws FileNotFoundException, IOException, TokenInvalidException, FileVerificationException, ParseException, MartusSignatureFileDoesntExistsException
 	{
 		File tokenFile = getTokenFileForAccount(accountId);
-		File signatureTokenFile = getAccessTokenSignatureFileForAccount(tokenFile);
+		File signatureTokenFile = MartusServerUtilities.getLatestSignatureFileFromFile(tokenFile);
 		MartusCrypto security = getSignatureVerifier();
 		MartusServerUtilities.verifyFileAndSignatureOnServer(tokenFile, signatureTokenFile, security, security.getPublicKeyString());
 		return MartusAccountAccessToken.loadFromFile(tokenFile);
@@ -185,11 +184,6 @@ public class ServerBulletinStore extends BulletinStore
 		return getWriteableDatabase().getAccountAccessTokenFile(accountId, token);
 	}
 	
-	public File getAccessTokenSignatureFileForAccount(File tokenFile) throws IOException 
-	{
-		return getWriteableDatabase().getAccountAccessTokenSignatureFile(tokenFile);
-	}
-
 	public boolean isHidden(DatabaseKey key)
 	{
 		return getDatabase().isHidden(key);
