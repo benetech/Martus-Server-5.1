@@ -29,7 +29,9 @@ package org.martus.server.forclients;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.DateFormat;
@@ -52,6 +54,7 @@ import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.DeleteRequestRecord;
 import org.martus.common.database.ReadableDatabase;
 import org.martus.common.database.ReadableDatabase.AccountVisitor;
+import org.martus.common.fieldspec.CustomFieldTemplate;
 import org.martus.common.network.MartusXmlRpcServer;
 import org.martus.common.network.NetworkInterface;
 import org.martus.common.network.NetworkInterfaceConstants;
@@ -66,6 +69,7 @@ import org.martus.server.main.MartusServer;
 import org.martus.server.main.ServerBulletinStore;
 import org.martus.util.DirectoryUtils;
 import org.martus.util.LoggerUtil;
+import org.martus.util.StreamableBase64;
 import org.martus.util.UnicodeReader;
 import org.martus.util.UnicodeWriter;
 import org.miradi.utils.EnhancedJsonObject;
@@ -616,7 +620,12 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		} 
 		return result;
 	}
-
+	
+	private String getFileNameFromString(String s) throws UnsupportedEncodingException
+	{
+		return "formTemplate-" + java.net.URLEncoder.encode(s, "UTF-8") + CustomFieldTemplate.CUSTOMIZATION_TEMPLATE_EXTENSION;
+	}
+	
 	public Vector putFormTemplate(String myAccountId, Vector formTemplateData) 
 	{
 		String loggingData = "putFormTemplate: " + coreServer.getClientAliasForLogging(myAccountId);
@@ -632,12 +641,35 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			result.add(NetworkInterfaceConstants.INVALID_DATA);
 			return result;
 		}
-		String Base64TemplateData = (String)formTemplateData.get(0);
-		//TODO save this as a file in user's account directory under a Templates Folder.
-		
-		result.add(NetworkInterfaceConstants.OK);
-		
-		return result;
+		try 
+		{
+			String Base64TemplateData = (String)formTemplateData.get(0);
+			byte[] decodedBytes = StreamableBase64.decode(Base64TemplateData);
+			File formTemplateTempFile = File.createTempFile("$$$FormTemplate", null);
+			formTemplateTempFile.delete();
+			FileOutputStream output = new FileOutputStream(formTemplateTempFile);
+			output.write(decodedBytes);
+			output.flush();
+			output.close();
+			
+			CustomFieldTemplate template = new CustomFieldTemplate();
+			if(!template.importTemplate(getSecurity(), formTemplateTempFile))
+			{
+				result.add(NetworkInterfaceConstants.SERVER_ERROR);
+				return result;
+			}
+			String formTemplateFileName = getFileNameFromString(template.getTitle());
+			
+			result.add(NetworkInterfaceConstants.OK);
+			
+			return result;
+		} 
+		catch (Exception e) 
+		{
+			logError("putFormTemplate");
+			result.add(NetworkInterfaceConstants.SERVER_ERROR);
+			return result;
+		}
 	}
 
 	public Vector getListOfFormTemplates(String myAccountId, String accountIdToUse) 
