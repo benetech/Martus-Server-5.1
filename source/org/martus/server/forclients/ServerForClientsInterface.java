@@ -56,5 +56,6 @@ public interface ServerForClientsInterface extends LoggerInterface
 	public Vector getPartialUploadStatus(String authorAccountId, String bulletinLocalId, Vector extraParameters);
 	public Vector getMartusAccountAccessToken(String myAccountId);
 	public Vector getMartusAccountIdFromAccessToken(String myAccountId, MartusAccountAccessToken tokenToUse);
-	
+	public Vector putFormTemplate(String myAccountId, Vector formTemplateData);
+	public Vector getListOfFormTemplates(String myAccountId, String accountIdToUse);
 }

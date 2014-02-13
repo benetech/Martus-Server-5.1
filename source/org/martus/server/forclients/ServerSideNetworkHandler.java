@@ -502,10 +502,20 @@ public class ServerSideNetworkHandler implements ServerSideNetworkInterface, Net
 			Vector result = checkSignature(myAccountId, parameters, signature);
 			if(result != null)
 				return result;
-			
-			//TODO do real work here!
-			
-			return result;
+			try
+			{
+				String accountIdsTemplatesToRetrieve = (String)parameters.get(0);
+				result = server.getListOfFormTemplates(myAccountId, accountIdsTemplatesToRetrieve);
+				logDebug("getListOfFormTemplates: Exit");
+				return result;
+			}
+			catch(Exception e)
+			{
+				logError(e);
+				Vector invalidResult = new Vector();
+				invalidResult.add(INVALID_DATA);
+				return invalidResult;
+			}
 		}
 		finally
 		{
@@ -522,8 +532,8 @@ public class ServerSideNetworkHandler implements ServerSideNetworkInterface, Net
 			Vector result = checkSignature(myAccountId, parameters, signature);
 			if(result != null)
 				return result;
-			
-			//TODO do real work here!
+			result = server.putFormTemplate(myAccountId, parameters);
+			logDebug("putFormTemplate: Exit");
 			return result;
 		}
 		finally

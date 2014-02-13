@@ -48,10 +48,10 @@ import org.martus.common.MartusUtilities.FileVerificationException;
 import org.martus.common.Version;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.database.Database.RecordHiddenException;
-import org.martus.common.database.ReadableDatabase;
-import org.martus.common.database.ReadableDatabase.AccountVisitor;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.DeleteRequestRecord;
+import org.martus.common.database.ReadableDatabase;
+import org.martus.common.database.ReadableDatabase.AccountVisitor;
 import org.martus.common.network.MartusXmlRpcServer;
 import org.martus.common.network.NetworkInterface;
 import org.martus.common.network.NetworkInterfaceConstants;
@@ -614,6 +614,50 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			logError(e);
 			result.add(NetworkInterfaceConstants.SERVER_ERROR);
 		} 
+		return result;
+	}
+
+	public Vector putFormTemplate(String myAccountId, Vector formTemplateData) 
+	{
+		String loggingData = "putFormTemplate: " + coreServer.getClientAliasForLogging(myAccountId);
+		logInfo(loggingData);
+		Vector result = new Vector();
+		if(isClientBanned(myAccountId))
+		{
+			result.add(NetworkInterfaceConstants.REJECTED);
+			return result;
+		}
+		if(formTemplateData.size() != 1 || formTemplateData.get(0).toString().length() == 0)
+		{
+			result.add(NetworkInterfaceConstants.INVALID_DATA);
+			return result;
+		}
+		String Base64TemplateData = (String)formTemplateData.get(0);
+		//TODO save this as a file in user's account directory under a Templates Folder.
+		
+		result.add(NetworkInterfaceConstants.OK);
+		
+		return result;
+	}
+
+	public Vector getListOfFormTemplates(String myAccountId, String accountIdToUse) 
+	{
+		String loggingData = "getListOfFormTemplates: " + coreServer.getClientAliasForLogging(myAccountId);
+		logInfo(loggingData);
+		Vector result = new Vector();
+		if(isClientBanned(myAccountId))
+		{
+			result.add(NetworkInterfaceConstants.REJECTED);
+			return result;
+		}
+
+		result.add(NetworkInterfaceConstants.OK);
+		Vector listOfForms = new Vector();
+		//TODO do real work here.
+		
+		
+		
+		result.add(listOfForms.toArray());
 		return result;
 	}
 
