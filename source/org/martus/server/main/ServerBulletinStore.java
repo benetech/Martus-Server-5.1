@@ -149,6 +149,20 @@ public class ServerBulletinStore extends BulletinStore
 		MartusServerUtilities.createSignatureFileFromFileOnServer(tokenFile, getSignatureGenerator());
 	}
 	
+	public void moveFormTemplateIntoAccount(String accountId, File tempFile, String formTemplateFileName) throws IOException, MartusSignatureException, InterruptedException, MartusSignatureFileAlreadyExistsException, TokenInvalidException
+	{
+		File folderForTemplates = getAbsoluteFormTemplatesFolderForAccount(accountId);
+		File formTemplateFile = new File(folderForTemplates, formTemplateFileName);
+
+		if(formTemplateFile.exists())
+			formTemplateFile.delete();
+		formTemplateFile.getParentFile().mkdirs();
+		if(tempFile.renameTo(formTemplateFile))
+			MartusServerUtilities.createSignatureFileFromFileOnServer(formTemplateFile, getSignatureGenerator());
+		else
+			throw new IOException("Unable to Rename temp FormTemplate to account's FormTemplates directory");
+	}
+	
 	public File getTokenFileForAccount(String accountId) throws IOException, FileNotFoundException 
 	{
 		File tokensFolder = getAbsoluteAccountAccessTokenFolderForAccount(accountId);
@@ -179,6 +193,11 @@ public class ServerBulletinStore extends BulletinStore
 		return getWriteableDatabase().getAbsoluteAccountAccessTokenFolderForAccount(accountId);
 	}
 	
+	public File getAbsoluteFormTemplatesFolderForAccount(String accountId) throws IOException 
+	{
+		return getWriteableDatabase().getAbsoluteFormTemplatesFolderForAccount(accountId);
+	}
+
 	public File getAccessTokenFileForAccount(String accountId, MartusAccountAccessToken token) throws IOException 
 	{
 		return getWriteableDatabase().getAccountAccessTokenFile(accountId, token);

@@ -663,7 +663,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 				return result;
 			}
 			String formTemplateFileName = calculateFileNameFromString(template.getTitle()) + CustomFieldTemplate.CUSTOMIZATION_TEMPLATE_EXTENSION;
-			//getStore().moveFormTemplateIntoAccount(myAccountId, formTemplateTempFile, formTemplateFileName);
+			getStore().moveFormTemplateIntoAccount(myAccountId, formTemplateTempFile, formTemplateFileName);
 
 			result.add(NetworkInterfaceConstants.OK);
 			
