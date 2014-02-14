@@ -48,6 +48,7 @@ import java.util.zip.ZipOutputStream;
 
 import org.martus.amplifier.ServerCallbackInterface;
 import org.martus.common.ContactInfo;
+import org.martus.common.FieldCollection;
 import org.martus.common.HeadquartersKey;
 import org.martus.common.HeadquartersKeys;
 import org.martus.common.LoggerInterface;
@@ -69,6 +70,8 @@ import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.MockClientDatabase;
 import org.martus.common.database.MockServerDatabase;
 import org.martus.common.database.ReadableDatabase;
+import org.martus.common.fieldspec.CustomFieldTemplate;
+import org.martus.common.fieldspec.StandardFieldSpecs;
 import org.martus.common.network.NetworkInterface;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.network.NetworkResponse;
@@ -699,6 +702,42 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		
 		TRACE_END();
 	}
+	
+	public void testPutGetFormTemplates() throws Exception
+	{
+		TRACE_BEGIN("testPutGetFormTemplates");
+
+		String formTemplateTitle = "New Form Title";
+		String formTemplateDescription = "New Form Description";
+		FieldCollection defaultFieldsTopSection = new FieldCollection(StandardFieldSpecs.getDefaultTopSetionFieldSpecs().asArray());
+		FieldCollection defaultFieldsBottomSection = new FieldCollection(StandardFieldSpecs.getDefaultBottomSectionFieldSpecs().asArray());
+		CustomFieldTemplate template = new CustomFieldTemplate(formTemplateTitle, formTemplateDescription, defaultFieldsTopSection, defaultFieldsBottomSection);
+		String formTemplateData = template.getExportedTemplateAsBase64String(clientSecurity);
+
+		Vector formTemplateVectorForNetworkCall = new Vector();
+		formTemplateVectorForNetworkCall.add(formTemplateData);
+		String clientId = clientSecurity.getPublicKeyString();
+
+		testServer.serverForClients.clientsBanned.add(clientId);
+		Vector result = testServer.serverForClients.putFormTemplate(clientId, formTemplateVectorForNetworkCall);
+		assertEquals("Client is banned should not accept form Template", REJECTED, result.get(0));
+		result = testServer.serverForClients.getListOfFormTemplates(clientId, clientId);
+		assertEquals("Client is banned should not allow to retrieve a list of FormTemplates", REJECTED, result.get(0));
+		
+		testServer.serverForClients.clientsBanned.clear();
+		testServer.serverForClients.clientsThatCanUpload.clear();
+		result = testServer.serverForClients.putFormTemplate(clientId, formTemplateVectorForNetworkCall);
+		assertEquals("Client is no longer banned but hasn't been allowed to upload, should also reject this form template", REJECTED, result.get(0));
+		result = testServer.serverForClients.getListOfFormTemplates(clientId, clientId);
+		assertEquals("Client is no longer banned and should be allowed to retrieve FormTemplates even when not allowed to upload", OK, result.get(0));
+		
+		testServer.serverForClients.clientsThatCanUpload.add(clientId);
+		result = testServer.serverForClients.putFormTemplate(clientId, formTemplateVectorForNetworkCall);
+		assertEquals("Client is no longer banned and is allowed to upload, should accept this template", OK, result.get(0));
+		
+		
+		TRACE_END();
+	}
 
 	public void testPutContactInfoEncoded() throws Exception
 	{
@@ -1313,6 +1352,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 			result += new Long(entry.getCrc()).toString();
 			result += ",";
 		}
+		zip.close();
 		return result;
 	}
 		

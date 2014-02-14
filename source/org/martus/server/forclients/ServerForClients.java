@@ -636,6 +636,11 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			result.add(NetworkInterfaceConstants.REJECTED);
 			return result;
 		}
+		if(!canClientUpload(myAccountId))
+		{
+			result.add(NetworkInterfaceConstants.REJECTED);
+			return result;
+		}
 		if(formTemplateData.size() != 1 || formTemplateData.get(0).toString().length() == 0)
 		{
 			result.add(NetworkInterfaceConstants.INVALID_DATA);
