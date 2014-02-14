@@ -650,11 +650,9 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		try 
 		{
 			String Base64TemplateData = (String)formTemplateData.get(0);
-			byte[] decodedBytes = StreamableBase64.decode(Base64TemplateData);
 			File formTemplateTempFile = File.createTempFile("$$$FormTemplate", null);
-			formTemplateTempFile.delete();
 			FileOutputStream output = new FileOutputStream(formTemplateTempFile);
-			output.write(decodedBytes);
+			output.write(StreamableBase64.decode(Base64TemplateData));
 			output.flush();
 			output.close();
 			
