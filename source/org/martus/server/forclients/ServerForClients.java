@@ -624,7 +624,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	
 	private String calculateFileNameFromString(String inputText) throws CreateDigestException  
 	{
-		return MartusCrypto.getHexDigest(inputText) + CustomFieldTemplate.CUSTOMIZATION_TEMPLATE_EXTENSION;
+		return MartusCrypto.getHexDigest(inputText);
 	}
 	
 	public Vector putFormTemplate(String myAccountId, Vector formTemplateData) 
@@ -662,8 +662,9 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 				result.add(NetworkInterfaceConstants.SERVER_ERROR);
 				return result;
 			}
-			String formTemplateFileName = calculateFileNameFromString(template.getTitle());
-			
+			String formTemplateFileName = calculateFileNameFromString(template.getTitle()) + CustomFieldTemplate.CUSTOMIZATION_TEMPLATE_EXTENSION;
+			//getStore().moveFormTemplateIntoAccount(myAccountId, formTemplateTempFile, formTemplateFileName);
+
 			result.add(NetworkInterfaceConstants.OK);
 			
 			return result;
