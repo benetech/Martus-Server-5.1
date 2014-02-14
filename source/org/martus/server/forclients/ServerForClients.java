@@ -49,6 +49,7 @@ import org.martus.common.MartusUtilities;
 import org.martus.common.MartusUtilities.FileVerificationException;
 import org.martus.common.Version;
 import org.martus.common.crypto.MartusCrypto;
+import org.martus.common.crypto.MartusCrypto.CreateDigestException;
 import org.martus.common.database.Database.RecordHiddenException;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.DeleteRequestRecord;
@@ -621,9 +622,9 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		return result;
 	}
 	
-	private String getFileNameFromString(String s) throws UnsupportedEncodingException
+	private String calculateFileNameFromString(String inputText) throws CreateDigestException  
 	{
-		return "formTemplate-" + java.net.URLEncoder.encode(s, "UTF-8") + CustomFieldTemplate.CUSTOMIZATION_TEMPLATE_EXTENSION;
+		return MartusCrypto.getHexDigest(inputText) + CustomFieldTemplate.CUSTOMIZATION_TEMPLATE_EXTENSION;
 	}
 	
 	public Vector putFormTemplate(String myAccountId, Vector formTemplateData) 
@@ -663,7 +664,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 				result.add(NetworkInterfaceConstants.SERVER_ERROR);
 				return result;
 			}
-			String formTemplateFileName = getFileNameFromString(template.getTitle());
+			String formTemplateFileName = calculateFileNameFromString(template.getTitle());
 			
 			result.add(NetworkInterfaceConstants.OK);
 			
