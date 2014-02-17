@@ -31,7 +31,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.StringReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.DateFormat;
@@ -650,9 +650,10 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		try 
 		{
 			String Base64TemplateData = (String)formTemplateData.get(0);
+			StringReader reader = new StringReader(Base64TemplateData);			
 			File formTemplateTempFile = File.createTempFile("$$$FormTemplate", null);
 			FileOutputStream output = new FileOutputStream(formTemplateTempFile);
-			output.write(StreamableBase64.decode(Base64TemplateData));
+			StreamableBase64.decode(reader, output);
 			output.flush();
 			output.close();
 			
