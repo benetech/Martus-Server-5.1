@@ -45,6 +45,7 @@ import org.martus.common.MagicWords;
 import org.martus.common.MartusAccountAccessToken;
 import org.martus.common.MartusAccountAccessToken.TokenInvalidException;
 import org.martus.common.MartusAccountAccessToken.TokenNotFoundException;
+import org.martus.common.MartusLogger;
 import org.martus.common.MartusUtilities;
 import org.martus.common.MartusUtilities.FileVerificationException;
 import org.martus.common.Version;
@@ -56,6 +57,7 @@ import org.martus.common.database.DeleteRequestRecord;
 import org.martus.common.database.ReadableDatabase;
 import org.martus.common.database.ReadableDatabase.AccountVisitor;
 import org.martus.common.fieldspec.CustomFieldTemplate;
+import org.martus.common.fieldspec.CustomFieldTemplate.FutureVersionException;
 import org.martus.common.network.MartusXmlRpcServer;
 import org.martus.common.network.NetworkInterface;
 import org.martus.common.network.NetworkInterfaceConstants;
@@ -686,6 +688,17 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		Vector formTemplatesTitleAndDescriptions = new Vector();
 		for(int i = 0; i < numberOfForms; ++i)
 		{
+			try 
+			{
+				CustomFieldTemplate formTemplate = new CustomFieldTemplate();
+				formTemplate.importTemplate(getSecurity(), (File)formsTemplateFiles.get(i));
+				formTemplatesTitleAndDescriptions.add(formTemplate.getTitle());
+				formTemplatesTitleAndDescriptions.add(formTemplate.getDescription());
+			} 
+			catch (FutureVersionException e) 
+			{
+				MartusLogger.logException(e);
+			}
 			
 		}
 		return formTemplatesTitleAndDescriptions;
