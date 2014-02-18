@@ -75,8 +75,7 @@ public class AuthorizeLog
 			logger.logWarning("No authorizeLog.txt file found:" + authorizeLogFile.getPath());
 			return;
 		}
-		File authorizeLogFileSignature = MartusServerUtilities.getLatestSignatureFileFromFile(authorizeLogFile);
-		MartusServerUtilities.verifyFileAndSignatureOnServer(authorizeLogFile, authorizeLogFileSignature, security, security.getPublicKeyString());
+		MartusServerUtilities.verifyFileAndLatestSignatureOnServer(authorizeLogFile, security);
 	}
 	
 	private void add(AuthorizeLogEntry authorizedClient)

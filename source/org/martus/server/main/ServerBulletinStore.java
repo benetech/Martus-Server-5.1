@@ -40,10 +40,10 @@ import org.martus.common.ContactInfo;
 import org.martus.common.LoggerInterface;
 import org.martus.common.MartusAccountAccessToken;
 import org.martus.common.MartusAccountAccessToken.TokenInvalidException;
+import org.martus.common.MartusLogger;
 import org.martus.common.MartusUtilities;
 import org.martus.common.MartusUtilities.FileVerificationException;
 import org.martus.common.bulletinstore.BulletinStore;
-import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MartusCrypto.CreateDigestException;
 import org.martus.common.crypto.MartusCrypto.CryptoException;
 import org.martus.common.crypto.MartusCrypto.DecryptionException;
@@ -51,15 +51,16 @@ import org.martus.common.crypto.MartusCrypto.MartusSignatureException;
 import org.martus.common.crypto.MartusCrypto.NoKeyPairException;
 import org.martus.common.database.BulletinUploadRecord;
 import org.martus.common.database.Database;
+import org.martus.common.database.Database.RecordHiddenException;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.DeleteRequestRecord;
-import org.martus.common.database.Database.RecordHiddenException;
+import org.martus.common.fieldspec.CustomFieldTemplate;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.packet.BulletinHeaderPacket;
-import org.martus.common.packet.UniversalId;
 import org.martus.common.packet.Packet.InvalidPacketException;
 import org.martus.common.packet.Packet.SignatureVerificationException;
 import org.martus.common.packet.Packet.WrongPacketTypeException;
+import org.martus.common.packet.UniversalId;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.common.utilities.MartusServerUtilities.MartusSignatureFileAlreadyExistsException;
 import org.martus.common.utilities.MartusServerUtilities.MartusSignatureFileDoesntExistsException;
@@ -179,12 +180,43 @@ public class ServerBulletinStore extends BulletinStore
 		throw new FileNotFoundException();
 	}
 	
+	public Vector getListOfFormTemplatesForAccount(String accountId) throws FileNotFoundException 
+	{
+		File formTemplatesFolder = null;
+		try 
+		{
+			formTemplatesFolder = getAbsoluteFormTemplatesFolderForAccount(accountId);
+			if(!formTemplatesFolder.exists())
+				throw new FileNotFoundException();
+		} 
+		catch (IOException e) 
+		{
+			throw new FileNotFoundException();
+		}
+		File[] allFilesInFolder = formTemplatesFolder.listFiles();
+		Vector signatureVerifiedFormTemplateFiles = new Vector();
+		for(int i = 0; i < allFilesInFolder.length; ++i)
+		{
+			if(allFilesInFolder[i].isFile() && allFilesInFolder[i].getName().endsWith(CustomFieldTemplate.CUSTOMIZATION_TEMPLATE_EXTENSION))
+			{
+				try 
+				{
+					MartusServerUtilities.verifyFileAndLatestSignatureOnServer(allFilesInFolder[i], getSignatureVerifier());
+					signatureVerifiedFormTemplateFiles.add(allFilesInFolder[i]);
+				} 
+				catch (Exception e) 
+				{
+					MartusLogger.logException(e);
+				}
+			}
+		}
+		return signatureVerifiedFormTemplateFiles;
+	}
+
 	public MartusAccountAccessToken readAccessTokens(String accountId) throws FileNotFoundException, IOException, TokenInvalidException, FileVerificationException, ParseException, MartusSignatureFileDoesntExistsException
 	{
 		File tokenFile = getTokenFileForAccount(accountId);
-		File signatureTokenFile = MartusServerUtilities.getLatestSignatureFileFromFile(tokenFile);
-		MartusCrypto security = getSignatureVerifier();
-		MartusServerUtilities.verifyFileAndSignatureOnServer(tokenFile, signatureTokenFile, security, security.getPublicKeyString());
+		MartusServerUtilities.verifyFileAndLatestSignatureOnServer(tokenFile, getSignatureVerifier());
 		return MartusAccountAccessToken.loadFromFile(tokenFile);
 	}
 

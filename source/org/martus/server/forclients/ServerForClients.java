@@ -235,9 +235,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	{
 		try
 		{
-			File allowUploadFileSignature = MartusServerUtilities.getLatestSignatureFileFromFile(getAllowUploadFile());
-			MartusCrypto security = getSecurity();
-			MartusServerUtilities.verifyFileAndSignatureOnServer(getAllowUploadFile(), allowUploadFileSignature, security, security.getPublicKeyString());
+			MartusServerUtilities.verifyFileAndLatestSignatureOnServer(getAllowUploadFile(), getSecurity());
 		}
 		catch(FileVerificationException e)
 		{
@@ -678,6 +676,21 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		}
 	}
 
+
+	private Vector getFormTemplateTitleAndDescriptionsForAccount(String accountToGetFormsFrom) throws FileNotFoundException
+	{
+		Vector formsTemplateFiles = getStore().getListOfFormTemplatesForAccount(accountToGetFormsFrom);
+		int numberOfForms = formsTemplateFiles.size();
+		if(numberOfForms == 0)
+			throw new FileNotFoundException();
+		Vector formTemplatesTitleAndDescriptions = new Vector();
+		for(int i = 0; i < numberOfForms; ++i)
+		{
+			
+		}
+		return formTemplatesTitleAndDescriptions;
+	}
+
 	public Vector getListOfFormTemplates(String myAccountId, String accountIdToUse) 
 	{
 		String loggingData = "getListOfFormTemplates: " + coreServer.getClientAliasForLogging(myAccountId);
@@ -689,13 +702,17 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			return result;
 		}
 
-		result.add(NetworkInterfaceConstants.OK);
-		Vector listOfForms = new Vector();
-		//TODO do real work here.
-		
-		
-		
-		result.add(listOfForms.toArray());
+		try 
+		{
+			Vector formTemplateTitleAndDescriptionsForAccount = getFormTemplateTitleAndDescriptionsForAccount(accountIdToUse);
+			result.add(NetworkInterfaceConstants.OK);
+			result.add(formTemplateTitleAndDescriptionsForAccount.toArray());
+		} 
+		catch (FileNotFoundException e) 
+		{
+			result.add(NetworkInterfaceConstants.NO_FORM_TEMPLATES_AVAILABLE);
+		} 
+
 		return result;
 	}
 
