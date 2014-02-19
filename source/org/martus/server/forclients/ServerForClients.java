@@ -748,7 +748,9 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			byte [] rawFormTemplateData = MartusServerUtilities.getFileContents(formTemplateFile);
 			String base64FormTemplateData = StreamableBase64.encode(rawFormTemplateData);
 			result.add(NetworkInterfaceConstants.OK);
-			result.add(base64FormTemplateData);
+			Vector templateData = new Vector();
+			templateData.add(base64FormTemplateData);
+			result.add(templateData.toArray());
 		} 
 		catch (FileNotFoundException e) 
 		{

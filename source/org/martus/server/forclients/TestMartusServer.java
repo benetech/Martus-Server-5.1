@@ -751,7 +751,9 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		result = testServer.serverForClients.getFormTemplate(clientId, clientId, formTemplateTitle);
 		assertEquals("Client should retrive the form requested",OK, result.get(0));
 		assertEquals("No data returned?", 2, result.size());
-		String base64FormTemplateData = (String)result.get(1);
+		Object[] resultObject = (Object[])result.get(1);
+		assertEquals(1, resultObject.length);
+		String base64FormTemplateData = (String)resultObject[0];
 		StringReader reader = new StringReader(base64FormTemplateData);			
 		File formTemplateTempFile = File.createTempFile("$$$FormTemplate", null);
 		formTemplateTempFile.deleteOnExit();
