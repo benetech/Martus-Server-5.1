@@ -720,6 +720,8 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			Vector formTemplateTitleAndDescriptionsForAccount = getFormTemplateTitleAndDescriptionsForAccount(accountIdToUse);
 			result.add(NetworkInterfaceConstants.OK);
 			result.add(formTemplateTitleAndDescriptionsForAccount.toArray());
+			String formTemplatesFoundInfo = "Templates Found:" + formTemplateTitleAndDescriptionsForAccount.size()/2;
+			logInfo(formTemplatesFoundInfo);
 		} 
 		catch (FileNotFoundException e) 
 		{
