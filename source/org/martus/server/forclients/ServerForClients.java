@@ -624,7 +624,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	
 	private String calculateFileNameFromString(String inputText) throws CreateDigestException  
 	{
-		return MartusCrypto.getHexDigest(inputText);
+		return MartusCrypto.getHexDigest(inputText) + CustomFieldTemplate.CUSTOMIZATION_TEMPLATE_EXTENSION;
 	}
 	
 	public Vector putFormTemplate(String myAccountId, Vector formTemplateData) 
@@ -649,8 +649,8 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		}
 		try 
 		{
-			String Base64TemplateData = (String)formTemplateData.get(0);
-			StringReader reader = new StringReader(Base64TemplateData);			
+			String base64TemplateData = (String)formTemplateData.get(0);
+			StringReader reader = new StringReader(base64TemplateData);			
 			File formTemplateTempFile = File.createTempFile("$$$FormTemplate", null);
 			FileOutputStream output = new FileOutputStream(formTemplateTempFile);
 			StreamableBase64.decode(reader, output);
@@ -663,7 +663,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 				result.add(NetworkInterfaceConstants.SERVER_ERROR);
 				return result;
 			}
-			String formTemplateFileName = calculateFileNameFromString(template.getTitle()) + CustomFieldTemplate.CUSTOMIZATION_TEMPLATE_EXTENSION;
+			String formTemplateFileName = calculateFileNameFromString(template.getTitle());
 			getStore().moveFormTemplateIntoAccount(myAccountId, formTemplateTempFile, formTemplateFileName);
 
 			result.add(NetworkInterfaceConstants.OK);
@@ -728,6 +728,38 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			result.add(NetworkInterfaceConstants.NO_FORM_TEMPLATES_AVAILABLE);
 		} 
 
+		return result;
+	}
+	
+	public Vector getFormTemplate(String myAccountId, String accountIdToUse, String formTitle)
+	{
+		String loggingData = "getFormTemplate: " + coreServer.getClientAliasForLogging(myAccountId);
+		logInfo(loggingData);
+		Vector result = new Vector();
+		if(isClientBanned(myAccountId))
+		{
+			result.add(NetworkInterfaceConstants.REJECTED);
+			return result;
+		}
+		try 
+		{
+			String formTemplateFileName = calculateFileNameFromString(formTitle);
+			File formTemplateFile = getStore().getFormTemplateFileFromAccount(accountIdToUse, formTemplateFileName);
+			byte [] rawFormTemplateData = MartusServerUtilities.getFileContents(formTemplateFile);
+			String base64FormTemplateData = StreamableBase64.encode(rawFormTemplateData);
+			result.add(NetworkInterfaceConstants.OK);
+			result.add(base64FormTemplateData);
+		} 
+		catch (FileNotFoundException e) 
+		{
+			MartusLogger.logException(e);
+			result.add(NetworkInterfaceConstants.FORM_TEMPLATE_DOES_NOT_EXIST);
+		}
+		catch (Exception e) 
+		{
+			MartusLogger.logException(e);
+			result.add(NetworkInterfaceConstants.SERVER_ERROR);
+		}
 		return result;
 	}
 

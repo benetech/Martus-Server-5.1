@@ -542,6 +542,27 @@ public class ServerSideNetworkHandler implements ServerSideNetworkInterface, Net
 		}
 	}
 
+	public Vector getFormTemplate(String myAccountId, Vector parameters, String signature) 
+	{
+		server.clientConnectionStart(myAccountId);
+		try
+		{
+			logInfo("getFormTemplate");
+			Vector result = checkSignature(myAccountId, parameters, signature);
+			if(result != null)
+				return result;
+			String accountIdsTemplatesToRetrieve = (String)parameters.get(0);
+			String titleOfTemplatesToRetrieve = (String)parameters.get(1);
+			result = server.getFormTemplate(myAccountId, accountIdsTemplatesToRetrieve, titleOfTemplatesToRetrieve);
+			logDebug("getFormTemplate: Exit");
+			return result;
+		}
+		finally
+		{
+			server.clientConnectionExit();
+		}
+	}
+
 	public Vector getServerCompliance(String myAccountId, Vector parameters, String signature)
 	{
 		server.clientConnectionStart(myAccountId);

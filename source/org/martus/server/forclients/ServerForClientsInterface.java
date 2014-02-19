@@ -58,4 +58,5 @@ public interface ServerForClientsInterface extends LoggerInterface
 	public Vector getMartusAccountIdFromAccessToken(String myAccountId, MartusAccountAccessToken tokenToUse);
 	public Vector putFormTemplate(String myAccountId, Vector formTemplateData);
 	public Vector getListOfFormTemplates(String myAccountId, String accountIdToUse);
+	public Vector getFormTemplate(String myAccountId, String accountIdToUse, String formTitle);
 }

@@ -39,6 +39,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Vector;
 import java.util.zip.ZipEntry;
@@ -723,19 +724,46 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		assertEquals("Client is banned should not accept form Template", REJECTED, result.get(0));
 		result = testServer.serverForClients.getListOfFormTemplates(clientId, clientId);
 		assertEquals("Client is banned should not allow to retrieve a list of FormTemplates", REJECTED, result.get(0));
+		result = testServer.serverForClients.getFormTemplate(clientId, clientId, formTemplateTitle);
+		assertEquals("Client is banned should not allow to retrieve a form", REJECTED, result.get(0));
 		
 		testServer.serverForClients.clientsBanned.clear();
 		testServer.serverForClients.clientsThatCanUpload.clear();
 		result = testServer.serverForClients.putFormTemplate(clientId, formTemplateVectorForNetworkCall);
 		assertEquals("Client is no longer banned but hasn't been allowed to upload, should also reject this form template", REJECTED, result.get(0));
 		result = testServer.serverForClients.getListOfFormTemplates(clientId, clientId);
-		assertEquals("Client is no longer banned and should be allowed to retrieve FormTemplates but there are no form templates to retrieve",NO_FORM_TEMPLATES_AVAILABLE, result.get(0));
+		assertEquals("Client is no longer banned and should be allowed to retrieve FormTemplates but there are no form templates to retrieve a list",NO_FORM_TEMPLATES_AVAILABLE, result.get(0));
+		result = testServer.serverForClients.getFormTemplate(clientId, clientId, formTemplateTitle);
+		assertEquals("Client is no longer banned and should be allowed to retrieve FormTemplates but there are no form templates to retrieve",FORM_TEMPLATE_DOES_NOT_EXIST, result.get(0));
 		
 		testServer.serverForClients.clientsThatCanUpload.add(clientId);
 		result = testServer.serverForClients.putFormTemplate(clientId, formTemplateVectorForNetworkCall);
 		assertEquals("Client is no longer banned and is allowed to upload, should accept this template", OK, result.get(0));
-		
-		
+		result = testServer.serverForClients.getListOfFormTemplates(clientId, clientId);
+		assertEquals("Client should retrive a list of forms",OK, result.get(0));
+		Object[] rawDataResult = (Object[]) result.get(1);
+		Vector formTemplateTitlesAndDescriptions = new Vector(Arrays.asList(rawDataResult));
+		assertEquals("Didn't return same title of form?", formTemplateTitle, formTemplateTitlesAndDescriptions.get(0));
+		assertEquals("Didn't return same description of form?", formTemplateDescription, formTemplateTitlesAndDescriptions.get(1));
+		result = testServer.serverForClients.getFormTemplate(clientId, clientId, "Some form which doesn't exist");
+		assertEquals("Client should be unable to retrive a non-existent form",FORM_TEMPLATE_DOES_NOT_EXIST, result.get(0));
+
+		result = testServer.serverForClients.getFormTemplate(clientId, clientId, formTemplateTitle);
+		assertEquals("Client should retrive the form requested",OK, result.get(0));
+		assertEquals("No data returned?", 2, result.size());
+		String base64FormTemplateData = (String)result.get(1);
+		StringReader reader = new StringReader(base64FormTemplateData);			
+		File formTemplateTempFile = File.createTempFile("$$$FormTemplate", null);
+		formTemplateTempFile.deleteOnExit();
+		FileOutputStream output = new FileOutputStream(formTemplateTempFile);
+		StreamableBase64.decode(reader, output);
+		output.flush();
+		output.close();
+		CustomFieldTemplate templateReturned = new CustomFieldTemplate();
+		templateReturned.importTemplate(serverSecurity, formTemplateTempFile);
+		formTemplateTempFile.delete();
+		assertEquals("Didn't return same title of form?", formTemplateTitle, templateReturned.getTitle());
+		assertEquals("Didn't return same description of form?", formTemplateDescription, templateReturned.getDescription());
 		TRACE_END();
 	}
 

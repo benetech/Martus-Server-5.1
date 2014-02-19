@@ -213,6 +213,25 @@ public class ServerBulletinStore extends BulletinStore
 		return signatureVerifiedFormTemplateFiles;
 	}
 
+	public File getFormTemplateFileFromAccount(String accountId, String FormFileName) throws FileNotFoundException 
+	{
+		File formTemplatesFolder = null;
+		try 
+		{
+			formTemplatesFolder = getAbsoluteFormTemplatesFolderForAccount(accountId);
+			if(!formTemplatesFolder.exists())
+				throw new FileNotFoundException();
+			File formTemplateFile = new File(formTemplatesFolder, FormFileName); 
+			if(!formTemplateFile.exists())
+				throw new FileNotFoundException();
+			return formTemplateFile;
+		} 
+		catch (IOException e) 
+		{
+			throw new FileNotFoundException();
+		}
+	}
+
 	public MartusAccountAccessToken readAccessTokens(String accountId) throws FileNotFoundException, IOException, TokenInvalidException, FileVerificationException, ParseException, MartusSignatureFileDoesntExistsException
 	{
 		File tokenFile = getTokenFileForAccount(accountId);
