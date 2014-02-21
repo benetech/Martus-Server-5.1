@@ -679,12 +679,10 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	}
 
 
-	private Vector getFormTemplateTitleAndDescriptionsForAccount(String accountToGetFormsFrom) throws FileNotFoundException
+	private Vector getFormTemplateTitleAndDescriptionsForAccount(String accountToGetFormsFrom) 
 	{
 		Vector formsTemplateFiles = getStore().getListOfFormTemplatesForAccount(accountToGetFormsFrom);
 		int numberOfForms = formsTemplateFiles.size();
-		if(numberOfForms == 0)
-			throw new FileNotFoundException();
 		Vector formTemplatesTitleAndDescriptions = new Vector();
 		for(int i = 0; i < numberOfForms; ++i)
 		{
@@ -715,18 +713,11 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			return result;
 		}
 
-		try 
-		{
 			Vector formTemplateTitleAndDescriptionsForAccount = getFormTemplateTitleAndDescriptionsForAccount(accountIdToUse);
 			result.add(NetworkInterfaceConstants.OK);
 			result.add(formTemplateTitleAndDescriptionsForAccount.toArray());
 			String formTemplatesFoundInfo = "Templates Found:" + formTemplateTitleAndDescriptionsForAccount.size()/2;
-			logInfo(formTemplatesFoundInfo);
-		} 
-		catch (FileNotFoundException e) 
-		{
-			result.add(NetworkInterfaceConstants.NO_FORM_TEMPLATES_AVAILABLE);
-		} 
+		logInfo(formTemplatesFoundInfo);
 
 		return result;
 	}
