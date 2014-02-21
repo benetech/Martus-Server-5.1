@@ -197,12 +197,13 @@ public class ServerBulletinStore extends BulletinStore
 		File[] allFilesInFolder = formTemplatesFolder.listFiles();
 		for(int i = 0; i < allFilesInFolder.length; ++i)
 		{
-			if(allFilesInFolder[i].isFile() && allFilesInFolder[i].getName().endsWith(CustomFieldTemplate.CUSTOMIZATION_TEMPLATE_EXTENSION))
+			File currentFIle = allFilesInFolder[i];
+			if(currentFIle.isFile() && currentFIle.getName().endsWith(CustomFieldTemplate.CUSTOMIZATION_TEMPLATE_EXTENSION))
 			{
 				try 
 				{
-					MartusServerUtilities.verifyFileAndLatestSignatureOnServer(allFilesInFolder[i], getSignatureVerifier());
-					signatureVerifiedFormTemplateFiles.add(allFilesInFolder[i]);
+					MartusServerUtilities.verifyFileAndLatestSignatureOnServer(currentFIle, getSignatureVerifier());
+					signatureVerifiedFormTemplateFiles.add(currentFIle);
 				} 
 				catch (Exception e) 
 				{
