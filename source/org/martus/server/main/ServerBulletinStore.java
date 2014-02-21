@@ -40,7 +40,6 @@ import org.martus.common.ContactInfo;
 import org.martus.common.LoggerInterface;
 import org.martus.common.MartusAccountAccessToken;
 import org.martus.common.MartusAccountAccessToken.TokenInvalidException;
-import org.martus.common.MartusLogger;
 import org.martus.common.MartusUtilities;
 import org.martus.common.MartusUtilities.FileVerificationException;
 import org.martus.common.bulletinstore.BulletinStore;
@@ -180,7 +179,7 @@ public class ServerBulletinStore extends BulletinStore
 		throw new FileNotFoundException();
 	}
 	
-	public Vector getListOfFormTemplatesForAccount(String accountId) 
+	public Vector getListOfFormTemplatesForAccount(String accountId) throws Exception 
 	{
 		Vector signatureVerifiedFormTemplateFiles = new Vector();
 		File formTemplatesFolder = null;
@@ -190,7 +189,7 @@ public class ServerBulletinStore extends BulletinStore
 			if(!formTemplatesFolder.exists())
 				return signatureVerifiedFormTemplateFiles;
 		} 
-		catch (IOException e) 
+		catch (FileNotFoundException e) 
 		{
 			return signatureVerifiedFormTemplateFiles;
 		}
@@ -200,15 +199,8 @@ public class ServerBulletinStore extends BulletinStore
 			File currentFIle = allFilesInFolder[i];
 			if(currentFIle.isFile() && currentFIle.getName().endsWith(CustomFieldTemplate.CUSTOMIZATION_TEMPLATE_EXTENSION))
 			{
-				try 
-				{
-					MartusServerUtilities.verifyFileAndLatestSignatureOnServer(currentFIle, getSignatureVerifier());
-					signatureVerifiedFormTemplateFiles.add(currentFIle);
-				} 
-				catch (Exception e) 
-				{
-					MartusLogger.logException(e);
-				}
+				MartusServerUtilities.verifyFileAndLatestSignatureOnServer(currentFIle, getSignatureVerifier());
+				signatureVerifiedFormTemplateFiles.add(currentFIle);
 			}
 		}
 		return signatureVerifiedFormTemplateFiles;

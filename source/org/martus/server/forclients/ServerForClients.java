@@ -679,14 +679,14 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	}
 
 
-	private Vector getFormTemplateTitleAndDescriptionsForAccount(String accountToGetFormsFrom) 
+	private Vector getFormTemplateTitleAndDescriptionsForAccount(String accountToGetFormsFrom) throws Exception 
 	{
 		Vector formsTemplateFiles = getStore().getListOfFormTemplatesForAccount(accountToGetFormsFrom);
 		int numberOfForms = formsTemplateFiles.size();
 		Vector formTemplatesTitleAndDescriptions = new Vector();
 		for(int i = 0; i < numberOfForms; ++i)
 		{
-			try 
+			try
 			{
 				CustomFieldTemplate formTemplate = new CustomFieldTemplate();
 				formTemplate.importTemplate(getSecurity(), (File)formsTemplateFiles.get(i));
@@ -695,7 +695,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 				currentFormVectorToAdd.add(formTemplate.getDescription());
 				formTemplatesTitleAndDescriptions.add(currentFormVectorToAdd);
 			} 
-			catch (FutureVersionException e) 
+			catch (Exception e) 
 			{
 				MartusLogger.logException(e);
 			}
@@ -715,11 +715,19 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			return result;
 		}
 
+		try 
+		{
 			Vector formTemplateTitleAndDescriptionsForAccount = getFormTemplateTitleAndDescriptionsForAccount(accountIdToUse);
 			result.add(NetworkInterfaceConstants.OK);
 			result.add(formTemplateTitleAndDescriptionsForAccount.toArray());
 			String formTemplatesFoundInfo = "Templates Found:" + formTemplateTitleAndDescriptionsForAccount.size();
-		logInfo(formTemplatesFoundInfo);
+			logInfo(formTemplatesFoundInfo);
+		} 
+		catch (Exception e) 
+		{
+			MartusLogger.logException(e);
+			result.add(NetworkInterfaceConstants.SERVER_ERROR);
+		}
 
 		return result;
 	}
