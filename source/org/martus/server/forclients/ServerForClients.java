@@ -695,9 +695,9 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 				currentFormVectorToAdd.add(formTemplate.getDescription());
 				formTemplatesTitleAndDescriptions.add(currentFormVectorToAdd);
 			} 
-			catch (Exception e) 
+			catch (FutureVersionException eLogExceptionButContinueWithRemainingValidForms) 
 			{
-				MartusLogger.logException(e);
+				MartusLogger.logException(eLogExceptionButContinueWithRemainingValidForms);
 			}
 			
 		}
