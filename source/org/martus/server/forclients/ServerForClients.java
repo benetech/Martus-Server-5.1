@@ -690,8 +690,10 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			{
 				CustomFieldTemplate formTemplate = new CustomFieldTemplate();
 				formTemplate.importTemplate(getSecurity(), (File)formsTemplateFiles.get(i));
-				formTemplatesTitleAndDescriptions.add(formTemplate.getTitle());
-				formTemplatesTitleAndDescriptions.add(formTemplate.getDescription());
+				Vector currentFormVectorToAdd = new Vector();
+				currentFormVectorToAdd.add(formTemplate.getTitle());
+				currentFormVectorToAdd.add(formTemplate.getDescription());
+				formTemplatesTitleAndDescriptions.add(currentFormVectorToAdd);
 			} 
 			catch (FutureVersionException e) 
 			{
@@ -716,7 +718,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			Vector formTemplateTitleAndDescriptionsForAccount = getFormTemplateTitleAndDescriptionsForAccount(accountIdToUse);
 			result.add(NetworkInterfaceConstants.OK);
 			result.add(formTemplateTitleAndDescriptionsForAccount.toArray());
-			String formTemplatesFoundInfo = "Templates Found:" + formTemplateTitleAndDescriptionsForAccount.size()/2;
+			String formTemplatesFoundInfo = "Templates Found:" + formTemplateTitleAndDescriptionsForAccount.size();
 		logInfo(formTemplatesFoundInfo);
 
 		return result;

@@ -742,7 +742,8 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		result = testServer.serverForClients.getListOfFormTemplates(clientId, clientId);
 		assertEquals("Client should retrive a list of forms",OK, result.get(0));
 		Object[] rawDataResult = (Object[]) result.get(1);
-		Vector formTemplateTitlesAndDescriptions = new Vector(Arrays.asList(rawDataResult));
+		Vector vectorFormTemplateTitlesAndDescriptions = new Vector(Arrays.asList(rawDataResult));
+		Vector formTemplateTitlesAndDescriptions = (Vector)vectorFormTemplateTitlesAndDescriptions.get(0);
 		assertEquals("Didn't return same title of form?", formTemplateTitle, formTemplateTitlesAndDescriptions.get(0));
 		assertEquals("Didn't return same description of form?", formTemplateDescription, formTemplateTitlesAndDescriptions.get(1));
 		result = testServer.serverForClients.getFormTemplate(clientId, clientId, "Some form which doesn't exist");
