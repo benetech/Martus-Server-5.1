@@ -180,21 +180,21 @@ public class ServerBulletinStore extends BulletinStore
 		throw new FileNotFoundException();
 	}
 	
-	public Vector getListOfFormTemplatesForAccount(String accountId) throws FileNotFoundException 
+	public Vector getListOfFormTemplatesForAccount(String accountId) 
 	{
+		Vector signatureVerifiedFormTemplateFiles = new Vector();
 		File formTemplatesFolder = null;
 		try 
 		{
 			formTemplatesFolder = getAbsoluteFormTemplatesFolderForAccount(accountId);
 			if(!formTemplatesFolder.exists())
-				throw new FileNotFoundException();
+				return signatureVerifiedFormTemplateFiles;
 		} 
 		catch (IOException e) 
 		{
-			throw new FileNotFoundException();
+			return signatureVerifiedFormTemplateFiles;
 		}
 		File[] allFilesInFolder = formTemplatesFolder.listFiles();
-		Vector signatureVerifiedFormTemplateFiles = new Vector();
 		for(int i = 0; i < allFilesInFolder.length; ++i)
 		{
 			if(allFilesInFolder[i].isFile() && allFilesInFolder[i].getName().endsWith(CustomFieldTemplate.CUSTOMIZATION_TEMPLATE_EXTENSION))
