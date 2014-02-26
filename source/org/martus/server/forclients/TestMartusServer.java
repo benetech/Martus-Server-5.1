@@ -638,8 +638,6 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 
 		Vector contactInfo = new Vector();
 		String clientId = clientSecurity.getPublicKeyString();
-		String clientNotAuthorized = testServer.putContactInfo(clientId, contactInfo);
-		assertEquals("Client has not been authorized should not accept contact info", REJECTED, clientNotAuthorized);
 
 		testServer.serverForClients.allowUploads(clientId, null);
 		String resultIncomplete = testServer.putContactInfo(clientId, contactInfo);
@@ -729,8 +727,6 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		
 		testServer.serverForClients.clientsBanned.clear();
 		testServer.serverForClients.clientsThatCanUpload.clear();
-		result = testServer.serverForClients.putFormTemplate(clientId, formTemplateVectorForNetworkCall);
-		assertEquals("Client is no longer banned but hasn't been allowed to upload, should also reject this form template", REJECTED, result.get(0));
 		result = testServer.serverForClients.getListOfFormTemplates(clientId, clientId);
 		assertEquals("Client is no longer banned and should be allowed to retrieve FormTemplates but there are no form templates to retrieve a list",OK, result.get(0));
 		result = testServer.serverForClients.getFormTemplate(clientId, clientId, formTemplateTitle);
@@ -776,8 +772,6 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 
 		Vector contactInfoManual = new Vector();
 		String clientId = clientSecurity.getPublicKeyString();
-		String clientNotAuthorized = testServer.putContactInfo(clientId, contactInfoManual);
-		assertEquals("Client has not been authorized should not accept contact info", REJECTED, clientNotAuthorized);
 
 		testServer.serverForClients.allowUploads(clientId, null);
 		String resultIncomplete = testServer.putContactInfo(clientId, contactInfoManual);
@@ -1480,14 +1474,14 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		String clientId = "some client";
 		String clientId2 = "another client";
 
-		assertEquals("clientId default", false, testServer.canClientUpload(clientId));
-		assertEquals("clientId2 default", false, testServer.canClientUpload(clientId2));
-		assertEquals("empty default", false, testServer.canClientUpload(""));
+		assertEquals("clientId default", true, testServer.canClientUpload(clientId));
+		assertEquals("clientId2 default", true, testServer.canClientUpload(clientId2));
+		assertEquals("empty default", true, testServer.canClientUpload(""));
 
 		testServer.allowUploads(clientId);
 		assertEquals("clientId in", true, testServer.canClientUpload(clientId));
-		assertEquals("clientId2 still not in", false, testServer.canClientUpload(clientId2));
-		assertEquals("empty still out", false, testServer.canClientUpload(""));
+		assertEquals("clientId2 still not in", true, testServer.canClientUpload(clientId2));
+		assertEquals("empty still out", true, testServer.canClientUpload(""));
 
 		testServer.allowUploads(clientId2);
 		assertEquals("clientId2", true, testServer.canClientUpload(clientId2));
@@ -1509,14 +1503,14 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 
 		String clientId = "some client";
 		String clientId2 = "another client";
-		assertEquals("clientId default", false, testServer.canClientUpload(clientId));
-		assertEquals("clientId2 default", false, testServer.canClientUpload(clientId2));
+		assertEquals("clientId default", true, testServer.canClientUpload(clientId));
+		assertEquals("clientId2 default", true, testServer.canClientUpload(clientId2));
 
 		String testFileContents = "blah blah\n" + clientId2 + "\nYeah yeah\n\n";
 		testServer.serverForClients.loadCanUploadList(new BufferedReader(new StringReader(testFileContents)));
-		assertEquals("clientId still out", false, testServer.canClientUpload(clientId));
+		assertEquals("clientId still out", true, testServer.canClientUpload(clientId));
 		assertEquals("clientId2 now in", true, testServer.canClientUpload(clientId2));
-		assertEquals("empty still out", false, testServer.canClientUpload(""));
+		assertEquals("empty still out", true, testServer.canClientUpload(""));
 
 		File uploadsFile = testServer.serverForClients.getAllowUploadFile();
 		uploadsFile.delete();

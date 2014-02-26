@@ -298,11 +298,6 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	
 	public boolean canClientUpload(String clientId)
 	{
-		if(!clientsThatCanUpload.contains(clientId))
-		{
-			logNotice("client NOT AUTHORIZED: " + getPublicCode(clientId));
-			return false;
-		}
 		return true;
 	}
 	

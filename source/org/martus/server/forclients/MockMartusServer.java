@@ -324,12 +324,6 @@ public class MockMartusServer extends MartusServer
 
 	public String mockUploadBulletin(String authorAccountId, String bulletinLocalId, String data)
 	{
-		if(!canClientUpload(authorAccountId))
-		{
-			logNotice("uploadBulletin REJECTED (!canClientUpload)");
-			return NetworkInterfaceConstants.REJECTED;
-		}
-		
 		File tempFile = null;
 		try 
 		{
