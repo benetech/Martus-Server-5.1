@@ -40,6 +40,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Vector;
 
+import org.martus.common.DammCheckDigitAlgorithm;
 import org.martus.common.MagicWordEntry;
 import org.martus.common.MagicWords;
 import org.martus.common.MartusAccountAccessToken;
@@ -51,6 +52,7 @@ import org.martus.common.MartusUtilities.FileVerificationException;
 import org.martus.common.Version;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MartusCrypto.CreateDigestException;
+import org.martus.common.crypto.MartusSecurity;
 import org.martus.common.database.Database.RecordHiddenException;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.DeleteRequestRecord;
@@ -395,10 +397,13 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		return result;
 	}
 	
-	public String getTokensFromMartusCentralTokenAuthority(String accountId)
+	public String getTokensFromMartusCentralTokenAuthority(String accountId) throws Exception
 	{
 		//TODO: get and store real token from Martus Central Token Authority (Martus.org)
-		String validMartusAccessTokenString = "3841590";
+		String publicCode = MartusSecurity.computePublicCode(accountId);
+		String first7 = publicCode.substring(0, 7);
+		DammCheckDigitAlgorithm damm = new DammCheckDigitAlgorithm();
+		String token = first7 + damm.getCheckDigit(first7);
 		Date currentDate = new Date();
 		DateFormat df = new SimpleDateFormat("MM/dd/yy HH:mm:ss");
 		
@@ -407,7 +412,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 					+MartusAccountAccessToken.MARTUS_ACCESS_TOKEN_CREATION_DATE_JSON_TAG+"\":\""
 						+df.format(currentDate)+"\",\""
 					+MartusAccountAccessToken.MARTUS_ACCESS_TOKEN_JSON_TAG+"\":\""
-						+validMartusAccessTokenString+"\",\""
+						+token+"\",\""
 					+MartusAccountAccessToken.MARTUS_ACCESS_ACCOUNT_ID_JSON_TAG+"\":\""
 						+accountId
 				+"\"}}";
@@ -416,20 +421,8 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	
 	public String getAccountIdForTokenFromMartusCentralTokenAuthority(MartusAccountAccessToken token)
 	{
-		//TODO: get real AccountId from Martus Central Token Authority (Martus.org)
-		String fakeAccountId = "MIBsssxdfjkdfj";
-		Date currentDate = new Date();
-		DateFormat df = new SimpleDateFormat("MM/dd/yy HH:mm:ss");
-		String validMartusAccessJsonTokenString = "{\""
-				+MartusAccountAccessToken.MARTUS_ACCOUNT_ACCESS_TOKEN_JSON_TAG+"\":{\""
-					+MartusAccountAccessToken.MARTUS_ACCESS_TOKEN_CREATION_DATE_JSON_TAG+"\":\""
-						+df.format(currentDate)+"\",\""
-					+MartusAccountAccessToken.MARTUS_ACCESS_TOKEN_JSON_TAG+"\":\""
-						+token.getToken()+"\",\""
-						+MartusAccountAccessToken.MARTUS_ACCESS_ACCOUNT_ID_JSON_TAG+"\":\""
-						+fakeAccountId
-				+"\"}}";
-		return validMartusAccessJsonTokenString;  
+		//TODO: try to get real token from Martus Central Token Authority (Martus.org)
+		return null;
 	}
 	
 	private void storeAccessTokenForAccountIfNecessary(String networkJsonData)
@@ -523,7 +516,8 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 
 	public Vector getMartusAccountAccessToken(String accountId)
 	{
-		String loggingData = "getMartusAccountAccessToken: " + coreServer.getClientAliasForLogging(accountId);
+		String accountAlias = coreServer.getClientAliasForLogging(accountId);
+		String loggingData = "getMartusAccountAccessToken: " + accountAlias;
 		logInfo(loggingData);
 		Vector result = new Vector();
 		if(isClientBanned(accountId))
@@ -534,6 +528,10 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		try 
 		{
 			Vector tokens = getAccessTokensForAccount(accountId);
+			if(tokens.size() > 0)
+				logInfo("Account " + accountAlias + "Token[0] is: " + tokens.get(0));
+			else
+				logInfo("No token found for " + accountAlias);
 			result.add(NetworkInterfaceConstants.OK);
 			result.add(tokens.toArray());
 		} 
@@ -600,6 +598,8 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		try 
 		{
 			String accountIdForToken = getAccountIdForToken(tokenToUse);
+			String accountAlias = coreServer.getClientAliasForLogging(accountIdForToken);
+			logInfo("Token " + tokenToUse + " is for account: " + accountAlias);
 			result.add(NetworkInterfaceConstants.OK);
 			Vector accountIds = new Vector();
 			accountIds.add(accountIdForToken);
