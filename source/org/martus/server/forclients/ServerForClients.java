@@ -444,7 +444,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		}
 		catch (Exception e)
 		{
-			logError("storeAccessTokenForAccount via setStoredAccessTokenForAccountIfNecessary", e);
+			MartusLogger.logException(e);
 		}
 	}
 	
@@ -542,7 +542,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		} 
 		catch (Exception e) 
 		{
-			logError(e);
+			MartusLogger.logException(e);
 			result.add(NetworkInterfaceConstants.SERVER_ERROR);
 		} 
 		return result;
@@ -579,7 +579,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			} 
 			catch (ParseException unexpectedParseErrorFromMTA) 
 			{
-				logError(unexpectedParseErrorFromMTA);
+				MartusLogger.logException(unexpectedParseErrorFromMTA);
 			}
 		}
 		return getStoredAccountIdForToken(tokenToFind);
@@ -607,11 +607,12 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		} 
 		catch (MartusAccountAccessToken.TokenNotFoundException e) 
 		{
+			logWarning("Token Authority unavailable, no access token");
 			result.add(NetworkInterfaceConstants.NO_TOKEN_AVAILABLE);
 		} 
 		catch (Exception e) 
 		{
-			logError(e);
+			MartusLogger.logException(e);
 			result.add(NetworkInterfaceConstants.SERVER_ERROR);
 		} 
 		return result;
@@ -639,6 +640,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		}
 		if(formTemplateData.size() != 1 || formTemplateData.get(0).toString().length() == 0)
 		{
+			logWarning("INVALID_DATA: form Template size incorrect");
 			result.add(NetworkInterfaceConstants.INVALID_DATA);
 			return result;
 		}
@@ -655,6 +657,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			CustomFieldTemplate template = new CustomFieldTemplate();
 			if(!template.importTemplate(getSecurity(), formTemplateTempFile))
 			{
+				logError("Import Template Failed!");
 				result.add(NetworkInterfaceConstants.SERVER_ERROR);
 				return result;
 			}
@@ -667,7 +670,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		} 
 		catch (Exception e) 
 		{
-			logError("putFormTemplate");
+			MartusLogger.logException(e);
 			result.add(NetworkInterfaceConstants.SERVER_ERROR);
 			return result;
 		}
