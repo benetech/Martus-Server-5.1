@@ -149,18 +149,19 @@ public class ServerBulletinStore extends BulletinStore
 		MartusServerUtilities.createSignatureFileFromFileOnServer(tokenFile, getSignatureGenerator());
 	}
 	
-	public void moveFormTemplateIntoAccount(String accountId, File tempFile, String formTemplateFileName) throws IOException, MartusSignatureException, InterruptedException, MartusSignatureFileAlreadyExistsException, TokenInvalidException
+	public void moveFormTemplateIntoAccount(String accountId, File fromFile, File toFile) throws IOException, MartusSignatureException, InterruptedException, MartusSignatureFileAlreadyExistsException, TokenInvalidException
 	{
-		File folderForTemplates = getAbsoluteFormTemplatesFolderForAccount(accountId);
-		File formTemplateFile = new File(folderForTemplates, formTemplateFileName);
-
-		if(formTemplateFile.exists())
-			formTemplateFile.delete();
-		formTemplateFile.getParentFile().mkdirs();
-		if(tempFile.renameTo(formTemplateFile))
-			MartusServerUtilities.createSignatureFileFromFileOnServer(formTemplateFile, getSignatureGenerator());
+		if(toFile.exists())
+			toFile.delete();
+		if(fromFile.renameTo(toFile))
+		{
+			MartusServerUtilities.createSignatureFileFromFileOnServer(toFile, getSignatureGenerator());
+		}
 		else
-			throw new IOException("Unable to Rename temp FormTemplate to account's FormTemplates directory");
+		{
+			String errorMsg = "Unable to Rename temp FormTemplate to account's FormTemplates directory, From TempFile = " + fromFile.getAbsolutePath() + ", To Account Template File = " + toFile.getAbsolutePath();
+			throw new IOException(errorMsg);
+		}
 	}
 	
 	public File getTokenFileForAccount(String accountId) throws IOException, FileNotFoundException 
@@ -189,7 +190,7 @@ public class ServerBulletinStore extends BulletinStore
 			if(!formTemplatesFolder.exists())
 				return signatureVerifiedFormTemplateFiles;
 		} 
-		catch (FileNotFoundException e) 
+		catch (IOException e) 
 		{
 			return signatureVerifiedFormTemplateFiles;
 		}

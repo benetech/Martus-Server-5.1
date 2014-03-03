@@ -647,22 +647,27 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		try 
 		{
 			String base64TemplateData = (String)formTemplateData.get(0);
-			StringReader reader = new StringReader(base64TemplateData);			
-			File formTemplateTempFile = File.createTempFile("$$$FormTemplate", null);
-			FileOutputStream output = new FileOutputStream(formTemplateTempFile);
+			StringReader reader = new StringReader(base64TemplateData);
+
+			File accountFolderForTemplates = getStore().getAbsoluteFormTemplatesFolderForAccount(myAccountId);
+			accountFolderForTemplates.mkdirs();			
+			
+			File tempFormTemplateFile = File.createTempFile("Temp-", null, accountFolderForTemplates);
+			FileOutputStream output = new FileOutputStream(tempFormTemplateFile);
 			StreamableBase64.decode(reader, output);
 			output.flush();
 			output.close();
 			
 			CustomFieldTemplate template = new CustomFieldTemplate();
-			if(!template.importTemplate(getSecurity(), formTemplateTempFile))
+			if(!template.importTemplate(getSecurity(), tempFormTemplateFile))
 			{
 				logError("Import Template Failed!");
 				result.add(NetworkInterfaceConstants.SERVER_ERROR);
+				tempFormTemplateFile.delete();
 				return result;
 			}
-			String formTemplateFileName = calculateFileNameFromString(template.getTitle());
-			getStore().moveFormTemplateIntoAccount(myAccountId, formTemplateTempFile, formTemplateFileName);
+			File accountsFormTemplateFile = new File(accountFolderForTemplates, calculateFileNameFromString(template.getTitle()));
+			getStore().moveFormTemplateIntoAccount(myAccountId, tempFormTemplateFile, accountsFormTemplateFile);
 
 			result.add(NetworkInterfaceConstants.OK);
 			
