@@ -189,7 +189,7 @@ public class SupplierSideMirroringHandler implements SupplierSideMirroringInterf
 				if(bur == null)
 				{
 					logDebug("getBulletinUploadRecord: NotFound");
-					result.add(NOT_FOUND);
+					result.add(ITEM_NOT_FOUND);
 				}
 				else
 				{

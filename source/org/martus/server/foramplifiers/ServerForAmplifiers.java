@@ -290,7 +290,7 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants, LoggerInt
 
 		DatabaseKey headerKey =	findHeaderKeyInDatabase(authorAccountId, bulletinLocalId);
 		if(headerKey == null)
-			return returnSingleResponseErrorAndLog( " returning NOT_FOUND", NetworkInterfaceConstants.NOT_FOUND );
+			return returnSingleResponseErrorAndLog( " returning NOT_FOUND", NetworkInterfaceConstants.ITEM_NOT_FOUND );
 
 		Vector result = getBulletinChunkWithoutVerifyingCaller(
 					authorAccountId, bulletinLocalId,
@@ -376,7 +376,7 @@ public class ServerForAmplifiers implements NetworkInterfaceConstants, LoggerInt
 	{
 		DatabaseKey headerKey =	findHeaderKeyInDatabase(authorAccountId, bulletinLocalId);
 		if(headerKey == null)
-			return returnSingleResponseErrorAndLog("getBulletinChunkWithoutVerifyingCaller:  NOT_FOUND ", NetworkInterfaceConstants.NOT_FOUND);
+			return returnSingleResponseErrorAndLog("getBulletinChunkWithoutVerifyingCaller:  NOT_FOUND ", NetworkInterfaceConstants.ITEM_NOT_FOUND);
 		
 		try
 		{

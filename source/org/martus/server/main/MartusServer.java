@@ -751,7 +751,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		{
 			logInfo(" returning NOT_FOUND");
 			Vector response = new Vector();
-			response.add( NetworkInterfaceConstants.NOT_FOUND );
+			response.add( NetworkInterfaceConstants.ITEM_NOT_FOUND );
 			return response;
 		}
 
@@ -855,13 +855,13 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		{
 			if(!getStore().doesContactInfoExist(accountId))
 			{
-				results.add(NetworkInterfaceConstants.NOT_FOUND);
+				results.add(NetworkInterfaceConstants.ITEM_NOT_FOUND);
 				return results;
 			}
 		}
 		catch (IOException e)
 		{
-			results.add(NetworkInterfaceConstants.NOT_FOUND);
+			results.add(NetworkInterfaceConstants.ITEM_NOT_FOUND);
 			logError(e);
 			return results;
 		}
@@ -1025,7 +1025,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		
 		if(!db.doesRecordExist(headerKey))
 		{
-			return returnSingleErrorResponseAndLog( "  header packet not found", NetworkInterfaceConstants.NOT_FOUND );
+			return returnSingleErrorResponseAndLog( "  header packet not found", NetworkInterfaceConstants.ITEM_NOT_FOUND );
 		}
 		
 		UniversalId dataPacketUid = UniversalId.createFromAccountAndLocalId(authorAccountId, packetLocalId);
@@ -1037,7 +1037,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			
 		if(!db.doesRecordExist(dataPacketKey))
 		{
-			return returnSingleErrorResponseAndLog( "  data packet not found", NetworkInterfaceConstants.NOT_FOUND );
+			return returnSingleErrorResponseAndLog( "  data packet not found", NetworkInterfaceConstants.ITEM_NOT_FOUND );
 		}
 		
 		try
@@ -1191,7 +1191,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	{
 		DatabaseKey headerKey =	findHeaderKeyInDatabase(authorAccountId, bulletinLocalId);
 		if(headerKey == null)
-			return returnSingleErrorResponseAndLog("getBulletinChunkWithoutVerifyingCaller:  NOT_FOUND ", NetworkInterfaceConstants.NOT_FOUND);
+			return returnSingleErrorResponseAndLog("getBulletinChunkWithoutVerifyingCaller:  NOT_FOUND ", NetworkInterfaceConstants.ITEM_NOT_FOUND);
 		
 		try
 		{

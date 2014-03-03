@@ -179,7 +179,7 @@ public class TestServerForAmplifiers extends TestCaseEnhanced
 		assertEquals("Bad Signature should have been returned", ServerForAmplifiers.SIG_ERROR, response.get(0));
 
 		response = coreServer.serverForAmplifiers.getAmplifierHandler().getContactInfo(amplifier.getPublicKeyString(), parameters, signature);
-		assertEquals("Should not have found contact info since it hasn't been uploaded yet", ServerForAmplifiers.NOT_FOUND, response.get(0));
+		assertEquals("Should not have found contact info since it hasn't been uploaded yet", ServerForAmplifiers.ITEM_NOT_FOUND, response.get(0));
 
 		String clientId = clientSecurity.getPublicKeyString();
 		String data1 = "data1";

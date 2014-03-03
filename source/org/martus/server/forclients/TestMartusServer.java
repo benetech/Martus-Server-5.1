@@ -884,7 +884,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		String signature = (String)encodedContactInfo.get(encodedContactInfo.size()-1);
 
 		Vector nothingReturned = testServer.getContactInfo(clientId);
-		assertEquals("No contactInfo should return null", NetworkInterfaceConstants.NOT_FOUND, nothingReturned.get(0));
+		assertEquals("No contactInfo should return null", NetworkInterfaceConstants.ITEM_NOT_FOUND, nothingReturned.get(0));
 		testServer.allowUploads(clientId);
 		testServer.putContactInfo(clientId, encodedContactInfo);
 		Vector infoReturned = testServer.getContactInfo(clientId);

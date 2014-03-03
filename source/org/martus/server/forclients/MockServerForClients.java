@@ -177,7 +177,7 @@ public class MockServerForClients extends ServerForClients implements ServerForN
 	public void setDownloadResponseNotFound()
 	{
 		downloadResponse = new Vector();
-		downloadResponse.add(NetworkInterfaceConstants.NOT_FOUND);
+		downloadResponse.add(NetworkInterfaceConstants.ITEM_NOT_FOUND);
 	}
 	
 	public void setDownloadResponseOk()

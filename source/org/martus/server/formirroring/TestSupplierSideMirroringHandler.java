@@ -351,7 +351,7 @@ public class TestSupplierSideMirroringHandler extends TestCaseEnhanced
 		parameters.add("No such bulletin");
 		String sig = callerSecurity.createSignatureOfVectorOfStrings(parameters);
 		Vector result = handler.request(callerAccountId, parameters, sig);
-		assertEquals(NetworkInterfaceConstants.NOT_FOUND, result.get(0));
+		assertEquals(NetworkInterfaceConstants.ITEM_NOT_FOUND, result.get(0));
 		assertEquals(1, result.size());
 	}
 
