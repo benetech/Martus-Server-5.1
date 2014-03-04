@@ -762,9 +762,11 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 			assertEquals("Client is no longer banned and is allowed to upload, should accept this template", OK, result.get(0));
 			result = mock.serverForClients.getListOfFormTemplates(clientId, clientId);
 			assertEquals("Client should retrive a list of forms",OK, result.get(0));
-			Object[] rawDataResult = (Object[]) result.get(1);
-			Vector vectorFormTemplateTitlesAndDescriptions = new Vector(Arrays.asList(rawDataResult));
-			Vector formTemplateTitlesAndDescriptions = (Vector)vectorFormTemplateTitlesAndDescriptions.get(0);
+			NetworkResponse response = new NetworkResponse(result);
+			Vector ObjectArrayFormTemplateTitlesAndDescriptions = response.getResultVector();
+			Object[] innerResult = (Object[]) ObjectArrayFormTemplateTitlesAndDescriptions.get(0);
+			Vector formTemplateTitlesAndDescriptions  = new Vector(Arrays.asList(innerResult));
+
 			assertEquals("Didn't return same title of form?", formTemplateTitle, formTemplateTitlesAndDescriptions.get(0));
 			assertEquals("Didn't return same description of form?", formTemplateDescription, formTemplateTitlesAndDescriptions.get(1));
 			result = mock.serverForClients.getFormTemplate(clientId, clientId, "Some form which doesn't exist");

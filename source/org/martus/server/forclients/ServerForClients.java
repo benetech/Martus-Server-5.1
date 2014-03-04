@@ -697,7 +697,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 				Vector currentFormVectorToAdd = new Vector();
 				currentFormVectorToAdd.add(formTemplate.getTitle());
 				currentFormVectorToAdd.add(formTemplate.getDescription());
-				formTemplatesTitleAndDescriptions.add(currentFormVectorToAdd);
+				formTemplatesTitleAndDescriptions.add(currentFormVectorToAdd.toArray());
 			} 
 			catch (FutureVersionException eLogExceptionButContinueWithRemainingValidForms) 
 			{
