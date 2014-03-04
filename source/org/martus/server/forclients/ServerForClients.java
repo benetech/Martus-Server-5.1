@@ -718,17 +718,8 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			result.add(NetworkInterfaceConstants.REJECTED);
 			return result;
 		}
-		boolean bAccountExists = false;
-		try 
-		{
-			File accountTemplatesFolder = getStore().getAbsoluteFormTemplatesFolderForAccount(accountIdToUse);
-			bAccountExists = accountTemplatesFolder.getParentFile().exists();
-		} 
-		catch (Exception e) 
-		{
-		}
-
-		if(!bAccountExists)
+		
+		if(!doesAccountExist(accountIdToUse))
 		{
 			result.add(NetworkInterfaceConstants.ACCOUNT_NOT_FOUND);
 			return result;
@@ -749,6 +740,19 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		}
 
 		return result;
+	}
+
+	public boolean doesAccountExist(String accountIdToUse) 
+	{
+		try 
+		{
+			File accountTemplatesFolder = getStore().getAbsoluteFormTemplatesFolderForAccount(accountIdToUse);
+			return accountTemplatesFolder.getParentFile().exists();
+		} 
+		catch (Exception e) 
+		{
+		}
+		return false;
 	}
 	
 	public Vector getFormTemplate(String myAccountId, String accountIdToUse, String formTitle)

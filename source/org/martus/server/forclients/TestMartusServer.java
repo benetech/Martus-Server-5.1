@@ -744,7 +744,11 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 			mock.serverForClients.clientsBanned.clear();
 			mock.serverForClients.clientsThatCanUpload.clear();
 			
+			
 			String unknownClientId = "Some Other Client Server Doesnt Have An Account For";
+			assertFalse(mock.serverForClients.doesAccountExist(unknownClientId));
+			assertFalse("Make sure calling doesAccountExist doesn't create the account as a side effect", mock.serverForClients.doesAccountExist(unknownClientId));
+
 			result = mock.serverForClients.getListOfFormTemplates(clientId, unknownClientId);
 			assertEquals("Account's templates trying to be retrieved doesn't exist on server should return ACCOUNT_NOT_FOUND",ACCOUNT_NOT_FOUND, result.get(0));
 			
