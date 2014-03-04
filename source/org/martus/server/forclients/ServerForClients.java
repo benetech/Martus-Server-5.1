@@ -653,6 +653,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			accountFolderForTemplates.mkdirs();			
 			
 			File tempFormTemplateFile = File.createTempFile("Temp-", null, accountFolderForTemplates);
+			tempFormTemplateFile.deleteOnExit();
 			FileOutputStream output = new FileOutputStream(tempFormTemplateFile);
 			StreamableBase64.decode(reader, output);
 			output.flush();
