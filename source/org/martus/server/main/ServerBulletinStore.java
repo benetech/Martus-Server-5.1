@@ -190,7 +190,7 @@ public class ServerBulletinStore extends BulletinStore
 			if(!formTemplatesFolder.exists())
 				return signatureVerifiedFormTemplateFiles;
 		} 
-		catch (IOException e) 
+		catch (FileNotFoundException e) 
 		{
 			return signatureVerifiedFormTemplateFiles;
 		}

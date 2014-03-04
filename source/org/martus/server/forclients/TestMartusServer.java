@@ -71,6 +71,7 @@ import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.MockClientDatabase;
 import org.martus.common.database.MockServerDatabase;
 import org.martus.common.database.ReadableDatabase;
+import org.martus.common.database.ServerFileDatabase;
 import org.martus.common.fieldspec.CustomFieldTemplate;
 import org.martus.common.fieldspec.StandardFieldSpecs;
 import org.martus.common.network.NetworkInterface;
@@ -86,6 +87,7 @@ import org.martus.server.main.ServerBulletinStore;
 import org.martus.util.Base64;
 import org.martus.util.StreamableBase64;
 import org.martus.util.StreamableBase64.InvalidBase64Exception;
+import org.martus.util.DirectoryUtils;
 import org.martus.util.TestCaseEnhanced;
 import org.martus.util.UnicodeReader;
 import org.martus.util.UnicodeWriter;
@@ -705,64 +707,90 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 	public void testPutGetFormTemplates() throws Exception
 	{
 		TRACE_BEGIN("testPutGetFormTemplates");
+		File tmpPacketDir = createTempFileFromName("$$$testPutGetFormTemplates");
+		tmpPacketDir.delete();
+		tmpPacketDir.mkdir();
 
-		String formTemplateTitle = "New Form Title";
-		String formTemplateDescription = "New Form Description";
-		FieldCollection defaultFieldsTopSection = new FieldCollection(StandardFieldSpecs.getDefaultTopSetionFieldSpecs().asArray());
-		FieldCollection defaultFieldsBottomSection = new FieldCollection(StandardFieldSpecs.getDefaultBottomSectionFieldSpecs().asArray());
-		CustomFieldTemplate template = new CustomFieldTemplate(formTemplateTitle, formTemplateDescription, defaultFieldsTopSection, defaultFieldsBottomSection);
-		String formTemplateData = template.getExportedTemplateAsBase64String(clientSecurity);
-
-		Vector formTemplateVectorForNetworkCall = new Vector();
-		formTemplateVectorForNetworkCall.add(formTemplateData);
-		String clientId = clientSecurity.getPublicKeyString();
-
-		testServer.serverForClients.clientsBanned.add(clientId);
-		Vector result = testServer.serverForClients.putFormTemplate(clientId, formTemplateVectorForNetworkCall);
-		assertEquals("Client is banned should not accept form Template", REJECTED, result.get(0));
-		result = testServer.serverForClients.getListOfFormTemplates(clientId, clientId);
-		assertEquals("Client is banned should not allow to retrieve a list of FormTemplates", REJECTED, result.get(0));
-		result = testServer.serverForClients.getFormTemplate(clientId, clientId, formTemplateTitle);
-		assertEquals("Client is banned should not allow to retrieve a form", REJECTED, result.get(0));
+		MartusCrypto security = MockMartusSecurity.createServer();
+		ServerFileDatabase db = new ServerFileDatabase(tmpPacketDir, security);
+		db.initialize();
+		MockMartusServer mock = new MockMartusServer(db);
+		mock.serverForClients.loadBannedClients();
+		mock.setSecurity(security);
+		mock.verifyAndLoadConfigurationFiles();
 		
-		testServer.serverForClients.clientsBanned.clear();
-		testServer.serverForClients.clientsThatCanUpload.clear();
-		result = testServer.serverForClients.getListOfFormTemplates(clientId, clientId);
-		assertEquals("Client is no longer banned and should be allowed to retrieve FormTemplates but there are no form templates to retrieve a list",OK, result.get(0));
-		result = testServer.serverForClients.getFormTemplate(clientId, clientId, formTemplateTitle);
-		assertEquals("Client is no longer banned and should be allowed to retrieve FormTemplates but there are no form templates to retrieve",FORM_TEMPLATE_DOES_NOT_EXIST, result.get(0));
-		
-		testServer.serverForClients.clientsThatCanUpload.add(clientId);
-		result = testServer.serverForClients.putFormTemplate(clientId, formTemplateVectorForNetworkCall);
-		assertEquals("Client is no longer banned and is allowed to upload, should accept this template", OK, result.get(0));
-		result = testServer.serverForClients.getListOfFormTemplates(clientId, clientId);
-		assertEquals("Client should retrive a list of forms",OK, result.get(0));
-		Object[] rawDataResult = (Object[]) result.get(1);
-		Vector vectorFormTemplateTitlesAndDescriptions = new Vector(Arrays.asList(rawDataResult));
-		Vector formTemplateTitlesAndDescriptions = (Vector)vectorFormTemplateTitlesAndDescriptions.get(0);
-		assertEquals("Didn't return same title of form?", formTemplateTitle, formTemplateTitlesAndDescriptions.get(0));
-		assertEquals("Didn't return same description of form?", formTemplateDescription, formTemplateTitlesAndDescriptions.get(1));
-		result = testServer.serverForClients.getFormTemplate(clientId, clientId, "Some form which doesn't exist");
-		assertEquals("Client should be unable to retrive a non-existent form",FORM_TEMPLATE_DOES_NOT_EXIST, result.get(0));
+		try
+		{
+			String formTemplateTitle = "New Form Title";
+			String formTemplateDescription = "New Form Description";
+			FieldCollection defaultFieldsTopSection = new FieldCollection(StandardFieldSpecs.getDefaultTopSetionFieldSpecs().asArray());
+			FieldCollection defaultFieldsBottomSection = new FieldCollection(StandardFieldSpecs.getDefaultBottomSectionFieldSpecs().asArray());
+			CustomFieldTemplate template = new CustomFieldTemplate(formTemplateTitle, formTemplateDescription, defaultFieldsTopSection, defaultFieldsBottomSection);
+			String formTemplateData = template.getExportedTemplateAsBase64String(clientSecurity);
 
-		result = testServer.serverForClients.getFormTemplate(clientId, clientId, formTemplateTitle);
-		assertEquals("Client should retrive the form requested",OK, result.get(0));
-		assertEquals("No data returned?", 2, result.size());
-		Object[] resultObject = (Object[])result.get(1);
-		assertEquals(1, resultObject.length);
-		String base64FormTemplateData = (String)resultObject[0];
-		StringReader reader = new StringReader(base64FormTemplateData);			
-		File formTemplateTempFile = File.createTempFile("$$$FormTemplate", null);
-		formTemplateTempFile.deleteOnExit();
-		FileOutputStream output = new FileOutputStream(formTemplateTempFile);
-		StreamableBase64.decode(reader, output);
-		output.flush();
-		output.close();
-		CustomFieldTemplate templateReturned = new CustomFieldTemplate();
-		templateReturned.importTemplate(serverSecurity, formTemplateTempFile);
-		formTemplateTempFile.delete();
-		assertEquals("Didn't return same title of form?", formTemplateTitle, templateReturned.getTitle());
-		assertEquals("Didn't return same description of form?", formTemplateDescription, templateReturned.getDescription());
+			Vector formTemplateVectorForNetworkCall = new Vector();
+			formTemplateVectorForNetworkCall.add(formTemplateData);
+			String clientId = clientSecurity.getPublicKeyString();
+
+			
+			mock.serverForClients.clientsBanned.add(clientId);
+			Vector result = mock.serverForClients.putFormTemplate(clientId, formTemplateVectorForNetworkCall);
+			assertEquals("Client is banned should not accept form Template", REJECTED, result.get(0));
+			result = mock.serverForClients.getListOfFormTemplates(clientId, clientId);
+			assertEquals("Client is banned should not allow to retrieve a list of FormTemplates", REJECTED, result.get(0));
+			result = mock.serverForClients.getFormTemplate(clientId, clientId, formTemplateTitle);
+			assertEquals("Client is banned should not allow to retrieve a form", REJECTED, result.get(0));
+			
+			mock.serverForClients.clientsBanned.clear();
+			mock.serverForClients.clientsThatCanUpload.clear();
+			
+			String unknownClientId = "Some Other Client Server Doesnt Have An Account For";
+			result = mock.serverForClients.getListOfFormTemplates(clientId, unknownClientId);
+			assertEquals("Account's templates trying to be retrieved doesn't exist on server should return ACCOUNT_NOT_FOUND",ACCOUNT_NOT_FOUND, result.get(0));
+			
+			result = mock.serverForClients.getListOfFormTemplates(clientId, clientId);
+			assertEquals("Client is no longer banned and should be allowed to retrieve FormTemplates but there are no form templates to retrieve a list",OK, result.get(0));
+			result = mock.serverForClients.getFormTemplate(clientId, clientId, formTemplateTitle);
+			assertEquals("Client is no longer banned and should be allowed to retrieve FormTemplates but there are no form templates to retrieve",FORM_TEMPLATE_DOES_NOT_EXIST, result.get(0));
+			
+			mock.serverForClients.clientsThatCanUpload.add(clientId);
+			result = mock.serverForClients.putFormTemplate(clientId, formTemplateVectorForNetworkCall);
+			assertEquals("Client is no longer banned and is allowed to upload, should accept this template", OK, result.get(0));
+			result = mock.serverForClients.getListOfFormTemplates(clientId, clientId);
+			assertEquals("Client should retrive a list of forms",OK, result.get(0));
+			Object[] rawDataResult = (Object[]) result.get(1);
+			Vector vectorFormTemplateTitlesAndDescriptions = new Vector(Arrays.asList(rawDataResult));
+			Vector formTemplateTitlesAndDescriptions = (Vector)vectorFormTemplateTitlesAndDescriptions.get(0);
+			assertEquals("Didn't return same title of form?", formTemplateTitle, formTemplateTitlesAndDescriptions.get(0));
+			assertEquals("Didn't return same description of form?", formTemplateDescription, formTemplateTitlesAndDescriptions.get(1));
+			result = mock.serverForClients.getFormTemplate(clientId, clientId, "Some form which doesn't exist");
+			assertEquals("Client should be unable to retrive a non-existent form",FORM_TEMPLATE_DOES_NOT_EXIST, result.get(0));
+
+			result = mock.serverForClients.getFormTemplate(clientId, clientId, formTemplateTitle);
+			assertEquals("Client should retrive the form requested",OK, result.get(0));
+			assertEquals("No data returned?", 2, result.size());
+			Object[] resultObject = (Object[])result.get(1);
+			assertEquals(1, resultObject.length);
+			String base64FormTemplateData = (String)resultObject[0];
+			StringReader reader = new StringReader(base64FormTemplateData);			
+			File formTemplateTempFile = File.createTempFile("$$$FormTemplate", null);
+			formTemplateTempFile.deleteOnExit();
+			FileOutputStream output = new FileOutputStream(formTemplateTempFile);
+			StreamableBase64.decode(reader, output);
+			output.flush();
+			output.close();
+			CustomFieldTemplate templateReturned = new CustomFieldTemplate();
+			templateReturned.importTemplate(serverSecurity, formTemplateTempFile);
+			formTemplateTempFile.delete();
+			assertEquals("Didn't return same title of form?", formTemplateTitle, templateReturned.getTitle());
+			assertEquals("Didn't return same description of form?", formTemplateDescription, templateReturned.getDescription());
+		}
+		finally
+		{
+			mock.deleteAllFiles();
+			DirectoryUtils.deleteEntireDirectoryTree(tmpPacketDir);
+		}
+		
 		TRACE_END();
 	}
 

@@ -717,6 +717,21 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			result.add(NetworkInterfaceConstants.REJECTED);
 			return result;
 		}
+		boolean bAccountExists = false;
+		try 
+		{
+			File accountTemplatesFolder = getStore().getAbsoluteFormTemplatesFolderForAccount(accountIdToUse);
+			bAccountExists = accountTemplatesFolder.getParentFile().exists();
+		} 
+		catch (Exception e) 
+		{
+		}
+
+		if(!bAccountExists)
+		{
+			result.add(NetworkInterfaceConstants.ACCOUNT_NOT_FOUND);
+			return result;
+		}
 
 		try 
 		{
