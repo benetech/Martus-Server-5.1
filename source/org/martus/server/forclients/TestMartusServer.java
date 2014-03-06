@@ -73,6 +73,7 @@ import org.martus.common.database.MockServerDatabase;
 import org.martus.common.database.ReadableDatabase;
 import org.martus.common.database.ServerFileDatabase;
 import org.martus.common.fieldspec.CustomFieldTemplate;
+import org.martus.common.fieldspec.CustomFieldTemplate.FutureVersionException;
 import org.martus.common.fieldspec.StandardFieldSpecs;
 import org.martus.common.network.NetworkInterface;
 import org.martus.common.network.NetworkInterfaceConstants;
@@ -786,8 +787,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 			StreamableBase64.decode(reader, output);
 			output.flush();
 			output.close();
-			CustomFieldTemplate templateReturned = new CustomFieldTemplate();
-			templateReturned.importTemplate(serverSecurity, new FileInputStreamWithSeek(formTemplateTempFile));
+			CustomFieldTemplate templateReturned = importFormTemplate(formTemplateTempFile);
 			formTemplateTempFile.delete();
 			assertEquals("Didn't return same title of form?", formTemplateTitle, templateReturned.getTitle());
 			assertEquals("Didn't return same description of form?", formTemplateDescription, templateReturned.getDescription());
@@ -799,6 +799,14 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 		}
 		
 		TRACE_END();
+	}
+
+	private CustomFieldTemplate importFormTemplate(File formTemplateTempFile) throws FutureVersionException, IOException 
+	{
+		CustomFieldTemplate templateReturned = new CustomFieldTemplate();
+		templateReturned.importTemplate(serverSecurity, new FileInputStreamWithSeek(formTemplateTempFile));
+	
+		return templateReturned;
 	}
 
 	public void testPutContactInfoEncoded() throws Exception
