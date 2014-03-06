@@ -91,6 +91,7 @@ import org.martus.util.DirectoryUtils;
 import org.martus.util.TestCaseEnhanced;
 import org.martus.util.UnicodeReader;
 import org.martus.util.UnicodeWriter;
+import org.martus.util.inputstreamwithseek.FileInputStreamWithSeek;
 import org.martus.util.inputstreamwithseek.InputStreamWithSeek;
 
 
@@ -786,7 +787,7 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 			output.flush();
 			output.close();
 			CustomFieldTemplate templateReturned = new CustomFieldTemplate();
-			templateReturned.importTemplate(serverSecurity, formTemplateTempFile);
+			templateReturned.importTemplate(serverSecurity, new FileInputStreamWithSeek(formTemplateTempFile));
 			formTemplateTempFile.delete();
 			assertEquals("Didn't return same title of form?", formTemplateTitle, templateReturned.getTitle());
 			assertEquals("Didn't return same description of form?", formTemplateDescription, templateReturned.getDescription());
