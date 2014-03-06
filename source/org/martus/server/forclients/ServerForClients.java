@@ -687,7 +687,14 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	private boolean importTemplate(File tempFormTemplateFile, CustomFieldTemplate template) throws FutureVersionException, IOException 
 	{
 		FileInputStreamWithSeek inputStream = new FileInputStreamWithSeek(tempFormTemplateFile);
-		return template.importTemplate(getSecurity(), inputStream);
+		try
+		{
+			return template.importTemplate(getSecurity(), inputStream);
+		}
+		finally
+		{
+			inputStream.close();
+		}
 	}
 
 	private Vector getFormTemplateTitleAndDescriptionsForAccount(String accountToGetFormsFrom) throws Exception 
