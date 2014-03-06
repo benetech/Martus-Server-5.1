@@ -77,6 +77,7 @@ import org.martus.util.LoggerUtil;
 import org.martus.util.StreamableBase64;
 import org.martus.util.UnicodeReader;
 import org.martus.util.UnicodeWriter;
+import org.martus.util.inputstreamwithseek.FileInputStreamWithSeek;
 import org.miradi.utils.EnhancedJsonObject;
 
 public class ServerForClients implements ServerForNonSSLClientsInterface, ServerForClientsInterface
@@ -660,7 +661,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			output.close();
 			
 			CustomFieldTemplate template = new CustomFieldTemplate();
-			if(!template.importTemplate(getSecurity(), tempFormTemplateFile))
+			if(!template.importTemplate(getSecurity(), new FileInputStreamWithSeek(tempFormTemplateFile)))
 			{
 				logError("Import Template Failed!");
 				result.add(NetworkInterfaceConstants.SERVER_ERROR);
@@ -693,7 +694,8 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			try
 			{
 				CustomFieldTemplate formTemplate = new CustomFieldTemplate();
-				formTemplate.importTemplate(getSecurity(), (File)formsTemplateFiles.get(i));
+				File fileToImport = (File)formsTemplateFiles.get(i);
+				formTemplate.importTemplate(getSecurity(), new FileInputStreamWithSeek(fileToImport));
 				Vector currentFormVectorToAdd = new Vector();
 				currentFormVectorToAdd.add(formTemplate.getTitle());
 				currentFormVectorToAdd.add(formTemplate.getDescription());
