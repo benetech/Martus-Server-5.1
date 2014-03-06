@@ -803,11 +803,18 @@ public class TestMartusServer extends TestCaseEnhanced implements NetworkInterfa
 
 	private CustomFieldTemplate importFormTemplate(File formTemplateTempFile) throws FutureVersionException, IOException 
 	{
-		CustomFieldTemplate templateReturned = new CustomFieldTemplate();
 		FileInputStreamWithSeek inputStream = new FileInputStreamWithSeek(formTemplateTempFile);
-		templateReturned.importTemplate(serverSecurity, inputStream);
-	
-		return templateReturned;
+		try
+		{
+			CustomFieldTemplate templateReturned = new CustomFieldTemplate();
+			templateReturned.importTemplate(serverSecurity, inputStream);
+
+			return templateReturned;
+		}
+		finally
+		{
+			inputStream.close();
+		}
 	}
 
 	public void testPutContactInfoEncoded() throws Exception
