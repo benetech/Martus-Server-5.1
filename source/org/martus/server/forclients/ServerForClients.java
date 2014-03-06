@@ -661,7 +661,8 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			output.close();
 			
 			CustomFieldTemplate template = new CustomFieldTemplate();
-			if(!template.importTemplate(getSecurity(), new FileInputStreamWithSeek(tempFormTemplateFile)))
+			boolean templateImported = template.importTemplate(getSecurity(), new FileInputStreamWithSeek(tempFormTemplateFile));
+			if(!templateImported)
 			{
 				logError("Import Template Failed!");
 				result.add(NetworkInterfaceConstants.SERVER_ERROR);
