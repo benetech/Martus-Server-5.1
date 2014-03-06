@@ -661,7 +661,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			output.close();
 			
 			CustomFieldTemplate template = new CustomFieldTemplate();
-			boolean templateImported = template.importTemplate(getSecurity(), new FileInputStreamWithSeek(tempFormTemplateFile));
+			boolean templateImported = importTemplate(tempFormTemplateFile, template);
 			if(!templateImported)
 			{
 				logError("Import Template Failed!");
@@ -684,6 +684,10 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		}
 	}
 
+	private boolean importTemplate(File tempFormTemplateFile, CustomFieldTemplate template) throws FutureVersionException, IOException 
+	{
+		return template.importTemplate(getSecurity(), new FileInputStreamWithSeek(tempFormTemplateFile));
+	}
 
 	private Vector getFormTemplateTitleAndDescriptionsForAccount(String accountToGetFormsFrom) throws Exception 
 	{
@@ -696,7 +700,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			{
 				CustomFieldTemplate formTemplate = new CustomFieldTemplate();
 				File fileToImport = (File)formsTemplateFiles.get(i);
-				formTemplate.importTemplate(getSecurity(), new FileInputStreamWithSeek(fileToImport));
+				importTemplate(fileToImport, formTemplate);
 				Vector currentFormVectorToAdd = new Vector();
 				currentFormVectorToAdd.add(formTemplate.getTitle());
 				currentFormVectorToAdd.add(formTemplate.getDescription());
