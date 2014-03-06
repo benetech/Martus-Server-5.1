@@ -797,7 +797,7 @@ public class CreateStatistics
 						HeadquartersKey key = keys.get(i);
 						if(keyList.length()>0)
 							keyList += ", ";
-						keyList += key.getPublicCode();
+						keyList += key.getFormattedPublicCode();
 					}
 				}
 				catch(InvalidBase64Exception e)
