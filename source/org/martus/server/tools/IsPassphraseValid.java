@@ -30,7 +30,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 
+import org.martus.common.DammCheckDigitAlgorithm.CheckDigitInvalidException;
 import org.martus.common.crypto.MartusCrypto;
+import org.martus.common.crypto.MartusCrypto.CreateDigestException;
 import org.martus.common.crypto.MartusSecurity;
 import org.martus.common.crypto.MartusCrypto.AuthorizationFailedException;
 import org.martus.common.utilities.MartusServerUtilities;
@@ -93,10 +95,23 @@ public class IsPassphraseValid
 		try
 		{
 			MartusSecurity security = (MartusSecurity) MartusServerUtilities.loadCurrentMartusSecurity(keyPairFile, passphrase.toCharArray());
-			System.out.println("Public Code: " + MartusCrypto.computeFormattedPublicCode(security.getPublicKeyString()));
+			System.out.println("Public Code (Old): " + MartusCrypto.computeFormattedPublicCode(security.getPublicKeyString()));
+			System.out.println("Public Code (New): " + MartusCrypto.computeFormattedPublicCode40(security.getPublicKeyString()));
 			System.exit(0);
 		}
 		catch (AuthorizationFailedException e)
+		{
+			System.err.println("Error: " + e.toString() );
+			System.err.flush();
+			System.exit(1);
+		}
+		catch (CreateDigestException e)
+		{
+			System.err.println("Error: " + e.toString() );
+			System.err.flush();
+			System.exit(1);
+		}
+		catch (CheckDigitInvalidException e)
 		{
 			System.err.println("Error: " + e.toString() );
 			System.err.flush();
