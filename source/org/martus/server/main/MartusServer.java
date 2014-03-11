@@ -49,6 +49,7 @@ import org.apache.xmlrpc.webserver.ConnectionServerWithIpTracking;
 import org.martus.amplifier.ServerCallbackInterface;
 import org.martus.amplifier.main.MartusAmplifier;
 import org.martus.common.ContactInfo;
+import org.martus.common.DammCheckDigitAlgorithm.CheckDigitInvalidException;
 import org.martus.common.LoggerInterface;
 import org.martus.common.LoggerToConsole;
 import org.martus.common.MartusLogger;
@@ -62,6 +63,7 @@ import org.martus.common.bulletin.BulletinZipUtilities;
 import org.martus.common.bulletinstore.BulletinStore;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MartusCrypto.AuthorizationFailedException;
+import org.martus.common.crypto.MartusCrypto.CreateDigestException;
 import org.martus.common.crypto.MartusCrypto.CryptoException;
 import org.martus.common.crypto.MartusCrypto.CryptoInitializationException;
 import org.martus.common.crypto.MartusCrypto.DecryptionException;
@@ -277,11 +279,13 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		MartusUtilities.startTimer(new TimerWatchDogTask(timers), timerWatchDogIntervalMillis);
 	}
 
-	private void displayServerPublicCode() throws InvalidBase64Exception
+	private void displayServerPublicCode() throws InvalidBase64Exception, CreateDigestException, CheckDigitInvalidException
 	{
-		System.out.print("Server Public Code: ");
+		System.out.print("Old Server Public Code: ");
 		String accountId = getAccountId();
 		System.out.println(MartusCrypto.computeFormattedPublicCode(accountId));
+		System.out.print("New Server Public Code: ");
+		System.out.println(MartusCrypto.computeFormattedPublicCode40(accountId));
 		System.out.println();
 	}
 
@@ -300,7 +304,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		loadConfigurationFiles();
 	}
 
-	protected void displayStatistics() throws InvalidBase64Exception
+	protected void displayStatistics() throws InvalidBase64Exception, CreateDigestException, CheckDigitInvalidException
 	{
 		displayComplianceStatement();
 		displayServerPublicCode();
