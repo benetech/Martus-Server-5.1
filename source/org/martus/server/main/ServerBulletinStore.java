@@ -40,7 +40,6 @@ import org.martus.common.ContactInfo;
 import org.martus.common.LoggerInterface;
 import org.martus.common.MartusAccountAccessToken;
 import org.martus.common.MartusAccountAccessToken.TokenInvalidException;
-import org.martus.common.MartusLogger;
 import org.martus.common.MartusUtilities;
 import org.martus.common.MartusUtilities.FileVerificationException;
 import org.martus.common.bulletinstore.BulletinStore;
@@ -153,12 +152,7 @@ public class ServerBulletinStore extends BulletinStore
 	public void moveFormTemplateIntoAccount(String accountId, File fromFile, File toFile) throws IOException, MartusSignatureException, InterruptedException, MartusSignatureFileAlreadyExistsException, TokenInvalidException
 	{
 		if(toFile.exists())
-		{
-			if(!toFile.delete())
-				MartusLogger.log("Unable to delete file :"+toFile.toString());
-		}
-		MartusLogger.log("Renaming template From: "+fromFile.toString());
-		MartusLogger.log("Renaming template To: "+toFile.toString());
+			toFile.delete();
 		
 		if(fromFile.renameTo(toFile))
 		{
