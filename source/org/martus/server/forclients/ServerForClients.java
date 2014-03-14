@@ -670,7 +670,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 				return result;
 			}
 			File accountsFormTemplateFile = new File(accountFolderForTemplates, calculateFileNameFromString(template.getTitle()));
-			getStore().moveFormTemplateIntoAccount(myAccountId, tempFormTemplateFile, accountsFormTemplateFile);
+			getStore().moveFormTemplateIntoAccount(myAccountId, tempFormTemplateFile, accountsFormTemplateFile,coreServer.getLogger());
 
 			result.add(NetworkInterfaceConstants.OK);
 			

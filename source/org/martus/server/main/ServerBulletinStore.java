@@ -149,10 +149,13 @@ public class ServerBulletinStore extends BulletinStore
 		MartusServerUtilities.createSignatureFileFromFileOnServer(tokenFile, getSignatureGenerator());
 	}
 	
-	public void moveFormTemplateIntoAccount(String accountId, File fromFile, File toFile) throws IOException, MartusSignatureException, InterruptedException, MartusSignatureFileAlreadyExistsException, TokenInvalidException
+	public void moveFormTemplateIntoAccount(String accountId, File fromFile, File toFile, LoggerInterface logger) throws IOException, MartusSignatureException, InterruptedException, MartusSignatureFileAlreadyExistsException, TokenInvalidException
 	{
 		if(toFile.exists())
-			toFile.delete();
+		{
+			if(!toFile.delete())
+				logger.logError("failed to delete file: "+ toFile.toString());
+		}
 		
 		if(fromFile.renameTo(toFile))
 		{
