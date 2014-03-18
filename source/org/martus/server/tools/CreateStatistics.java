@@ -285,6 +285,7 @@ public class CreateStatistics
 					String accountInfo = 
 						getNormalizedStringAndCheckForErrors(serverName) + DELIMITER +
 						getNormalizedStringAndCheckForErrors(publicCode) + DELIMITER +
+						getNormalizedStringAndCheckForErrors(publicCode40) + DELIMITER +
 						getNormalizedStringAndCheckForErrors(testAccount) + DELIMITER +						
 						getNormalizedStringAndCheckForErrors(uploadOk) + DELIMITER +
 						getNormalizedStringAndCheckForErrors(banned) + DELIMITER +
@@ -949,6 +950,7 @@ public class CreateStatistics
 	void getPublicCode(String accountId)
 	{
 		publicCode = "";
+		publicCode40 = "";
 		try
 		{
 			publicCode = MartusCrypto.computeFormattedPublicCode(accountId);
@@ -956,6 +958,15 @@ public class CreateStatistics
 		catch(Exception e)
 		{
 			publicCode = ERROR_MSG + " " + e;
+		}
+		try
+		{
+			publicCode40 = MartusCrypto.computeFormattedPublicCode40(accountId);
+		}
+		catch(Exception e)
+		{
+			publicCode40 = ERROR_MSG + " " + e;
+			
 		}
 	}
 	
@@ -985,6 +996,7 @@ public class CreateStatistics
 	MartusCrypto security;
 	File destinationDir;
 	String publicCode;
+	String publicCode40;
 	boolean errorOccured;
 	ServerBulletinStore store;
 	FileDatabase fileDatabase;
