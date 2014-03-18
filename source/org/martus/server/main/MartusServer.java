@@ -1107,10 +1107,8 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		try 
 		{
 			formattedCode = MartusCrypto.computeFormattedPublicCode(clientId);
-			formattedCode += ", ";
-			formattedCode += MartusCrypto.computeFormattedPublicCode40(clientId);
 		} 
-		catch(Exception e) 
+		catch(InvalidBase64Exception e) 
 		{
 		}
 		return formattedCode;
@@ -1625,19 +1623,17 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		String accountId = getCallerAccountId();
 		if(accountId == null)
 			return "";
-		String publicCodes = "";
+
 		try 
 		{
-			publicCodes =  MartusSecurity.computeFormattedPublicCode(accountId);
-			publicCodes += ", ";
-			publicCodes += MartusSecurity.computeFormattedPublicCode40(accountId);
+			return MartusSecurity.computeFormattedPublicCode(accountId);
 		} 
 		catch (Exception e) 
 		{
 			// NOTE: can't call logError because it might recurse here
 			e.printStackTrace();
+			return "";
 		}
-		return publicCodes;
 	}
 
 	private String getThreadId() 

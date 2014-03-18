@@ -79,8 +79,7 @@ public class CreateKeyPair
 			security.writeKeyPair(out, passphrase.toCharArray());
 			out.close();
 			
-			System.out.println("Public Code (old): " + MartusCrypto.computeFormattedPublicCode(security.getPublicKeyString()));
-			System.out.println("Public Code (new): " + MartusCrypto.computeFormattedPublicCode40(security.getPublicKeyString()));
+			System.out.println("Public Code: " + MartusCrypto.computeFormattedPublicCode(security.getPublicKeyString()));
 			System.exit(0);
 		}
 		catch(Exception e)
