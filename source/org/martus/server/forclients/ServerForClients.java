@@ -401,10 +401,10 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	public String getTokensFromMartusCentralTokenAuthority(String accountId) throws Exception
 	{
 		//TODO: get and store real token from Martus Central Token Authority (Martus.org)
-		String publicCode = MartusSecurity.computePublicCode(accountId);
-		String first7 = publicCode.substring(0, 7);
+		String publicCode = MartusSecurity.computePublicCode40(accountId);
+		String first5 = publicCode.substring(0, 5);
 		DammCheckDigitAlgorithm damm = new DammCheckDigitAlgorithm();
-		String token = first7 + damm.getCheckDigit(first7);
+		String token = first5 + damm.getCheckDigit(first5);
 		Date currentDate = new Date();
 		DateFormat df = new SimpleDateFormat("MM/dd/yy HH:mm:ss");
 		
