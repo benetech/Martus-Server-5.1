@@ -48,6 +48,7 @@ import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MockMartusSecurity;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.DeleteRequestRecord;
+import org.martus.common.database.FileDatabase;
 import org.martus.common.database.MockClientDatabase;
 import org.martus.common.database.ServerFileDatabase;
 import org.martus.common.network.NetworkInterface;
@@ -770,7 +771,22 @@ public class TestServerForClients extends TestCaseEnhanced
 		assertEquals(NetworkInterfaceConstants.REJECTED, bannedClientTokenInfo.get(0));
 		
 		TRACE_END();
-	}	
+	}
+	
+	public void testDoesFilenameMatchToken() throws Exception
+	{
+		String validTokenString = "133594";
+
+		MartusAccountAccessToken validToken = new MartusAccountAccessToken(validTokenString);
+		String validTokenFilename = FileDatabase.buildTokenFilename(validToken);
+		File validTokenFile = new File(validTokenFilename);
+		assertTrue(MockServerForClients.doesFilenameMatchToken(validTokenFile, validToken.getToken()));
+
+		String validSubstring = validTokenString.substring(0, 2);
+		MartusAccountAccessToken substringToken = new MartusAccountAccessToken(validSubstring);
+		String substringTokenFilename = FileDatabase.buildTokenFilename(substringToken);
+		assertFalse(ServerForClients.doesFilenameMatchToken(validTokenFile, substringToken.getToken()));
+	}
 
 	public void testGetMartusAccountIdFromAccessToken() throws Exception
 	{
@@ -788,7 +804,7 @@ public class TestServerForClients extends TestCaseEnhanced
 		Vector clientAccountIdsForToken = mockServerForClients.getMartusAccountIdFromAccessToken(clientAccount2Id, token1ToFind);
 		assertEquals(1, clientAccountIdsForToken.size());
 		assertEquals("no token available", clientAccountIdsForToken.get(0));
-
+		
 		String invalidTokenGivenByTokenAuthority = createJsonTokenResponse(clientAccountId, invalidMartusAccessTokenString);
 		mockServerForClients.setAccessAccountJsonTokenResponse(invalidTokenGivenByTokenAuthority);
 		

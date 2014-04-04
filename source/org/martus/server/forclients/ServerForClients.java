@@ -56,6 +56,7 @@ import org.martus.common.crypto.MartusSecurity;
 import org.martus.common.database.Database.RecordHiddenException;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.DeleteRequestRecord;
+import org.martus.common.database.FileDatabase;
 import org.martus.common.database.ReadableDatabase;
 import org.martus.common.database.ReadableDatabase.AccountVisitor;
 import org.martus.common.fieldspec.CustomFieldTemplate;
@@ -490,7 +491,9 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 
 	public static boolean doesFilenameMatchToken(File tokenFile, String tokenToMatch) 
 	{
-		return tokenFile.getName().contains(tokenToMatch);
+		String actualBaseName = tokenFile.getName();
+		String baseNameToMatch = FileDatabase.buildTokenFilename(tokenToMatch);
+		return actualBaseName.equals(baseNameToMatch);
 	}
 	
 	private String getStoredAccountIdForToken(MartusAccountAccessToken tokenToFind) throws TokenNotFoundException
