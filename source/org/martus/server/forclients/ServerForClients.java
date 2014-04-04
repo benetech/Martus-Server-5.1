@@ -477,8 +477,10 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			} 
 		}
 
-		public boolean doesFilenameMatchToken(File tokenFile) {
-			return tokenFile.getName().contains(tokenToFind);
+		public boolean doesFilenameMatchToken(File tokenFile) 
+		{
+			String tokenToMatch = tokenToFind;
+			return tokenFile.getName().contains(tokenToMatch);
 		}
 		
 		public String getAccountIdForToken() throws TokenNotFoundException
