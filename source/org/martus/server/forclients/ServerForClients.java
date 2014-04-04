@@ -488,7 +488,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		String foundAccountIdForToken;
 	}
 
-	public boolean doesFilenameMatchToken(File tokenFile, String tokenToMatch) 
+	public static boolean doesFilenameMatchToken(File tokenFile, String tokenToMatch) 
 	{
 		return tokenFile.getName().contains(tokenToMatch);
 	}
