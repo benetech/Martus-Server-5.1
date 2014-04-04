@@ -477,11 +477,6 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			} 
 		}
 
-		public boolean doesFilenameMatchToken(File tokenFile, String tokenToMatch) 
-		{
-			return tokenFile.getName().contains(tokenToMatch);
-		}
-		
 		public String getAccountIdForToken() throws TokenNotFoundException
 		{
 			if(foundAccountIdForToken == null)
@@ -493,6 +488,11 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		String foundAccountIdForToken;
 	}
 
+	public boolean doesFilenameMatchToken(File tokenFile, String tokenToMatch) 
+	{
+		return tokenFile.getName().contains(tokenToMatch);
+	}
+	
 	private String getStoredAccountIdForToken(MartusAccountAccessToken tokenToFind) throws TokenNotFoundException
 	{
 		AccountTokenFinder visitor = new AccountTokenFinder(tokenToFind);
