@@ -469,12 +469,16 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			try 
 			{
 				File tokenFile = getStore().getTokenFileForAccount(accountString);
-				if(tokenFile.getName().contains(tokenToFind))
+				if(doesFilenameMatchToken(tokenFile))
 					foundAccountIdForToken = accountString;
 			} 
 			catch (Exception ignoredExceptionTokenDoesntExist) 
 			{
 			} 
+		}
+
+		public boolean doesFilenameMatchToken(File tokenFile) {
+			return tokenFile.getName().contains(tokenToFind);
 		}
 		
 		public String getAccountIdForToken() throws TokenNotFoundException
