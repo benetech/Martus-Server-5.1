@@ -44,9 +44,9 @@ import org.martus.server.main.ServerBulletinStore;
 import org.martus.util.DirectoryUtils;
 import org.martus.util.LoggerUtil;
 
-public class MirroringRetrieverManager 
+public class MirrorPuller 
 {
-	public MirroringRetrieverManager(MartusServer coreServerToUse, LoggerInterface loggerToUse) throws Exception  
+	public MirrorPuller(MartusServer coreServerToUse, LoggerInterface loggerToUse) throws Exception  
 	{
 		coreServer = coreServerToUse;
 		logger = loggerToUse;
