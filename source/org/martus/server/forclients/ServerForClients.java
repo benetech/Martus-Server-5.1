@@ -676,7 +676,8 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 
 	public boolean saveBase64FormTemplate(String myAccountId, StringReader reader) throws Exception
 	{
-		File accountFolderForTemplates = getStore().getAbsoluteFormTemplatesFolderForAccount(myAccountId);
+		ServerBulletinStore store = getStore();
+		File accountFolderForTemplates = store.getAbsoluteFormTemplatesFolderForAccount(myAccountId);
 		accountFolderForTemplates.mkdirs();			
 		
 		File tempFormTemplateFile = File.createTempFile("Temp-", null, accountFolderForTemplates);
@@ -695,7 +696,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			return false;
 		}
 		File accountsFormTemplateFile = new File(accountFolderForTemplates, calculateFileNameFromString(template.getTitle()));
-		getStore().moveFormTemplateIntoAccount(myAccountId, tempFormTemplateFile, accountsFormTemplateFile,coreServer.getLogger());
+		store.moveFormTemplateIntoAccount(myAccountId, tempFormTemplateFile, accountsFormTemplateFile,coreServer.getLogger());
 		return true;
 	}
 
