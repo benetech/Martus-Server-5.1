@@ -658,29 +658,11 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			String base64TemplateData = (String)formTemplateData.get(0);
 			StringReader reader = new StringReader(base64TemplateData);
 
-			File accountFolderForTemplates = getStore().getAbsoluteFormTemplatesFolderForAccount(myAccountId);
-			accountFolderForTemplates.mkdirs();			
-			
-			File tempFormTemplateFile = File.createTempFile("Temp-", null, accountFolderForTemplates);
-			tempFormTemplateFile.deleteOnExit();
-			FileOutputStream output = new FileOutputStream(tempFormTemplateFile);
-			StreamableBase64.decode(reader, output);
-			output.flush();
-			output.close();
-			
-			CustomFieldTemplate template = new CustomFieldTemplate();
-			boolean templateImported = importTemplate(tempFormTemplateFile, template);
-			if(!templateImported)
-			{
-				logError("Import Template Failed!");
+			boolean wasSaved = saveBase64FormTemplate(myAccountId, reader);
+			if(wasSaved)
+				result.add(NetworkInterfaceConstants.OK);
+			else
 				result.add(NetworkInterfaceConstants.SERVER_ERROR);
-				tempFormTemplateFile.delete();
-				return result;
-			}
-			File accountsFormTemplateFile = new File(accountFolderForTemplates, calculateFileNameFromString(template.getTitle()));
-			getStore().moveFormTemplateIntoAccount(myAccountId, tempFormTemplateFile, accountsFormTemplateFile,coreServer.getLogger());
-
-			result.add(NetworkInterfaceConstants.OK);
 			
 			return result;
 		} 
@@ -690,6 +672,31 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			result.add(NetworkInterfaceConstants.SERVER_ERROR);
 			return result;
 		}
+	}
+
+	public boolean saveBase64FormTemplate(String myAccountId, StringReader readerOfBase64FormTemplate) throws Exception
+	{
+		File accountFolderForTemplates = getStore().getAbsoluteFormTemplatesFolderForAccount(myAccountId);
+		accountFolderForTemplates.mkdirs();			
+		
+		File tempFormTemplateFile = File.createTempFile("Temp-", null, accountFolderForTemplates);
+		tempFormTemplateFile.deleteOnExit();
+		FileOutputStream output = new FileOutputStream(tempFormTemplateFile);
+		StreamableBase64.decode(readerOfBase64FormTemplate, output);
+		output.flush();
+		output.close();
+		
+		CustomFieldTemplate template = new CustomFieldTemplate();
+		boolean templateImported = importTemplate(tempFormTemplateFile, template);
+		if(!templateImported)
+		{
+			logError("Import Template Failed!");
+			tempFormTemplateFile.delete();
+			return false;
+		}
+		File accountsFormTemplateFile = new File(accountFolderForTemplates, calculateFileNameFromString(template.getTitle()));
+		getStore().moveFormTemplateIntoAccount(myAccountId, tempFormTemplateFile, accountsFormTemplateFile,coreServer.getLogger());
+		return true;
 	}
 
 	private boolean importTemplate(File tempFormTemplateFile, CustomFieldTemplate template) throws FutureVersionException, IOException 
