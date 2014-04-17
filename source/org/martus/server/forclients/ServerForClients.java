@@ -41,6 +41,7 @@ import java.util.Date;
 import java.util.Vector;
 
 import org.martus.common.DammCheckDigitAlgorithm;
+import org.martus.common.LoggerInterface;
 import org.martus.common.MagicWordEntry;
 import org.martus.common.MagicWords;
 import org.martus.common.MartusAccountAccessToken;
@@ -678,6 +679,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	{
 		ServerBulletinStore store = getStore();
 		MartusCrypto security = getSecurity();
+		LoggerInterface logger = this;
 
 		File accountFolderForTemplates = store.getAbsoluteFormTemplatesFolderForAccount(myAccountId);
 		accountFolderForTemplates.mkdirs();			
@@ -693,12 +695,12 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		boolean templateImported = importTemplate(tempFormTemplateFile, template, security);
 		if(!templateImported)
 		{
-			logError("Import Template Failed!");
+			logger.logError("Import Template Failed!");
 			tempFormTemplateFile.delete();
 			return false;
 		}
 		File accountsFormTemplateFile = new File(accountFolderForTemplates, calculateFileNameFromString(template.getTitle()));
-		store.moveFormTemplateIntoAccount(myAccountId, tempFormTemplateFile, accountsFormTemplateFile,coreServer.getLogger());
+		store.moveFormTemplateIntoAccount(myAccountId, tempFormTemplateFile, accountsFormTemplateFile, logger);
 		return true;
 	}
 
