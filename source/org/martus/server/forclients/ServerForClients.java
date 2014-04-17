@@ -683,7 +683,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		return saveBase64FormTemplate(store, myAccountId, base64TemplateData, security, logger);
 	}
 
-	public boolean saveBase64FormTemplate(ServerBulletinStore store,
+	public static boolean saveBase64FormTemplate(ServerBulletinStore store,
 			String myAccountId, String base64TemplateData,
 			MartusCrypto security, LoggerInterface logger) throws Exception
 	{
