@@ -674,7 +674,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		}
 	}
 
-	public boolean saveBase64FormTemplate(String myAccountId, StringReader readerOfBase64FormTemplate) throws Exception
+	public boolean saveBase64FormTemplate(String myAccountId, StringReader reader) throws Exception
 	{
 		File accountFolderForTemplates = getStore().getAbsoluteFormTemplatesFolderForAccount(myAccountId);
 		accountFolderForTemplates.mkdirs();			
@@ -682,12 +682,12 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		File tempFormTemplateFile = File.createTempFile("Temp-", null, accountFolderForTemplates);
 		tempFormTemplateFile.deleteOnExit();
 		FileOutputStream output = new FileOutputStream(tempFormTemplateFile);
-		StreamableBase64.decode(readerOfBase64FormTemplate, output);
+		StreamableBase64.decode(reader, output);
 		output.flush();
 		output.close();
 		
 		CustomFieldTemplate template = new CustomFieldTemplate();
-		boolean templateImported = importTemplate(tempFormTemplateFile, template);
+		boolean templateImported = importTemplate(tempFormTemplateFile, template, getSecurity());
 		if(!templateImported)
 		{
 			logError("Import Template Failed!");
@@ -699,12 +699,12 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		return true;
 	}
 
-	private boolean importTemplate(File tempFormTemplateFile, CustomFieldTemplate template) throws FutureVersionException, IOException 
+	private static boolean importTemplate(File tempFormTemplateFile, CustomFieldTemplate template, MartusCrypto security) throws Exception 
 	{
 		FileInputStreamWithSeek inputStream = new FileInputStreamWithSeek(tempFormTemplateFile);
 		try
 		{
-			return template.importTemplate(getSecurity(), inputStream);
+			return template.importTemplate(security, inputStream);
 		}
 		finally
 		{
@@ -723,7 +723,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			{
 				CustomFieldTemplate formTemplate = new CustomFieldTemplate();
 				File fileToImport = (File)formsTemplateFiles.get(i);
-				importTemplate(fileToImport, formTemplate);
+				importTemplate(fileToImport, formTemplate, getSecurity());
 				Vector currentFormVectorToAdd = new Vector();
 				currentFormVectorToAdd.add(formTemplate.getTitle());
 				currentFormVectorToAdd.add(formTemplate.getDescription());
