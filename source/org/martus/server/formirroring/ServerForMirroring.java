@@ -43,9 +43,6 @@ import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.ReadableDatabase;
 import org.martus.common.network.MartusXmlRpcServer;
-import org.martus.common.network.mirroring.CallerSideMirroringGateway;
-import org.martus.common.network.mirroring.CallerSideMirroringGatewayForXmlRpc;
-import org.martus.common.network.mirroring.CallerSideMirroringGatewayForXmlRpc.SSLSocketSetupException;
 import org.martus.common.network.mirroring.MirroringInterface;
 import org.martus.common.network.mirroring.SupplierSideMirroringInterface;
 import org.martus.common.packet.BulletinHeaderPacket;
@@ -79,7 +76,6 @@ public class ServerForMirroring implements ServerSupplierInterface
 	public Vector getDeleteOnStartupFolders()
 	{
 		Vector startupFolders = new Vector();
-		startupFolders.add(getMirrorsWeWillCallDirectory());
 		startupFolders.add(getAuthorizedCallersDirectory());
 		return startupFolders;
 	}
@@ -155,6 +151,13 @@ public class ServerForMirroring implements ServerSupplierInterface
 		MartusXmlRpcServer.createSSLXmlRpcServer(supplierHandler, SupplierSideMirroringInterface.class, MirroringInterface.DEST_OBJECT_NAME, port, mainIpAddress);
 
 		logNotice("Mirroring port opened");
+	}
+
+	private int getPort() 
+	{
+		int[] ports = new int[] {MirroringInterface.MARTUS_PORT_FOR_MIRRORING};
+		ports = coreServer.shiftToDevelopmentPortsIfNotInSecureMode(ports);
+		return ports[0];
 	}
 
 	// Begin ServerSupplierInterface
@@ -304,81 +307,9 @@ public class ServerForMirroring implements ServerSupplierInterface
 		return new File(coreServer.getStartupConfigDirectory(), "mirrorsWhoCallUs");
 	}
 	
-	File getMirrorsWeWillCallDirectory()
-	{
-		return new File(coreServer.getStartupConfigDirectory(), "mirrorsWhoWeCall");		
-	}
-	
-	public void createGatewaysWeWillCall() throws 
-			IOException, InvalidPublicKeyFileException, PublicInformationInvalidException, SSLSocketSetupException
-	{
-		retrieversWeWillCall = new Vector();
-
-		File toCallDir = getMirrorsWeWillCallDirectory();
-		File[] toCallFiles = toCallDir.listFiles();
-		if(toCallFiles == null)
-			return;
-		for (int i = 0; i < toCallFiles.length; i++)
-		{
-			File toCallFile = toCallFiles[i];
-			retrieversWeWillCall.add(createRetrieverToCall(toCallFile));
-			if(isSecureMode())
-			{
-				toCallFile.delete();
-				if(toCallFile.exists())
-					throw new IOException("delete failed: " + toCallFile);
-			}
-			logNotice("We will call: " + toCallFile.getName());
-		}
-		logNotice("Configured to call " + retrieversWeWillCall.size() + " Mirrors");
-	}
-	
-	MirroringRetriever createRetrieverToCall(File publicKeyFile) throws
-			IOException, 
-			InvalidPublicKeyFileException, 
-			PublicInformationInvalidException, 
-			SSLSocketSetupException
-	{
-		String ip = MartusUtilities.extractIpFromFileName(publicKeyFile.getName());
-		CallerSideMirroringGateway gateway = createGatewayToCall(ip, publicKeyFile);
-		return new MirroringRetriever(getStore(), gateway, ip, logger);
-	}
-	
-	CallerSideMirroringGateway createGatewayToCall(String ip, File publicKeyFile) throws 
-			IOException, 
-			InvalidPublicKeyFileException, 
-			PublicInformationInvalidException, 
-			SSLSocketSetupException
-	{
-		int port = getPort();
-		
-		Vector publicInfo = MartusUtilities.importServerPublicKeyFromFile(publicKeyFile, getSecurity());
-		String publicKey = (String)publicInfo.get(0);
-
-		CallerSideMirroringGatewayForXmlRpc xmlRpcGateway = new CallerSideMirroringGatewayForXmlRpc(ip, port); 
-		xmlRpcGateway.setExpectedPublicKey(publicKey);
-		return new CallerSideMirroringGateway(xmlRpcGateway);
-	}
-
-	private int getPort() 
-	{
-		int[] ports = new int[] {MirroringInterface.MARTUS_PORT_FOR_MIRRORING};
-		ports = coreServer.shiftToDevelopmentPortsIfNotInSecureMode(ports);
-		return ports[0];
-	}
-
-	
-	public void doBackgroundTick()
-	{
-		for(int i = 0; i < retrieversWeWillCall.size(); ++i)
-		{	
-			((MirroringRetriever)retrieversWeWillCall.get(i)).processNextBulletin();
-		}
-	}
 	
 	MartusServer coreServer;
 	LoggerInterface logger;
 	Vector authorizedCallers;
 	MirroringRetriever retriever;
-	Vector retrieversWeWillCall;
 }

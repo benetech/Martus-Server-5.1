@@ -93,6 +93,7 @@ import org.martus.common.xmlrpc.XmlRpcThread;
 import org.martus.server.foramplifiers.ServerForAmplifiers;
 import org.martus.server.forclients.ServerForClients;
 import org.martus.server.formirroring.MirroringRetriever;
+import org.martus.server.formirroring.MirroringRetrieverManager;
 import org.martus.server.formirroring.ServerForMirroring;
 import org.martus.server.main.ServerBulletinStore.DuplicatePacketException;
 import org.martus.server.main.ServerBulletinStore.SealedPacketExistsException;
@@ -198,20 +199,17 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			
 	}
 
-	MartusServer(File dir) throws 
-					CryptoInitializationException, IOException, InvalidPublicKeyFileException, PublicInformationInvalidException
+	MartusServer(File dir) throws Exception
 	{
 		this(dir, new LoggerToConsole());
 	}
 
-	protected MartusServer(File dir, LoggerInterface loggerToUse) throws 
-					MartusCrypto.CryptoInitializationException, IOException, InvalidPublicKeyFileException, PublicInformationInvalidException
+	protected MartusServer(File dir, LoggerInterface loggerToUse) throws Exception
 	{
 		this(dir, loggerToUse, new MartusSecurity());
 	}
 
-	public MartusServer(File dir, LoggerInterface loggerToUse, MartusCrypto securityToUse) throws 
-					MartusCrypto.CryptoInitializationException, IOException, InvalidPublicKeyFileException, PublicInformationInvalidException
+	public MartusServer(File dir, LoggerInterface loggerToUse, MartusCrypto securityToUse) throws Exception
 	{
 		dataDirectory = dir;
 		setLogger(loggerToUse);
@@ -223,6 +221,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		getStartupConfigDirectory().mkdirs();
 		serverForClients = createServerForClients();
 		serverForMirroring = new ServerForMirroring(this, this);
+		mirroringRetrieverManager = new MirroringRetrieverManager(this, this);
 		serverForAmplifiers = new ServerForAmplifiers(this, this);
 		amp = new MartusAmplifier(this);
 		failedUploadRequestsPerIp = new Hashtable();
@@ -1443,6 +1442,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		startupFiles.addAll(serverForClients.getDeleteOnStartupFiles());
 		startupFiles.addAll(serverForAmplifiers.getDeleteOnStartupFiles());
 		startupFiles.addAll(serverForMirroring.getDeleteOnStartupFiles());
+		startupFiles.addAll(mirroringRetrieverManager.getDeleteOnStartupFiles());
 		return startupFiles;
 	}
 
@@ -1454,6 +1454,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		startupFolders.addAll(amp.getDeleteOnStartupFolders());
 		startupFolders.addAll(serverForAmplifiers.getDeleteOnStartupFolders());
 		startupFolders.addAll(serverForMirroring.getDeleteOnStartupFolders());
+		startupFolders.addAll(mirroringRetrieverManager.getDeleteOnStartupFolders());
 		return startupFolders;
 	}
 	
@@ -1469,6 +1470,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		serverForClients.deleteStartupFiles();
 		serverForAmplifiers.deleteStartupFiles();
 		serverForMirroring.deleteStartupFiles();
+		mirroringRetrieverManager.deleteStartupFiles();
 		
 		File startupDir = getStartupConfigDirectory();
 		File[] remainingStartupFiles = startupDir.listFiles();
@@ -1734,7 +1736,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 
 	private void initializeServerForMirroring() throws Exception
 	{
-		serverForMirroring.createGatewaysWeWillCall();
+		mirroringRetrieverManager.createGatewaysWeWillCall();
 		if(!isMirrorListenerEnabled())
 			return;
 		serverForMirroring.addListeners();
@@ -2149,7 +2151,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 				return;
 
 			if(isMirrorListenerEnabled())
-				serverForMirroring.doBackgroundTick();
+				mirroringRetrieverManager.doBackgroundTick();
 
 			if(MartusServer.needsAmpSync)
 			{
@@ -2164,6 +2166,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	private static ThreadLocal<String> callerAccountId;
 
 	ServerForMirroring serverForMirroring;
+	protected MirroringRetrieverManager mirroringRetrieverManager;
 	public ServerForClients serverForClients;
 	public ServerForAmplifiers serverForAmplifiers;
 	public MartusAmplifier amp;
