@@ -657,9 +657,8 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		try 
 		{
 			String base64TemplateData = (String)formTemplateData.get(0);
-			StringReader reader = new StringReader(base64TemplateData);
 
-			boolean wasSaved = saveBase64FormTemplate(myAccountId, reader);
+			boolean wasSaved = saveBase64FormTemplate(myAccountId, base64TemplateData);
 			if(wasSaved)
 				result.add(NetworkInterfaceConstants.OK);
 			else
@@ -675,19 +674,20 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		}
 	}
 
-	public boolean saveBase64FormTemplate(String myAccountId, StringReader readerOfBase64FormTemplate) throws Exception
+	public boolean saveBase64FormTemplate(String myAccountId, String base64TemplateData) throws Exception
 	{
 		ServerBulletinStore store = getStore();
 		MartusCrypto security = getSecurity();
 		LoggerInterface logger = this;
 
+		StringReader reader = new StringReader(base64TemplateData);
 		File accountFolderForTemplates = store.getAbsoluteFormTemplatesFolderForAccount(myAccountId);
 		accountFolderForTemplates.mkdirs();			
 		
 		File tempFormTemplateFile = File.createTempFile("Temp-", null, accountFolderForTemplates);
 		tempFormTemplateFile.deleteOnExit();
 		FileOutputStream output = new FileOutputStream(tempFormTemplateFile);
-		StreamableBase64.decode(readerOfBase64FormTemplate, output);
+		StreamableBase64.decode(reader, output);
 		output.flush();
 		output.close();
 		
