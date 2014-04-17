@@ -675,7 +675,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		}
 	}
 
-	public boolean saveBase64FormTemplate(String myAccountId, StringReader reader) throws Exception
+	public boolean saveBase64FormTemplate(String myAccountId, StringReader readerOfBase64FormTemplate) throws Exception
 	{
 		ServerBulletinStore store = getStore();
 		MartusCrypto security = getSecurity();
@@ -687,7 +687,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		File tempFormTemplateFile = File.createTempFile("Temp-", null, accountFolderForTemplates);
 		tempFormTemplateFile.deleteOnExit();
 		FileOutputStream output = new FileOutputStream(tempFormTemplateFile);
-		StreamableBase64.decode(reader, output);
+		StreamableBase64.decode(readerOfBase64FormTemplate, output);
 		output.flush();
 		output.close();
 		
