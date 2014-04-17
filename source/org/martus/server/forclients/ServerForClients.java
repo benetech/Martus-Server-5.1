@@ -677,6 +677,8 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	public boolean saveBase64FormTemplate(String myAccountId, StringReader reader) throws Exception
 	{
 		ServerBulletinStore store = getStore();
+		MartusCrypto security = getSecurity();
+
 		File accountFolderForTemplates = store.getAbsoluteFormTemplatesFolderForAccount(myAccountId);
 		accountFolderForTemplates.mkdirs();			
 		
@@ -688,7 +690,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		output.close();
 		
 		CustomFieldTemplate template = new CustomFieldTemplate();
-		boolean templateImported = importTemplate(tempFormTemplateFile, template, getSecurity());
+		boolean templateImported = importTemplate(tempFormTemplateFile, template, security);
 		if(!templateImported)
 		{
 			logError("Import Template Failed!");
