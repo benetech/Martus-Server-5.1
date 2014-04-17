@@ -142,7 +142,7 @@ public class MirroringRetrieverManager
 	
 	private String createLogString(String message)
 	{
-		return "ServerForMirror " + message;
+		return "MirrorPuller " + message;
 	}
 
 	public void logError(String message)
