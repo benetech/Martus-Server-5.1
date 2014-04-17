@@ -680,6 +680,13 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		MartusCrypto security = getSecurity();
 		LoggerInterface logger = this;
 
+		return saveBase64FormTemplate(store, myAccountId, base64TemplateData, security, logger);
+	}
+
+	public boolean saveBase64FormTemplate(ServerBulletinStore store,
+			String myAccountId, String base64TemplateData,
+			MartusCrypto security, LoggerInterface logger) throws Exception
+	{
 		StringReader reader = new StringReader(base64TemplateData);
 		File accountFolderForTemplates = store.getAbsoluteFormTemplatesFolderForAccount(myAccountId);
 		accountFolderForTemplates.mkdirs();			
