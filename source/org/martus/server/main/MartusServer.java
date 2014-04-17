@@ -93,7 +93,7 @@ import org.martus.common.xmlrpc.XmlRpcThread;
 import org.martus.server.foramplifiers.ServerForAmplifiers;
 import org.martus.server.forclients.ServerForClients;
 import org.martus.server.formirroring.MirroringRetriever;
-import org.martus.server.formirroring.MirroringRetrieverManager;
+import org.martus.server.formirroring.MirrorPuller;
 import org.martus.server.formirroring.ServerForMirroring;
 import org.martus.server.main.ServerBulletinStore.DuplicatePacketException;
 import org.martus.server.main.ServerBulletinStore.SealedPacketExistsException;
@@ -221,7 +221,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		getStartupConfigDirectory().mkdirs();
 		serverForClients = createServerForClients();
 		serverForMirroring = new ServerForMirroring(this, this);
-		mirroringRetrieverManager = new MirroringRetrieverManager(this, this);
+		mirroringRetrieverManager = new MirrorPuller(this, this);
 		serverForAmplifiers = new ServerForAmplifiers(this, this);
 		amp = new MartusAmplifier(this);
 		failedUploadRequestsPerIp = new Hashtable();
@@ -2166,7 +2166,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	private static ThreadLocal<String> callerAccountId;
 
 	ServerForMirroring serverForMirroring;
-	protected MirroringRetrieverManager mirroringRetrieverManager;
+	protected MirrorPuller mirroringRetrieverManager;
 	public ServerForClients serverForClients;
 	public ServerForAmplifiers serverForAmplifiers;
 	public MartusAmplifier amp;

@@ -123,7 +123,7 @@ public class TestServerForMirroring extends TestCaseEnhanced
 	public void testLoadMirrorsToCall() throws Exception
 	{
 		MockMartusServer noCallsToMakeCore = new MockMartusServer();
-		MirroringRetrieverManager noCallsToMake = new MirroringRetrieverManager(noCallsToMakeCore, logger);
+		MirrorPuller noCallsToMake = new MirrorPuller(noCallsToMakeCore, logger);
 		noCallsToMake.createGatewaysWeWillCall();
 		assertEquals(0, noCallsToMake.retrieversWeWillCall.size());
 		noCallsToMakeCore.deleteAllFiles();
@@ -136,7 +136,7 @@ public class TestServerForMirroring extends TestCaseEnhanced
 		MartusUtilities.exportServerPublicKey(clientSecurity1, pubKeyFile1);
 		File pubKeyFile2 = new File(mirrorsWhoWeCall, "code=2.3.4.5.6-ip=2.3.4.5.txt");
 		MartusUtilities.exportServerPublicKey(clientSecurity2, pubKeyFile2);
-		MirroringRetrieverManager twoCallsToMake = new MirroringRetrieverManager(twoCallsToMakeCore, logger);
+		MirrorPuller twoCallsToMake = new MirrorPuller(twoCallsToMakeCore, logger);
 		twoCallsToMake.createGatewaysWeWillCall();
 		assertEquals(2, twoCallsToMake.retrieversWeWillCall.size());
 		mirrorsWhoWeCall.delete();
