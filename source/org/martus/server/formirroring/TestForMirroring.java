@@ -47,6 +47,7 @@ public class TestForMirroring
 
 		suite.addTest(new TestSuite(TestBulletinMirroringInformation.class));
 		suite.addTest(new TestSuite(TestMirroringRetriever.class));
+		suite.addTest(new TestSuite(TestMirrorPuller.class));
 		suite.addTest(new TestSuite(TestServerForMirroring.class));
 		suite.addTest(new TestSuite(TestSupplierSideMirroringHandler.class));
 		
