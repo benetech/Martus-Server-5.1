@@ -139,19 +139,41 @@ public class TestServerForMirroring extends TestCaseEnhanced
 		{
 		}
 
-		String title = "Title";
+		createAndSaveSampleTemplate(store, clientAccountId, "First", security);
+		createAndSaveSampleTemplate(store, clientAccountId, "Second", security);
+		Vector storedTemplates = store.getListOfFormTemplatesForAccount(clientAccountId);
+		assertEquals(2, storedTemplates.size());
+		TemplateInfoForMirroring storedInfo1 = new TemplateInfoForMirroring((File)storedTemplates.get(0));
+		TemplateInfoForMirroring storedInfo2 = new TemplateInfoForMirroring((File)storedTemplates.get(1));
+		
+		NetworkResponse response = new NetworkResponse(server.listAvailableFormTemplates(clientAccountId));
+		assertEquals("Error?", NetworkInterfaceConstants.OK, response.getResultCode());
+		Vector resultVector = response.getResultVector();
+		assertEquals("Wrong count?", 2, resultVector.size());
+		TemplateInfoForMirroring gotInfo1 = new TemplateInfoForMirroring((String)resultVector.get(0));
+		TemplateInfoForMirroring gotInfo2 = new TemplateInfoForMirroring((String)resultVector.get(1));
+		
+		assertEquals(storedInfo1, gotInfo1);
+		assertEquals(storedInfo2, gotInfo2);
+		assertTrue("Wrong order?", gotInfo1.asString().compareTo(gotInfo2.asString()) < 0);
+	}
+
+	public void createAndSaveSampleTemplate(ServerBulletinStore store,
+			String clientAccountId, String title, MartusCrypto security)
+			throws Exception 
+	{
+		CustomFieldTemplate template = createSampleTemplate(title);
+		String base64Template = template.getExportedTemplateAsBase64String(security);
+		ServerForClients.saveBase64FormTemplate(store, clientAccountId, base64Template, security, logger);
+	}
+
+	public CustomFieldTemplate createSampleTemplate(String title) throws Exception 
+	{
 		String description = "This is a description";
 		FieldCollection topSection = new FieldCollection(StandardFieldSpecs.getDefaultTopSetionFieldSpecs());
 		FieldCollection bottomSection = new FieldCollection(StandardFieldSpecs.getDefaultBottomSectionFieldSpecs());
 		CustomFieldTemplate template = new CustomFieldTemplate(title, description, topSection, bottomSection);
-		String base64Template = template.getExportedTemplateAsBase64String(security);
-		ServerForClients.saveBase64FormTemplate(store, clientAccountId, base64Template, security, logger);
-		
-		NetworkResponse response = new NetworkResponse(server.listAvailableFormTemplates(clientAccountId));
-		assertEquals("Error?", NetworkInterfaceConstants.OK, response.getResultCode());
-		
-		// FIXME: This test is under construction
-//		assertEquals("Didn't find template?", 1, response.getResultVector().size());
+		return template;
 	}
 	
 	public void testGetPublicInfo() throws Exception
