@@ -80,7 +80,6 @@ import org.martus.util.LoggerUtil;
 import org.martus.util.StreamableBase64;
 import org.martus.util.UnicodeReader;
 import org.martus.util.UnicodeWriter;
-import org.martus.util.inputstreamwithseek.FileInputStreamWithSeek;
 import org.miradi.utils.EnhancedJsonObject;
 
 public class ServerForClients implements ServerForNonSSLClientsInterface, ServerForClientsInterface
@@ -701,7 +700,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		output.close();
 		
 		CustomFieldTemplate template = new CustomFieldTemplate();
-		boolean templateImported = importTemplate(tempFormTemplateFile, template, security);
+		boolean templateImported = CustomFieldTemplate.importTemplate(tempFormTemplateFile, template, security);
 		if(!templateImported)
 		{
 			logger.logError("Import Template Failed!");
@@ -715,19 +714,6 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		}
 		File accountsFormTemplateFile = new File(accountFolderForTemplates, calculateFileNameFromString(template.getTitle()));
 		store.moveFormTemplateIntoAccount(myAccountId, tempFormTemplateFile, accountsFormTemplateFile, logger);
-	}
-
-	private static boolean importTemplate(File tempFormTemplateFile, CustomFieldTemplate template, MartusCrypto security) throws Exception 
-	{
-		FileInputStreamWithSeek inputStream = new FileInputStreamWithSeek(tempFormTemplateFile);
-		try
-		{
-			return template.importTemplate(security, inputStream);
-		}
-		finally
-		{
-			inputStream.close();
-		}
 	}
 
 	private Vector getFormTemplateTitleAndDescriptionsForAccount(String accountToGetFormsFrom) throws Exception 
@@ -751,7 +737,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			{
 				CustomFieldTemplate formTemplate = new CustomFieldTemplate();
 				File fileToImport = (File)formsTemplateFiles.get(i);
-				importTemplate(fileToImport, formTemplate, security);
+				CustomFieldTemplate.importTemplate(fileToImport, formTemplate, security);
 				Vector currentFormVectorToAdd = new Vector();
 				currentFormVectorToAdd.add(formTemplate.getTitle());
 				currentFormVectorToAdd.add(formTemplate.getDescription());
