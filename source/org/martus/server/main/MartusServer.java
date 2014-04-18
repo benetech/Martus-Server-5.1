@@ -2122,7 +2122,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	{	
 		SyncAmplifierWithServersMonitor()
 		{
-			super("SyncAmplifierWithServersMonitor");
+			super("SyncAmplifierWithServers");
 		}
 		
 		public void run()
@@ -2141,7 +2141,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	{
 		BackgroundTimerTick()
 		{
-			super("BackgroundTimerTick - Mirroring/Amp data pull");
+			super("BackgroundTimerTick - Mirroring data pull");
 		}
 
 		public void run()
