@@ -700,7 +700,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		output.close();
 		
 		CustomFieldTemplate template = new CustomFieldTemplate();
-		boolean templateImported = CustomFieldTemplate.importTemplate(tempFormTemplateFile, template, security);
+		boolean templateImported = template.importTemplate(tempFormTemplateFile, security);
 		if(!templateImported)
 		{
 			logger.logError("Import Template Failed!");
@@ -737,7 +737,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			{
 				CustomFieldTemplate formTemplate = new CustomFieldTemplate();
 				File fileToImport = (File)formsTemplateFiles.get(i);
-				CustomFieldTemplate.importTemplate(fileToImport, formTemplate, security);
+				formTemplate.importTemplate(fileToImport, security);
 				Vector currentFormVectorToAdd = new Vector();
 				currentFormVectorToAdd.add(formTemplate.getTitle());
 				currentFormVectorToAdd.add(formTemplate.getDescription());
