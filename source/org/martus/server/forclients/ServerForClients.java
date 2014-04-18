@@ -703,6 +703,11 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		if(!templateImported)
 		{
 			logger.logError("Import Template Failed!");
+			for (Object rawError : template.getErrors()) 
+			{
+				String message = "- " + rawError.toString();
+				logger.logError(message);
+			}
 			tempFormTemplateFile.delete();
 			return false;
 		}
