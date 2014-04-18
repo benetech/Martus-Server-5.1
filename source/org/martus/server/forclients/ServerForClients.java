@@ -61,7 +61,6 @@ import org.martus.common.database.FileDatabase;
 import org.martus.common.database.ReadableDatabase;
 import org.martus.common.database.ReadableDatabase.AccountVisitor;
 import org.martus.common.fieldspec.CustomFieldTemplate;
-import org.martus.common.fieldspec.CustomFieldTemplate.FutureVersionException;
 import org.martus.common.fieldspec.FormTemplateParsingException;
 import org.martus.common.network.MartusXmlRpcServer;
 import org.martus.common.network.NetworkInterface;
@@ -721,35 +720,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		ServerBulletinStore store = getStore();
 		MartusCrypto security = getSecurity();
 
-		return getFormTemplateTitleAndDescriptionsForAccount(store,	accountToGetFormsFrom, security);
-	}
-
-	public static Vector getFormTemplateTitleAndDescriptionsForAccount(
-			ServerBulletinStore store, String accountToGetFormsFrom,
-			MartusCrypto security) throws Exception 
-	{
-		Vector formsTemplateFiles = store.getListOfFormTemplatesForAccount(accountToGetFormsFrom);
-		int numberOfForms = formsTemplateFiles.size();
-		Vector formTemplatesTitleAndDescriptions = new Vector();
-		for(int i = 0; i < numberOfForms; ++i)
-		{
-			try
-			{
-				CustomFieldTemplate formTemplate = new CustomFieldTemplate();
-				File fileToImport = (File)formsTemplateFiles.get(i);
-				formTemplate.importTemplate(fileToImport, security);
-				Vector currentFormVectorToAdd = new Vector();
-				currentFormVectorToAdd.add(formTemplate.getTitle());
-				currentFormVectorToAdd.add(formTemplate.getDescription());
-				formTemplatesTitleAndDescriptions.add(currentFormVectorToAdd.toArray());
-			} 
-			catch (FutureVersionException eLogExceptionButContinueWithRemainingValidForms) 
-			{
-				MartusLogger.logException(eLogExceptionButContinueWithRemainingValidForms);
-			}
-			
-		}
-		return formTemplatesTitleAndDescriptions;
+		return ServerBulletinStore.getFormTemplateTitleAndDescriptionsForAccount(store,	accountToGetFormsFrom, security);
 	}
 
 	public Vector getListOfFormTemplates(String myAccountId, String accountIdToUse) 
