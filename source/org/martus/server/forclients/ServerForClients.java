@@ -733,6 +733,8 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	private Vector getFormTemplateTitleAndDescriptionsForAccount(String accountToGetFormsFrom) throws Exception 
 	{
 		ServerBulletinStore store = getStore();
+		MartusCrypto security = getSecurity();
+
 		Vector formsTemplateFiles = store.getListOfFormTemplatesForAccount(accountToGetFormsFrom);
 		int numberOfForms = formsTemplateFiles.size();
 		Vector formTemplatesTitleAndDescriptions = new Vector();
@@ -742,7 +744,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			{
 				CustomFieldTemplate formTemplate = new CustomFieldTemplate();
 				File fileToImport = (File)formsTemplateFiles.get(i);
-				importTemplate(fileToImport, formTemplate, getSecurity());
+				importTemplate(fileToImport, formTemplate, security);
 				Vector currentFormVectorToAdd = new Vector();
 				currentFormVectorToAdd.add(formTemplate.getTitle());
 				currentFormVectorToAdd.add(formTemplate.getDescription());
