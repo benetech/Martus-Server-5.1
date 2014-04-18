@@ -1736,7 +1736,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 
 	private void initializeServerForMirroring() throws Exception
 	{
-		mirroringRetrieverManager.createGatewaysWeWillCall();
+		mirroringRetrieverManager.createMirroringRetrievers();
 		if(!isMirrorListenerEnabled())
 			return;
 		serverForMirroring.addListeners();

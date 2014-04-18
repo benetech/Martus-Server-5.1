@@ -52,7 +52,7 @@ public class MirrorPuller
 		logger = loggerToUse;
 	}
 	
-	public void createGatewaysWeWillCall() throws Exception
+	public void createMirroringRetrievers() throws Exception
 	{
 		retrieversWeWillCall = new Vector();
 

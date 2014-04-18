@@ -30,7 +30,7 @@ public class TestMirrorPuller extends TestCaseEnhanced
 	{
 		MockMartusServer noCallsToMakeCore = new MockMartusServer();
 		MirrorPuller noCallsToMake = new MirrorPuller(noCallsToMakeCore, logger);
-		noCallsToMake.createGatewaysWeWillCall();
+		noCallsToMake.createMirroringRetrievers();
 		assertEquals(0, noCallsToMake.retrieversWeWillCall.size());
 		noCallsToMakeCore.deleteAllFiles();
 		
@@ -43,7 +43,7 @@ public class TestMirrorPuller extends TestCaseEnhanced
 		File pubKeyFile2 = new File(mirrorsWhoWeCall, "code=2.3.4.5.6-ip=2.3.4.5.txt");
 		MartusUtilities.exportServerPublicKey(clientSecurity2, pubKeyFile2);
 		MirrorPuller twoCallsToMake = new MirrorPuller(twoCallsToMakeCore, logger);
-		twoCallsToMake.createGatewaysWeWillCall();
+		twoCallsToMake.createMirroringRetrievers();
 		assertEquals(2, twoCallsToMake.retrieversWeWillCall.size());
 		mirrorsWhoWeCall.delete();
 		twoCallsToMakeCore.deleteAllFiles();
