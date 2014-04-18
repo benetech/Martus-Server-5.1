@@ -326,11 +326,10 @@ public class ServerBulletinStore extends BulletinStore
 		return results;
 	}
 
-	public static Vector getFormTemplateTitleAndDescriptionsForAccount(
-			ServerBulletinStore store, String accountToGetFormsFrom,
-			MartusCrypto security) throws Exception 
+	public Vector getFormTemplateTitleAndDescriptionsForAccount(
+			String accountToGetFormsFrom, MartusCrypto security) throws Exception 
 	{
-		Vector formsTemplateFiles = store.getListOfFormTemplatesForAccount(accountToGetFormsFrom);
+		Vector formsTemplateFiles = getListOfFormTemplatesForAccount(accountToGetFormsFrom);
 		int numberOfForms = formsTemplateFiles.size();
 		Vector formTemplatesTitleAndDescriptions = new Vector();
 		for(int i = 0; i < numberOfForms; ++i)
