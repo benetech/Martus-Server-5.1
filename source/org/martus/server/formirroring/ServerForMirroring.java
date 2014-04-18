@@ -273,8 +273,9 @@ public class ServerForMirroring implements ServerSupplierInterface
 		try 
 		{
 			Vector templateFiles = getStore().getListOfFormTemplatesForAccount(authorAccountId);
+			Vector templateInfosVector = extractTemplateInfosFromFiles(templateFiles);
 			result.add(NetworkInterfaceConstants.OK);
-			result.add(new String[0]);
+			result.add(templateInfosVector.toArray(new String[0]));
 		} 
 		catch (Exception e) 
 		{
@@ -282,6 +283,18 @@ public class ServerForMirroring implements ServerSupplierInterface
 			result.add(NetworkInterfaceConstants.SERVER_ERROR);
 		}
 		return result;
+	}
+
+	private Vector<String> extractTemplateInfosFromFiles(Vector templateFiles) throws Exception
+	{
+		Vector<String> infos = new Vector<String>();
+		for (Object rawFile : templateFiles) 
+		{
+			File file = (File)rawFile;
+			TemplateInfoForMirroring info = new TemplateInfoForMirroring(file);
+			infos.add(info.asString());
+		}
+		return infos;
 	}
 
 	public String getBulletinUploadRecord(String authorAccountId, String bulletinLocalId)

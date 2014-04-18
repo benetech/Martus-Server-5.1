@@ -31,6 +31,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Vector;
 import java.util.zip.ZipEntry;
@@ -211,6 +212,7 @@ public class ServerBulletinStore extends BulletinStore
 				signatureVerifiedFormTemplateFiles.add(currentFIle);
 			}
 		}
+		Collections.sort(signatureVerifiedFormTemplateFiles);
 		return signatureVerifiedFormTemplateFiles;
 	}
 
