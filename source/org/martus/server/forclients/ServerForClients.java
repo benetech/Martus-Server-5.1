@@ -683,7 +683,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		saveBase64FormTemplate(store, myAccountId, base64TemplateData, security, logger);
 	}
 
-	public static void saveBase64FormTemplate(ServerBulletinStore store,
+	public static synchronized void saveBase64FormTemplate(ServerBulletinStore store,
 			String myAccountId, String base64TemplateData,
 			MartusCrypto security, LoggerInterface logger) throws Exception
 	{
