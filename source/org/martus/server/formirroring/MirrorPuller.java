@@ -60,10 +60,12 @@ public class MirrorPuller
 		File[] toCallFiles = toCallDir.listFiles();
 		if (toCallFiles == null)
 			return;
-		for (int i = 0; i < toCallFiles.length; i++) {
+		for (int i = 0; i < toCallFiles.length; i++) 
+		{
 			File toCallFile = toCallFiles[i];
 			retrieversWeWillCall.add(createRetrieverToCall(toCallFile));
-			if (isSecureMode()) {
+			if (isSecureMode()) 
+			{
 				toCallFile.delete();
 				if (toCallFile.exists())
 					throw new IOException("delete failed: " + toCallFile);
