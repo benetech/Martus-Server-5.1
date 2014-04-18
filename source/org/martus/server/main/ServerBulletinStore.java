@@ -40,9 +40,11 @@ import org.martus.common.ContactInfo;
 import org.martus.common.LoggerInterface;
 import org.martus.common.MartusAccountAccessToken;
 import org.martus.common.MartusAccountAccessToken.TokenInvalidException;
+import org.martus.common.MartusLogger;
 import org.martus.common.MartusUtilities;
 import org.martus.common.MartusUtilities.FileVerificationException;
 import org.martus.common.bulletinstore.BulletinStore;
+import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MartusCrypto.CreateDigestException;
 import org.martus.common.crypto.MartusCrypto.CryptoException;
 import org.martus.common.crypto.MartusCrypto.DecryptionException;
@@ -54,6 +56,7 @@ import org.martus.common.database.Database.RecordHiddenException;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.DeleteRequestRecord;
 import org.martus.common.fieldspec.CustomFieldTemplate;
+import org.martus.common.fieldspec.CustomFieldTemplate.FutureVersionException;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.Packet.InvalidPacketException;
@@ -321,6 +324,34 @@ public class ServerBulletinStore extends BulletinStore
 		}
 
 		return results;
+	}
+
+	public static Vector getFormTemplateTitleAndDescriptionsForAccount(
+			ServerBulletinStore store, String accountToGetFormsFrom,
+			MartusCrypto security) throws Exception 
+	{
+		Vector formsTemplateFiles = store.getListOfFormTemplatesForAccount(accountToGetFormsFrom);
+		int numberOfForms = formsTemplateFiles.size();
+		Vector formTemplatesTitleAndDescriptions = new Vector();
+		for(int i = 0; i < numberOfForms; ++i)
+		{
+			try
+			{
+				CustomFieldTemplate formTemplate = new CustomFieldTemplate();
+				File fileToImport = (File)formsTemplateFiles.get(i);
+				formTemplate.importTemplate(fileToImport, security);
+				Vector currentFormVectorToAdd = new Vector();
+				currentFormVectorToAdd.add(formTemplate.getTitle());
+				currentFormVectorToAdd.add(formTemplate.getDescription());
+				formTemplatesTitleAndDescriptions.add(currentFormVectorToAdd.toArray());
+			} 
+			catch (FutureVersionException eLogExceptionButContinueWithRemainingValidForms) 
+			{
+				MartusLogger.logException(eLogExceptionButContinueWithRemainingValidForms);
+			}
+			
+		}
+		return formTemplatesTitleAndDescriptions;
 	}
 
 	public static class DuplicatePacketException extends Exception
