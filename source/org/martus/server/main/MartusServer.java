@@ -2128,6 +2128,9 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		public void run()
 		{
 			verifyTimerAlive();
+			if(isShutdownRequested())
+				return;
+
 			MartusServer.needsAmpSync = true;
 		}
 	}
