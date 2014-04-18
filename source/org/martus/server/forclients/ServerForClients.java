@@ -62,6 +62,7 @@ import org.martus.common.database.ReadableDatabase;
 import org.martus.common.database.ReadableDatabase.AccountVisitor;
 import org.martus.common.fieldspec.CustomFieldTemplate;
 import org.martus.common.fieldspec.CustomFieldTemplate.FutureVersionException;
+import org.martus.common.fieldspec.FormTemplateParsingException;
 import org.martus.common.network.MartusXmlRpcServer;
 import org.martus.common.network.NetworkInterface;
 import org.martus.common.network.NetworkInterfaceConstants;
@@ -658,14 +659,15 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		{
 			String base64TemplateData = (String)formTemplateData.get(0);
 
-			boolean wasSaved = saveBase64FormTemplate(myAccountId, base64TemplateData);
-			if(wasSaved)
-				result.add(NetworkInterfaceConstants.OK);
-			else
-				result.add(NetworkInterfaceConstants.SERVER_ERROR);
-			
+			saveBase64FormTemplate(myAccountId, base64TemplateData);
+			result.add(NetworkInterfaceConstants.OK);
 			return result;
 		} 
+		catch (FormTemplateParsingException e)
+		{
+			result.add(NetworkInterfaceConstants.SERVER_ERROR);
+			return result;
+		}
 		catch (Exception e) 
 		{
 			MartusLogger.logException(e);
@@ -674,16 +676,16 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		}
 	}
 
-	public boolean saveBase64FormTemplate(String myAccountId, String base64TemplateData) throws Exception
+	public void saveBase64FormTemplate(String myAccountId, String base64TemplateData) throws Exception
 	{
 		ServerBulletinStore store = getStore();
 		MartusCrypto security = getSecurity();
 		LoggerInterface logger = this;
 
-		return saveBase64FormTemplate(store, myAccountId, base64TemplateData, security, logger);
+		saveBase64FormTemplate(store, myAccountId, base64TemplateData, security, logger);
 	}
 
-	public static boolean saveBase64FormTemplate(ServerBulletinStore store,
+	public static void saveBase64FormTemplate(ServerBulletinStore store,
 			String myAccountId, String base64TemplateData,
 			MartusCrypto security, LoggerInterface logger) throws Exception
 	{
@@ -709,11 +711,10 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 				logger.logError(message);
 			}
 			tempFormTemplateFile.delete();
-			return false;
+			throw new FormTemplateParsingException();
 		}
 		File accountsFormTemplateFile = new File(accountFolderForTemplates, calculateFileNameFromString(template.getTitle()));
 		store.moveFormTemplateIntoAccount(myAccountId, tempFormTemplateFile, accountsFormTemplateFile, logger);
-		return true;
 	}
 
 	private static boolean importTemplate(File tempFormTemplateFile, CustomFieldTemplate template, MartusCrypto security) throws Exception 
