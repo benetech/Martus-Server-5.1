@@ -43,6 +43,7 @@ import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.ReadableDatabase;
 import org.martus.common.network.MartusXmlRpcServer;
+import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.network.mirroring.MirroringInterface;
 import org.martus.common.network.mirroring.SupplierSideMirroringInterface;
 import org.martus.common.packet.BulletinHeaderPacket;
@@ -266,9 +267,21 @@ public class ServerForMirroring implements ServerSupplierInterface
 	}
 
 	@Override
-	public Set listAvailableFormTemplates(String authorAccountId) 
+	public Vector listAvailableFormTemplates(String authorAccountId) 
 	{
-		return new HashSet();
+		Vector result = new Vector();
+		try 
+		{
+			Vector templateFiles = getStore().getListOfFormTemplatesForAccount(authorAccountId);
+			result.add(NetworkInterfaceConstants.OK);
+			result.add(new String[0]);
+		} 
+		catch (Exception e) 
+		{
+			logger.logError("Exception getting list of form templates", e);
+			result.add(NetworkInterfaceConstants.SERVER_ERROR);
+		}
+		return result;
 	}
 
 	public String getBulletinUploadRecord(String authorAccountId, String bulletinLocalId)

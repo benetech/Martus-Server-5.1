@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
 
+import org.martus.common.FieldCollection;
 import org.martus.common.FieldSpecCollection;
 import org.martus.common.LegacyCustomFields;
 import org.martus.common.LoggerToNull;
@@ -44,8 +45,12 @@ import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.MockServerDatabase;
 import org.martus.common.database.ReadableDatabase;
+import org.martus.common.fieldspec.CustomFieldTemplate;
 import org.martus.common.fieldspec.FieldSpec;
 import org.martus.common.fieldspec.FormTemplateParsingException;
+import org.martus.common.fieldspec.StandardFieldSpecs;
+import org.martus.common.network.NetworkInterfaceConstants;
+import org.martus.common.network.NetworkResponse;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.FieldDataPacket;
 import org.martus.common.packet.UniversalId;
@@ -117,21 +122,36 @@ public class TestServerForMirroring extends TestCaseEnhanced
 	public void testListFormTemplates() throws Exception
 	{
 		String clientAccountId = clientSecurity1.getPublicKeyString();
-		assertEquals("Already has forms?", 0, server.listAvailableFormTemplates(clientAccountId).size());
+		NetworkResponse emptyResponse = new NetworkResponse(server.listAvailableFormTemplates(clientAccountId));
+		assertEquals("Error?", NetworkInterfaceConstants.OK, emptyResponse.getResultCode());
+		assertEquals("Already has forms?", 0, emptyResponse.getResultVector().size());
 
 		ServerBulletinStore store = coreServer.getStore();
 		MartusCrypto security = server.getSecurity();
 		byte[] fakeTemplateData = new byte[] { 1,2,3,4,5};
-		String base64TemplateData = Base64.encode(fakeTemplateData);
+		String invalidBase64Template = Base64.encode(fakeTemplateData);
 		try
 		{
-			ServerForClients.saveBase64FormTemplate(store, clientAccountId, base64TemplateData, security, logger);
+			ServerForClients.saveBase64FormTemplate(store, clientAccountId, invalidBase64Template, security, logger);
 			fail("Should have thrown saving invalid template");
 		}
 		catch(FormTemplateParsingException ignoreExpected)
 		{
 		}
 
+		String title = "Title";
+		String description = "This is a description";
+		FieldCollection topSection = new FieldCollection(StandardFieldSpecs.getDefaultTopSetionFieldSpecs());
+		FieldCollection bottomSection = new FieldCollection(StandardFieldSpecs.getDefaultBottomSectionFieldSpecs());
+		CustomFieldTemplate template = new CustomFieldTemplate(title, description, topSection, bottomSection);
+		String base64Template = template.getExportedTemplateAsBase64String(security);
+		ServerForClients.saveBase64FormTemplate(store, clientAccountId, base64Template, security, logger);
+		
+		NetworkResponse response = new NetworkResponse(server.listAvailableFormTemplates(clientAccountId));
+		assertEquals("Error?", NetworkInterfaceConstants.OK, response.getResultCode());
+		
+		// FIXME: This test is under construction
+//		assertEquals("Didn't find template?", 1, response.getResultVector().size());
 	}
 	
 	public void testGetPublicInfo() throws Exception
