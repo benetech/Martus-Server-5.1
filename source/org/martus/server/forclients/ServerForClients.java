@@ -720,7 +720,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		ServerBulletinStore store = getStore();
 		MartusCrypto security = getSecurity();
 
-		return ServerBulletinStore.getFormTemplateTitleAndDescriptionsForAccount(store,	accountToGetFormsFrom, security);
+		return store.getFormTemplateTitleAndDescriptionsForAccount(accountToGetFormsFrom, security);
 	}
 
 	public Vector getListOfFormTemplates(String myAccountId, String accountIdToUse) 
