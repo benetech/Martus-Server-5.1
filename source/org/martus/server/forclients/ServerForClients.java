@@ -732,7 +732,8 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 
 	private Vector getFormTemplateTitleAndDescriptionsForAccount(String accountToGetFormsFrom) throws Exception 
 	{
-		Vector formsTemplateFiles = getStore().getListOfFormTemplatesForAccount(accountToGetFormsFrom);
+		ServerBulletinStore store = getStore();
+		Vector formsTemplateFiles = store.getListOfFormTemplatesForAccount(accountToGetFormsFrom);
 		int numberOfForms = formsTemplateFiles.size();
 		Vector formTemplatesTitleAndDescriptions = new Vector();
 		for(int i = 0; i < numberOfForms; ++i)
