@@ -37,6 +37,7 @@ import org.martus.common.LoggerToNull;
 import org.martus.common.MartusUtilities;
 import org.martus.common.MartusUtilities.InvalidPublicKeyFileException;
 import org.martus.common.bulletin.BulletinConstants;
+import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MockMartusSecurity;
 import org.martus.common.database.BulletinUploadRecord;
 import org.martus.common.database.Database;
@@ -44,12 +45,17 @@ import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.MockServerDatabase;
 import org.martus.common.database.ReadableDatabase;
 import org.martus.common.fieldspec.FieldSpec;
+import org.martus.common.fieldspec.FormTemplateParsingException;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.FieldDataPacket;
 import org.martus.common.packet.UniversalId;
 import org.martus.common.test.UniversalIdForTesting;
 import org.martus.server.forclients.MockMartusServer;
+import org.martus.server.forclients.ServerForClients;
+import org.martus.server.main.ServerBulletinStore;
 import org.martus.util.TestCaseEnhanced;
+
+import com.sun.org.apache.xml.internal.security.utils.Base64;
 
 public class TestServerForMirroring extends TestCaseEnhanced
 {
@@ -106,6 +112,26 @@ public class TestServerForMirroring extends TestCaseEnhanced
 	{
 		coreServer.deleteAllFiles();
 		super.tearDown();
+	}
+	
+	public void testListFormTemplates() throws Exception
+	{
+		String clientAccountId = clientSecurity1.getPublicKeyString();
+		assertEquals("Already has forms?", 0, server.listAvailableFormTemplates(clientAccountId).size());
+
+		ServerBulletinStore store = coreServer.getStore();
+		MartusCrypto security = server.getSecurity();
+		byte[] fakeTemplateData = new byte[] { 1,2,3,4,5};
+		String base64TemplateData = Base64.encode(fakeTemplateData);
+		try
+		{
+			ServerForClients.saveBase64FormTemplate(store, clientAccountId, base64TemplateData, security, logger);
+			fail("Should have thrown saving invalid template");
+		}
+		catch(FormTemplateParsingException ignoreExpected)
+		{
+		}
+
 	}
 	
 	public void testGetPublicInfo() throws Exception

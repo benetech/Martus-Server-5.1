@@ -265,6 +265,12 @@ public class ServerForMirroring implements ServerSupplierInterface
 		return collector.infos;
 	}
 
+	@Override
+	public Set listAvailableFormTemplates(String authorAccountId) 
+	{
+		return new HashSet();
+	}
+
 	public String getBulletinUploadRecord(String authorAccountId, String bulletinLocalId)
 	{
 		DatabaseKey headerKey = coreServer.findHeaderKeyInDatabase(authorAccountId, bulletinLocalId);

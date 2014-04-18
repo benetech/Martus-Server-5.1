@@ -202,6 +202,12 @@ class FakeServerSupplier implements ServerSupplierInterface
 		return result;
 	}
 	
+	@Override
+	public Set listAvailableFormTemplates(String authorAccountId) 
+	{
+		return new HashSet();
+	}
+
 	public void log(String message){}
 	public void logError(String message){}
 	public void logError(Exception e){}
@@ -227,5 +233,4 @@ class FakeServerSupplier implements ServerSupplierInterface
 	String gotLocalId;
 	int gotChunkOffset;
 	int gotMaxChunkSize;
-
 }
