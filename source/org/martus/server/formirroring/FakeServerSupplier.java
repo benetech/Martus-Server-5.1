@@ -203,9 +203,11 @@ class FakeServerSupplier implements ServerSupplierInterface
 	}
 	
 	@Override
-	public Set listAvailableFormTemplates(String authorAccountId) 
+	public Vector listAvailableFormTemplates(String authorAccountId) 
 	{
-		return new HashSet();
+		Vector result = new Vector();
+		result.add(NetworkInterfaceConstants.SERVER_ERROR);
+		return result;
 	}
 
 	public void log(String message){}

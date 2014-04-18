@@ -40,5 +40,5 @@ public interface ServerSupplierInterface extends LoggerInterface
 	public Vector getBulletinChunkWithoutVerifyingCaller(String authorAccountId, String bulletinLocalId,
 			int chunkOffset, int maxChunkSize);
 	public Set listAvailableIdsForMirroring(String authorAccountId);
-	public Set listAvailableFormTemplates(String authorAccountId);
+	public Vector listAvailableFormTemplates(String authorAccountId);
 }
