@@ -738,7 +738,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		return getFormTemplateTitleAndDescriptionsForAccount(store,	accountToGetFormsFrom, security);
 	}
 
-	public Vector getFormTemplateTitleAndDescriptionsForAccount(
+	public static Vector getFormTemplateTitleAndDescriptionsForAccount(
 			ServerBulletinStore store, String accountToGetFormsFrom,
 			MartusCrypto security) throws Exception 
 	{
