@@ -62,6 +62,12 @@ public class MirroringRetriever implements LoggerInterface
 		accountsToRetrieve = null;
 	}
 	
+	public void processEverything()
+	{
+		while(!isSleeping())
+			processNextBulletin();
+	}
+	
 	public void processNextBulletin()
 	{
 		if(isSleeping())
