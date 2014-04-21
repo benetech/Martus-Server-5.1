@@ -65,10 +65,10 @@ public class MirroringRetriever implements LoggerInterface
 	public void pullAllBulletins()
 	{
 		while(!isSleeping())
-			processNextBulletin();
+			pullNextBulletin();
 	}
 	
-	public void processNextBulletin()
+	public void pullNextBulletin()
 	{
 		if(isSleeping())
 			return;

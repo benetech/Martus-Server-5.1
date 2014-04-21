@@ -150,7 +150,7 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 	public void testProcessNextBulletinSkipsIfNothingRecent() throws Exception
 	{
 		supplier.addAccountToMirror("Test account");
-		realRetriever.processNextBulletin();
+		realRetriever.pullNextBulletin();
 		assertTrue("Should have set sleepUntil", realRetriever.sleepUntil > System.currentTimeMillis() + 2000);
 	}
 	
@@ -239,7 +239,7 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 	{
 		assertFalse("initial shouldsleep wrong?", mirroringRetriever.isSleeping());
 		// get account list (empty)
-		mirroringRetriever.processNextBulletin();
+		mirroringRetriever.pullNextBulletin();
 		assertNull("tick asked for account?", supplier.gotAccount);
 		assertNull("tick asked for id?", supplier.gotLocalId);
 		assertTrue("not ready to sleep?", mirroringRetriever.isSleeping());
@@ -306,13 +306,13 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		supplier.returnResultTag = MirroringInterface.RESULT_OK;
 		Vector bulletinLocalIdsRetrieved = new Vector();
 		
-		mirroringRetriever.processNextBulletin();
+		mirroringRetriever.pullNextBulletin();
 		assertEquals("tick1 wrong account?", clientSecurity.getPublicKeyString(), supplier.gotAccount);
 		bulletinLocalIdsRetrieved.add(supplier.gotLocalId);
 		assertEquals("tick1 bulletin count", 1, retrievingStore.getBulletinCount());
 		assertFalse("tick1 fell asleep?", mirroringRetriever.isSleeping());
 
-		mirroringRetriever.processNextBulletin();
+		mirroringRetriever.pullNextBulletin();
 		assertEquals("tick2 wrong account?", clientSecurity.getPublicKeyString(), supplier.gotAccount);
 		bulletinLocalIdsRetrieved.add(supplier.gotLocalId);
 		assertEquals("tick2 bulletin count", 2, retrievingStore.getBulletinCount());
@@ -320,7 +320,7 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 
 		if(draftsShouldBeMirrored)
 		{
-			mirroringRetriever.processNextBulletin();
+			mirroringRetriever.pullNextBulletin();
 			assertEquals("tick3 wrong account?", clientSecurity.getPublicKeyString(), supplier.gotAccount);
 			bulletinLocalIdsRetrieved.add(supplier.gotLocalId);
 			assertEquals("tick3 bulletin count", 3, retrievingStore.getBulletinCount());
@@ -331,12 +331,12 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		
 		verifyDeleteRecordsAreCorrectAfterPull(mirroringDataBase, delRecords, draftsShouldBeMirrored);
 		
-		mirroringRetriever.processNextBulletin();
+		mirroringRetriever.pullNextBulletin();
 		assertEquals("after extra tick", totalBulletinsToMirror, retrievingStore.getBulletinCount());
 		assertEquals("extra tick got uids?", 0, mirroringRetriever.itemsToRetrieve.size());
 		assertTrue("not sleeping after extra tick?", mirroringRetriever.isSleeping());
 
-		mirroringRetriever.processNextBulletin();
+		mirroringRetriever.pullNextBulletin();
 		assertEquals("after extra tick2", totalBulletinsToMirror, retrievingStore.getBulletinCount());
 		assertEquals("extra tick2 got uids?", 0, mirroringRetriever.itemsToRetrieve.size());
 	}
