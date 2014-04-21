@@ -627,7 +627,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		return result;
 	}
 	
-	private static String calculateFileNameFromString(String inputText) throws CreateDigestException  
+	public static String calculateFileNameFromString(String inputText) throws CreateDigestException  
 	{
 		return MartusCrypto.getHexDigest(inputText) + CustomFieldTemplate.CUSTOMIZATION_TEMPLATE_EXTENSION;
 	}
