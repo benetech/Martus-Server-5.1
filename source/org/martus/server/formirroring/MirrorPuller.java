@@ -119,7 +119,7 @@ public class MirrorPuller
 	{
 		for(int i = 0; i < retrieversWeWillCall.size(); ++i)
 		{	
-			((MirroringRetriever)retrieversWeWillCall.get(i)).processEverything();
+			((MirroringRetriever)retrieversWeWillCall.get(i)).pullAllBulletins();
 		}
 	}
 	
