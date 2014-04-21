@@ -2131,9 +2131,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 			if(isShutdownRequested())
 				return;
 
-			logDebug("amp.pullNewDataFromServers(): Begin Pull");
-			amp.pullNewDataFromNextServer();
-			logDebug("amp.pullNewDataFromServers(): End Pull");
+			MartusServer.needsAmpSync = true;
 		}
 	}
 
@@ -2157,6 +2155,14 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 
 			if(isMirrorListenerEnabled())
 				mirroringRetrieverManager.doBackgroundTick();
+
+			if(MartusServer.needsAmpSync)
+			{
+				logDebug("amp.pullNewDataFromServers(): Begin Pull");
+				amp.pullNewDataFromNextServer();
+				MartusServer.needsAmpSync = false;
+				logDebug("amp.pullNewDataFromServers(): End Pull");
+			}
 		}
 	}
 	
@@ -2168,6 +2174,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	public ServerForAmplifiers serverForAmplifiers;
 	public MartusAmplifier amp;
 	private boolean amplifierEnabled;
+	static boolean needsAmpSync; 
 	private boolean clientListenerEnabled;
 	private boolean mirrorListenerEnabled;
 	private boolean amplifierListenerEnabled;
