@@ -66,7 +66,7 @@ public class MirroringRetriever implements LoggerInterface
 		accountsToRetrieve = null;
 	}
 	
-	public void pullAllBulletins()
+	public void pullEverything()
 	{
 		while(!isSleeping())
 			pullNextBulletin();
