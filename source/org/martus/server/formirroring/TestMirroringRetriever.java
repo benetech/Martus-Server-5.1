@@ -651,7 +651,6 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 	
 	private String getZipString(ReadableDatabase dbToExportFrom, Bulletin b, MartusCrypto signer) throws Exception
 	{
-		String accountId = b.getAccount();
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		DatabaseKey[] packetKeys = BulletinZipUtilities.getAllPacketKeys(b.getBulletinHeaderPacket());
 		BulletinZipUtilities.extractPacketsToZipStream(dbToExportFrom, packetKeys, out, signer);
