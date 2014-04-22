@@ -157,20 +157,28 @@ public class MirroringRetriever implements LoggerInterface
 			if(!file.exists())
 				return true;
 			
-			String ourDigest = TemplateInfoForMirroring.computeDigest(file);
-			String availableDigest = templateInfo.getDigest();
-			if(!ourDigest.equals(availableDigest))
-				return true;
+			TemplateInfoForMirroring ourTemplateInfo = new TemplateInfoForMirroring(file);
 			
-			return false;
-			
-//			long ourMillis = Files.getLastModifiedTime(file.toPath()).toMillis();
-//			return (ourMillis < templateInfo.getLastModifiedMillis());
+			return shouldPullTemplate(templateInfo, ourTemplateInfo);
 		}
 		catch (FileNotFoundException harmlessExpected)
 		{
 			return true;
 		}
+	}
+
+	public static boolean shouldPullTemplate(TemplateInfoForMirroring availableTemplateInfo, TemplateInfoForMirroring ourTemplateInfo) 
+	{
+		String availableDigest = availableTemplateInfo.getDigest();
+		String ourDigest = ourTemplateInfo.getDigest();
+		if(!ourDigest.equals(availableDigest))
+			return true;
+		
+		return false;
+		
+//			long availableMillis = availableTemplateInfo.getLastModifiedMillis();
+//			long ourMillis = ourTemplateInfo.getLastModifiedMillis();
+//			return (ourMillis < availableMillis);
 	}
 
 	public void pullNextBulletin()
