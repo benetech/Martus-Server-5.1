@@ -69,11 +69,15 @@ public class MirroringRetriever implements LoggerInterface
 	public void pullEverything()
 	{
 		while(!isSleeping())
+		{
 			pullNextBulletin();
+			pullAllTemplates();
+		}
 	}
 	
 	public void pullAllTemplates()
 	{
+		logInfo("Pulling templates");
 		try 
 		{
 			Vector accounts = getListOfAccounts();
@@ -88,6 +92,11 @@ public class MirroringRetriever implements LoggerInterface
 				}
 			}
 		} 
+		catch (ServerErrorException e)
+		{
+			if(e.getMessage().equals(NetworkInterfaceConstants.NO_SERVER))
+				return;
+		}
 		catch (Exception e) 
 		{
 			logError("Mirror call exception ", e);
@@ -128,6 +137,9 @@ public class MirroringRetriever implements LoggerInterface
 
 	private void pullAndSaveTemplate(String accountId, TemplateInfoForMirroring templateInfo) throws Exception
 	{
+		String publicCode = MartusCrypto.computeFormattedPublicCode(accountId);
+		logInfo("Pulling template: " + publicCode + ": " + templateInfo.getFilename());
+		
 		String base64Template = pullTemplate(accountId, templateInfo);
 		ServerForClients.saveBase64FormTemplate(store, accountId, base64Template, getSecurity(), logger);
 		File file = store.getFormTemplateFileFromAccount(accountId, templateInfo.getFilename());
