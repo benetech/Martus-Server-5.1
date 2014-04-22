@@ -185,7 +185,14 @@ public class MirroringRetriever implements LoggerInterface
 		long ourMillis = ourTemplateInfo.getLastModifiedMillis();
 		if (ourMillis < availableMillis)
 			return true;
+		if (ourMillis > availableMillis)
+			return false;
 
+		long availableSize = availableTemplateInfo.getFileSize();
+		long ourSize = ourTemplateInfo.getFileSize();
+		if(ourSize < availableSize)
+			return true;
+		
 		return false;
 	}
 

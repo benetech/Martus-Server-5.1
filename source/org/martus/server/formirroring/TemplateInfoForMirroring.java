@@ -37,6 +37,7 @@ public class TemplateInfoForMirroring
 		name = file.getName();
 		Path path = file.toPath();
 		lastModifiedMillis = Files.getLastModifiedTime(path).toMillis();
+		size = file.length();
 	}
 	
 	public TemplateInfoForMirroring(String infoAsString)
@@ -44,12 +45,14 @@ public class TemplateInfoForMirroring
 		String[] pieces = infoAsString.split("\\t");
 		name = pieces[0];
 		lastModifiedMillis = Long.parseLong(pieces[1]);
+		size = Long.parseLong(pieces[1]);
 	}
 
-	public TemplateInfoForMirroring(String filename, long lastModifiedMillisToUse) 
+	public TemplateInfoForMirroring(String filename, long lastModifiedMillisToUse, long fileSize) 
 	{
 		name = filename;
 		lastModifiedMillis = lastModifiedMillisToUse;
+		size = fileSize;
 	}
 
 	public String asString() 
@@ -65,6 +68,11 @@ public class TemplateInfoForMirroring
 	public long getLastModifiedMillis()
 	{
 		return lastModifiedMillis;
+	}
+	
+	public long getFileSize()
+	{
+		return size;
 	}
 	
 	@Override
@@ -97,4 +105,5 @@ public class TemplateInfoForMirroring
 	
 	private String name;
 	private long lastModifiedMillis;
+	private long size;
 }
