@@ -668,7 +668,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		}
 		catch (Exception e) 
 		{
-			MartusLogger.logException(e);
+			logError(e);
 			result.add(NetworkInterfaceConstants.SERVER_ERROR);
 			return result;
 		}
