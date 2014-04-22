@@ -157,15 +157,30 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		long earlier = 27;
 		long now = 39;
 		long later = 55;
+		long small = 10;
+		long medium = 100;
+		long large = 1000;
 		
-		TemplateInfoForMirroring current = new TemplateInfoForMirroring(templateFilename, now);
-		TemplateInfoForMirroring identical = new TemplateInfoForMirroring(templateFilename, now);
-		TemplateInfoForMirroring sameButEarlier = new TemplateInfoForMirroring(templateFilename, earlier);
-		TemplateInfoForMirroring sameButLater = new TemplateInfoForMirroring(templateFilename, later);
+		TemplateInfoForMirroring current = new TemplateInfoForMirroring(templateFilename, now, medium);
+		TemplateInfoForMirroring identical = new TemplateInfoForMirroring(templateFilename, now, medium);
+		TemplateInfoForMirroring sameButEarlier = new TemplateInfoForMirroring(templateFilename, earlier, medium);
+		TemplateInfoForMirroring largerEarlier = new TemplateInfoForMirroring(templateFilename, earlier, large);
+		TemplateInfoForMirroring smallerEarlier = new TemplateInfoForMirroring(templateFilename, earlier, small);
+		TemplateInfoForMirroring smallerSimultaneous = new TemplateInfoForMirroring(templateFilename, now, small);
+		TemplateInfoForMirroring sameButLater = new TemplateInfoForMirroring(templateFilename, later, medium);
+		TemplateInfoForMirroring largerLater = new TemplateInfoForMirroring(templateFilename, later, large);
+		TemplateInfoForMirroring smallerLater = new TemplateInfoForMirroring(templateFilename, later, small);
+		TemplateInfoForMirroring largerSimultaneous = new TemplateInfoForMirroring(templateFilename, now, large);
 		
 		assertFalse(MirroringRetriever.shouldPullTemplate(current, identical));
 		assertFalse(MirroringRetriever.shouldPullTemplate(current, sameButEarlier));
+		assertFalse(MirroringRetriever.shouldPullTemplate(current, largerEarlier));
+		assertFalse(MirroringRetriever.shouldPullTemplate(current, smallerEarlier));
+		assertFalse(MirroringRetriever.shouldPullTemplate(current, smallerSimultaneous));
 		assertTrue(MirroringRetriever.shouldPullTemplate(current, sameButLater));
+		assertTrue(MirroringRetriever.shouldPullTemplate(current, largerLater));
+		assertTrue(MirroringRetriever.shouldPullTemplate(current, smallerLater));
+		assertTrue(MirroringRetriever.shouldPullTemplate(current, largerSimultaneous));
 	}
 
 	private void verifyModifiedTime(String accountId, TemplateInfoForMirroring templateInfo) throws Exception
@@ -186,7 +201,8 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		out.flush();
 		long now = new Date().getTime();
 		long roundedMinuteAgo = now - now%1000 - 60*1000;
-		TemplateInfoForMirroring info = new TemplateInfoForMirroring(filename, roundedMinuteAgo);
+		long arbitrarySize = 5000;
+		TemplateInfoForMirroring info = new TemplateInfoForMirroring(filename, roundedMinuteAgo, arbitrarySize);
 		return info;
 	}
 
