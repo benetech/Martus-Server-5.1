@@ -158,7 +158,8 @@ public class MirroringRetriever implements LoggerInterface
 				return true;
 			
 			String ourDigest = TemplateInfoForMirroring.computeDigest(file);
-			if(!ourDigest.equals(templateInfo.getDigest()))
+			String availableDigest = templateInfo.getDigest();
+			if(!ourDigest.equals(availableDigest))
 				return true;
 			
 			return false;

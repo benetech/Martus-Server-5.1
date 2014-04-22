@@ -155,7 +155,18 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		assertFalse("Would re-pull 2a?", realRetriever.shouldPullTemplate(accountId2, template2a));
 		assertFalse("Would re-pull 2b?", realRetriever.shouldPullTemplate(accountId2, template2b));
 
+		CustomFieldTemplate newCft1 = createTemplate("1", "Updated description");
+		TemplateInfoForMirroring newTemplate1 = extractTemplateInfo(newCft1);
+		supplier.addTemplateToMirror(accountId1, newTemplate1, newCft1.getExportedTemplateAsBase64String(getSecurity()));
 		
+		assertTrue("Won't re-pull 1?", realRetriever.shouldPullTemplate(accountId1, newTemplate1));
+		NetworkResponse newAvailable1 = realGateway.getListOfFormTemplateInfos(getSecurity(), accountId1);
+		assertEquals(1, newAvailable1.getResultVector().size());
+		String newInfo1String = (String) newAvailable1.getResultVector().get(0);
+		assertEquals("Other server has different info than we set?", newTemplate1.asString(), newInfo1String);
+
+		realRetriever.pullAllTemplates();
+		assertFalse("Will re-re-pull 1?", realRetriever.shouldPullTemplate(accountId1, newTemplate1));
 //		TemplateInfoForMirroring updatedTemplate1 = new TemplateInfoForMirroring(template1.getFilename(), template1.getDigest(), template1.getLastModifiedMillis() + 5*1000);
 	}
 
