@@ -26,7 +26,6 @@ Boston, MA 02111-1307, USA.
 
 package org.martus.server.formirroring;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -158,23 +157,15 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		long earlier = 27;
 		long now = 39;
 		long later = 55;
-		String digest = "blah blah";
-		String otherDigest = "yada yada";
 		
-		TemplateInfoForMirroring current = new TemplateInfoForMirroring(templateFilename, digest, now);
-		TemplateInfoForMirroring identical = new TemplateInfoForMirroring(templateFilename, digest, now);
-		TemplateInfoForMirroring sameButEarlier = new TemplateInfoForMirroring(templateFilename, digest, earlier);
-		TemplateInfoForMirroring sameButLater = new TemplateInfoForMirroring(templateFilename, digest, later);
-		TemplateInfoForMirroring differentSimultaneous = new TemplateInfoForMirroring(templateFilename, otherDigest, now);
-		TemplateInfoForMirroring differentEarlier = new TemplateInfoForMirroring(templateFilename, otherDigest, earlier);
-		TemplateInfoForMirroring differentLater = new TemplateInfoForMirroring(templateFilename, otherDigest, later);
+		TemplateInfoForMirroring current = new TemplateInfoForMirroring(templateFilename, now);
+		TemplateInfoForMirroring identical = new TemplateInfoForMirroring(templateFilename, now);
+		TemplateInfoForMirroring sameButEarlier = new TemplateInfoForMirroring(templateFilename, earlier);
+		TemplateInfoForMirroring sameButLater = new TemplateInfoForMirroring(templateFilename, later);
 		
 		assertFalse(MirroringRetriever.shouldPullTemplate(current, identical));
 		assertFalse(MirroringRetriever.shouldPullTemplate(current, sameButEarlier));
 		assertTrue(MirroringRetriever.shouldPullTemplate(current, sameButLater));
-		assertFalse(MirroringRetriever.shouldPullTemplate(current, differentSimultaneous));
-		assertFalse(MirroringRetriever.shouldPullTemplate(current, differentEarlier));
-		assertTrue(MirroringRetriever.shouldPullTemplate(current, differentLater));
 	}
 
 	private void verifyModifiedTime(String accountId, TemplateInfoForMirroring templateInfo) throws Exception
@@ -193,11 +184,9 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		if(!cft1.saveContentsToOutputStream(server.getSecurity(), out))
 			throw new IOException("Unknown exception saving template to stream");
 		out.flush();
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		String digestOfContents = TemplateInfoForMirroring.computeDigest(in);
 		long now = new Date().getTime();
 		long roundedMinuteAgo = now - now%1000 - 60*1000;
-		TemplateInfoForMirroring info = new TemplateInfoForMirroring(filename, digestOfContents, roundedMinuteAgo);
+		TemplateInfoForMirroring info = new TemplateInfoForMirroring(filename, roundedMinuteAgo);
 		return info;
 	}
 
