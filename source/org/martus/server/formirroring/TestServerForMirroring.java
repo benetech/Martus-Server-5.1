@@ -27,7 +27,6 @@ Boston, MA 02111-1307, USA.
 package org.martus.server.formirroring;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
@@ -57,10 +56,9 @@ import org.martus.common.test.UniversalIdForTesting;
 import org.martus.server.forclients.MockMartusServer;
 import org.martus.server.forclients.ServerForClients;
 import org.martus.server.main.ServerBulletinStore;
+import org.martus.util.Base64;
 import org.martus.util.StreamableBase64;
 import org.martus.util.TestCaseEnhanced;
-
-import com.sun.org.apache.xml.internal.security.utils.Base64;
 
 public class TestServerForMirroring extends TestCaseEnhanced
 {
@@ -128,7 +126,7 @@ public class TestServerForMirroring extends TestCaseEnhanced
 		ServerBulletinStore store = coreServer.getStore();
 		MartusCrypto security = server.getSecurity();
 		byte[] fakeTemplateData = new byte[] { 1,2,3,4,5};
-		String invalidBase64Template = Base64.encode(fakeTemplateData);
+		String invalidBase64Template = Base64.encodeBytes(fakeTemplateData);
 		try
 		{
 			ServerForClients.saveBase64FormTemplate(store, clientAccountId, invalidBase64Template, security, logger);
