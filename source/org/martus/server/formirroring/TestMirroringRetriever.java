@@ -155,6 +155,7 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		assertFalse("Would re-pull 2a?", realRetriever.shouldPullTemplate(accountId2, template2a));
 		assertFalse("Would re-pull 2b?", realRetriever.shouldPullTemplate(accountId2, template2b));
 
+		
 //		TemplateInfoForMirroring updatedTemplate1 = new TemplateInfoForMirroring(template1.getFilename(), template1.getDigest(), template1.getLastModifiedMillis() + 5*1000);
 	}
 
@@ -184,9 +185,14 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 
 	public CustomFieldTemplate createTemplate(String title) throws Exception 
 	{
+		return createTemplate(title, "");
+	}
+
+	public CustomFieldTemplate createTemplate(String title, String description)	throws Exception 
+	{
 		FieldCollection topFields = new FieldCollection(StandardFieldSpecs.getDefaultTopSetionFieldSpecs());
 		FieldCollection bottomFields = new FieldCollection(StandardFieldSpecs.getDefaultBottomSectionFieldSpecs());
-		return new CustomFieldTemplate(title, "", topFields, bottomFields);
+		return new CustomFieldTemplate(title, description, topFields, bottomFields);
 	}
 	
 	public void testGetNextItemToRetrieve() throws Exception
