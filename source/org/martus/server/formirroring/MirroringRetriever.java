@@ -159,7 +159,7 @@ public class MirroringRetriever implements LoggerInterface
 			
 			TemplateInfoForMirroring ourTemplateInfo = new TemplateInfoForMirroring(file);
 			
-			return shouldPullTemplate(templateInfo, ourTemplateInfo);
+			return shouldPullTemplate(ourTemplateInfo, templateInfo);
 		}
 		catch (FileNotFoundException harmlessExpected)
 		{
@@ -167,7 +167,7 @@ public class MirroringRetriever implements LoggerInterface
 		}
 	}
 
-	public static boolean shouldPullTemplate(TemplateInfoForMirroring availableTemplateInfo, TemplateInfoForMirroring ourTemplateInfo) 
+	public static boolean shouldPullTemplate(TemplateInfoForMirroring ourTemplateInfo, TemplateInfoForMirroring availableTemplateInfo) 
 	{
 		String availableDigest = availableTemplateInfo.getDigest();
 		String ourDigest = ourTemplateInfo.getDigest();
