@@ -28,6 +28,8 @@ package org.martus.server.formirroring;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.nio.file.Files;
+import java.nio.file.attribute.FileTime;
 import java.util.Arrays;
 import java.util.Vector;
 
@@ -45,6 +47,7 @@ import org.martus.common.network.NetworkResponse;
 import org.martus.common.network.mirroring.CallerSideMirroringGatewayInterface;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.UniversalId;
+import org.martus.server.forclients.ServerForClients;
 import org.martus.server.main.ServerBulletinStore;
 import org.martus.util.LoggerUtil;
 
@@ -68,6 +71,87 @@ public class MirroringRetriever implements LoggerInterface
 			pullNextBulletin();
 	}
 	
+	public void pullAllTemplates()
+	{
+		try 
+		{
+			Vector accounts = getListOfAccounts();
+			for(int accountIndex = 0; accountIndex < accounts.size(); ++accountIndex)
+			{
+				String accountId = (String)accounts.get(accountIndex);
+				Vector templates = getListOfTemplatesForAccount(accountId);
+				for(int templateIndex = 0; templateIndex < templates.size(); ++templateIndex)
+				{
+					String templateInfo = (String)templates.get(templateIndex);
+					pullTemplateIfNeeded(accountId, templateInfo);
+				}
+			}
+		} 
+		catch (Exception e) 
+		{
+			logError("Mirror call exception ", e);
+		}
+	}
+
+	public Vector getListOfAccounts() throws Exception 
+	{
+		NetworkResponse response = gateway.listAccountsForMirroring(getSecurity());
+		String resultCode = response.getResultCode();
+		if(!resultCode.equals(NetworkInterfaceConstants.OK))
+		{
+			logError("listAccountsForMirroring returned " + resultCode);
+			throw new ServerErrorException(resultCode);
+		}
+		Vector accounts = response.getResultVector();
+		return accounts;
+	}
+	
+	private Vector getListOfTemplatesForAccount(String accountId)  throws Exception
+	{
+		NetworkResponse response = gateway.getListOfFormTemplateInfos(getSecurity(), accountId);
+		String resultCode = response.getResultCode();
+		if(!resultCode.equals(NetworkInterfaceConstants.OK))
+		{
+			logError("getListOfFormTemplates returned " + resultCode);
+			throw new ServerErrorException(resultCode);
+		}
+		return response.getResultVector();
+	}
+
+	private void pullTemplateIfNeeded(String accountId, String templateInfoString) throws Exception
+	{
+		TemplateInfoForMirroring templateInfo = new TemplateInfoForMirroring(templateInfoString);
+		if(shouldPullTemplate(accountId, templateInfo))
+			pullAndSaveTemplate(accountId, templateInfo);
+	}
+
+	private void pullAndSaveTemplate(String accountId, TemplateInfoForMirroring templateInfo) throws Exception
+	{
+		String base64Template = pullTemplate(accountId, templateInfo);
+		ServerForClients.saveBase64FormTemplate(store, accountId, base64Template, getSecurity(), logger);
+		File file = store.getFormTemplateFileFromAccount(accountId, templateInfo.getFilename());
+		FileTime time = FileTime.fromMillis(templateInfo.getLastModifiedMillis());
+		Files.setLastModifiedTime(file.toPath(), time);
+	}
+
+	public String pullTemplate(String accountId, TemplateInfoForMirroring templateInfo) throws Exception
+	{
+		NetworkResponse response = gateway.getFormTemplate(getSecurity(), accountId, templateInfo.getFilename());
+		String resultCode = response.getResultCode();
+		if(!resultCode.equals(NetworkInterfaceConstants.OK))
+		{
+			logError("getListOfFormTemplates returned " + resultCode);
+			throw new ServerErrorException(resultCode);
+		}
+		Vector templateVector = response.getResultVector();
+		return (String)templateVector.get(0);
+	}
+
+	protected boolean shouldPullTemplate(String accountId, TemplateInfoForMirroring templateInfo) 
+	{
+		return true;
+	}
+
 	public void pullNextBulletin()
 	{
 		if(isSleeping())

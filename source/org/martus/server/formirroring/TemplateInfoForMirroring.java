@@ -26,12 +26,17 @@ Boston, MA 02111-1307, USA.
 
 package org.martus.server.formirroring;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.martus.common.crypto.MartusCrypto;
-import org.martus.util.UnicodeReader;
+import org.martus.util.StreamCopier;
+
+import com.sun.org.apache.xml.internal.security.utils.Base64;
 
 public class TemplateInfoForMirroring 
 {
@@ -51,12 +56,19 @@ public class TemplateInfoForMirroring
 		lastModifiedMillis = Long.parseLong(pieces[2]);
 	}
 
+	public TemplateInfoForMirroring(String filename, String digestOfContents, long lastModifiedMillisToUse) 
+	{
+		name = filename;
+		digest = digestOfContents;
+		lastModifiedMillis = lastModifiedMillisToUse;
+	}
+
 	public String asString() 
 	{
 		return name + TAB + digest + TAB + lastModifiedMillis;
 	}
 	
-	public String getName()
+	public String getFilename()
 	{
 		return name;
 	}
@@ -66,18 +78,27 @@ public class TemplateInfoForMirroring
 		return lastModifiedMillis;
 	}
 	
-	private String computeDigest(File file) throws Exception
+	private static String computeDigest(File file) throws Exception
 	{
-		UnicodeReader reader = new UnicodeReader(file);
+		FileInputStream in = new FileInputStream(file);
 		try
 		{
-			String contents = reader.readAll();
-			return MartusCrypto.createDigestString(contents);
+			return computeDigest(in);
 		}
 		finally
 		{
-			reader.close();
+			in.close();
 		}
+	}
+
+	public static String computeDigest(InputStream in) throws Exception
+	{
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		StreamCopier copier = new StreamCopier();
+		copier.copyStream(in, out);
+		out.flush();
+		byte[] digest = MartusCrypto.createDigest(out.toByteArray());
+		return Base64.encode(digest);
 	}
 	
 	@Override

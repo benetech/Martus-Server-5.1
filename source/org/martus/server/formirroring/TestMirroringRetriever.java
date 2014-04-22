@@ -26,12 +26,18 @@ Boston, MA 02111-1307, USA.
 
 package org.martus.server.formirroring;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Vector;
 
+import org.martus.common.FieldCollection;
+import org.martus.common.LoggerInterface;
+import org.martus.common.LoggerToConsole;
 import org.martus.common.LoggerToNull;
 import org.martus.common.bulletin.Bulletin;
 import org.martus.common.bulletin.BulletinConstants;
@@ -50,6 +56,9 @@ import org.martus.common.database.DeleteRequestRecord;
 import org.martus.common.database.MockDatabase;
 import org.martus.common.database.ReadableDatabase;
 import org.martus.common.database.ServerFileDatabase;
+import org.martus.common.fieldspec.CustomFieldTemplate;
+import org.martus.common.fieldspec.StandardFieldSpecs;
+import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.network.NetworkResponse;
 import org.martus.common.network.mirroring.CallerSideMirroringGateway;
 import org.martus.common.network.mirroring.CallerSideMirroringInterface;
@@ -63,6 +72,7 @@ import org.martus.common.test.MockBulletinStore;
 import org.martus.common.test.UniversalIdForTesting;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.server.forclients.MockMartusServer;
+import org.martus.server.forclients.ServerForClients;
 import org.martus.server.main.ServerBulletinStore;
 import org.martus.util.DirectoryUtils;
 import org.martus.util.StreamableBase64;
@@ -89,7 +99,7 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		realHandler = new SupplierSideMirroringHandler(supplier, security);
 		wrappedHandler = new PassThroughMirroringGateway(realHandler);
 		realGateway = new CallerSideMirroringGateway(wrappedHandler);
-		LoggerToNull logger = new LoggerToNull();
+		LoggerInterface logger = new LoggerToNull();
 		realRetriever = new MirroringRetriever(server.getStore(), realGateway, "Dummy IP", logger);
 		
 	}
@@ -98,6 +108,80 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 	{
 		super.tearDown();
 		server.deleteAllFiles();
+	}
+	
+	public void testPullAllTemplates() throws Exception
+	{
+		String accountId1 = "123";
+		String accountId2 = "ABC";
+		
+		CustomFieldTemplate cft1 = createTemplate("1");
+		TemplateInfoForMirroring template1 = extractTemplateInfo(cft1);
+		CustomFieldTemplate cft2a = createTemplate("2a");
+		TemplateInfoForMirroring template2a = extractTemplateInfo(cft2a);
+		CustomFieldTemplate cft2b = createTemplate("2b");
+		TemplateInfoForMirroring template2b = extractTemplateInfo(cft2b);
+		
+		assertEquals(0, server.getStore().getListOfFormTemplatesForAccount(accountId1).size());
+		realRetriever.pullAllTemplates();
+		assertEquals(0, server.getStore().getListOfFormTemplatesForAccount(accountId1).size());
+		
+		supplier.addAccountToMirror(accountId1);
+		supplier.addAccountToMirror(accountId2);
+		supplier.addTemplateToMirror(accountId1, template1, cft1.getExportedTemplateAsBase64String(getSecurity()));
+		supplier.addTemplateToMirror(accountId2, template2a, cft2a.getExportedTemplateAsBase64String(getSecurity()));
+		supplier.addTemplateToMirror(accountId2, template2b, cft2b.getExportedTemplateAsBase64String(getSecurity()));
+		
+		NetworkResponse available1 = realGateway.getListOfFormTemplateInfos(getSecurity(), accountId1);
+		assertEquals(NetworkInterfaceConstants.OK, available1.getResultCode());
+		assertEquals(1, available1.getResultVector().size());
+		
+		NetworkResponse available2 = realGateway.getListOfFormTemplateInfos(getSecurity(), accountId2);
+		assertEquals(NetworkInterfaceConstants.OK, available2.getResultCode());
+		assertEquals(2, available2.getResultVector().size());
+
+		assertTrue("Won't pull 1?", realRetriever.shouldPullTemplate(accountId1, template1));
+		assertTrue("Won't pull 2a?", realRetriever.shouldPullTemplate(accountId2, template2a));
+		assertTrue("Won't pull 2b?", realRetriever.shouldPullTemplate(accountId2, template2b));
+
+		realRetriever.pullAllTemplates();
+		assertEquals("Didn't pull 1?", 1, server.getStore().getListOfFormTemplatesForAccount(accountId1).size());
+		assertEquals("Didn't pull 2a/2b?", 2, server.getStore().getListOfFormTemplatesForAccount(accountId2).size());
+
+		verifyModifiedTime(accountId1, template1);
+		verifyModifiedTime(accountId2, template2a);
+		verifyModifiedTime(accountId2, template2b);
+	}
+
+	private void verifyModifiedTime(String accountId, TemplateInfoForMirroring templateInfo) throws Exception
+	{
+		String filename = templateInfo.getFilename();
+		File file = server.getStore().getFormTemplateFileFromAccount(accountId, filename);
+		long mTime = Files.getLastModifiedTime(file.toPath()).toMillis();
+		assertEquals("Time wasn't updated?", templateInfo.getLastModifiedMillis(), mTime);
+	}
+
+	private TemplateInfoForMirroring extractTemplateInfo(CustomFieldTemplate cft1) throws Exception
+	{
+		String title = cft1.getTitle();
+		String filename = ServerForClients.calculateFileNameFromString(title);
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		if(!cft1.saveContentsToOutputStream(server.getSecurity(), out))
+			throw new IOException("Unknown exception saving template to stream");
+		out.flush();
+		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+		String digestOfContents = TemplateInfoForMirroring.computeDigest(in);
+		long now = new Date().getTime();
+		long roundedMinuteAgo = now - now%1000 - 60*1000;
+		TemplateInfoForMirroring info = new TemplateInfoForMirroring(filename, digestOfContents, roundedMinuteAgo);
+		return info;
+	}
+
+	public CustomFieldTemplate createTemplate(String title) throws Exception 
+	{
+		FieldCollection topFields = new FieldCollection(StandardFieldSpecs.getDefaultTopSetionFieldSpecs());
+		FieldCollection bottomFields = new FieldCollection(StandardFieldSpecs.getDefaultBottomSectionFieldSpecs());
+		return new CustomFieldTemplate(title, "", topFields, bottomFields);
 	}
 	
 	public void testGetNextItemToRetrieve() throws Exception
@@ -555,6 +639,11 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		BulletinZipUtilities.extractPacketsToZipStream(dbToExportFrom, packetKeys, out, signer);
 		String zipString = StreamableBase64.encode(out.toByteArray());
 		return zipString;
+	}
+	
+	private MartusCrypto getSecurity()
+	{
+		return server.getSecurity();
 	}
 
 	final static int databaseRecordsPerBulletin = 4;
