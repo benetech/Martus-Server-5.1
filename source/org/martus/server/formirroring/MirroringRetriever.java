@@ -27,6 +27,7 @@ Boston, MA 02111-1307, USA.
 package org.martus.server.formirroring;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.nio.file.Files;
 import java.nio.file.attribute.FileTime;
@@ -147,9 +148,28 @@ public class MirroringRetriever implements LoggerInterface
 		return (String)templateVector.get(0);
 	}
 
-	protected boolean shouldPullTemplate(String accountId, TemplateInfoForMirroring templateInfo) 
+	protected boolean shouldPullTemplate(String accountId, TemplateInfoForMirroring templateInfo) throws Exception
 	{
-		return true;
+		String filename = templateInfo.getFilename();
+		try
+		{
+			File file = store.getFormTemplateFileFromAccount(accountId, filename);
+			if(!file.exists())
+				return true;
+			
+			String ourDigest = TemplateInfoForMirroring.computeDigest(file);
+			if(!ourDigest.equals(templateInfo.getDigest()))
+				return true;
+			
+			return false;
+			
+//			long ourMillis = Files.getLastModifiedTime(file.toPath()).toMillis();
+//			return (ourMillis < templateInfo.getLastModifiedMillis());
+		}
+		catch (FileNotFoundException harmlessExpected)
+		{
+			return true;
+		}
 	}
 
 	public void pullNextBulletin()

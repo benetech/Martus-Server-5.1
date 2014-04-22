@@ -37,7 +37,6 @@ import java.util.Vector;
 
 import org.martus.common.FieldCollection;
 import org.martus.common.LoggerInterface;
-import org.martus.common.LoggerToConsole;
 import org.martus.common.LoggerToNull;
 import org.martus.common.bulletin.Bulletin;
 import org.martus.common.bulletin.BulletinConstants;
@@ -151,6 +150,12 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		verifyModifiedTime(accountId1, template1);
 		verifyModifiedTime(accountId2, template2a);
 		verifyModifiedTime(accountId2, template2b);
+		
+		assertFalse("Would re-pull 1?", realRetriever.shouldPullTemplate(accountId1, template1));
+		assertFalse("Would re-pull 2a?", realRetriever.shouldPullTemplate(accountId2, template2a));
+		assertFalse("Would re-pull 2b?", realRetriever.shouldPullTemplate(accountId2, template2b));
+
+//		TemplateInfoForMirroring updatedTemplate1 = new TemplateInfoForMirroring(template1.getFilename(), template1.getDigest(), template1.getLastModifiedMillis() + 5*1000);
 	}
 
 	private void verifyModifiedTime(String accountId, TemplateInfoForMirroring templateInfo) throws Exception
