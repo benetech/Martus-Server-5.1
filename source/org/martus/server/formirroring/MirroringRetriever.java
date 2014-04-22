@@ -169,16 +169,12 @@ public class MirroringRetriever implements LoggerInterface
 
 	public static boolean shouldPullTemplate(TemplateInfoForMirroring ourTemplateInfo, TemplateInfoForMirroring availableTemplateInfo) 
 	{
-		String availableDigest = availableTemplateInfo.getDigest();
-		String ourDigest = ourTemplateInfo.getDigest();
-		if(!ourDigest.equals(availableDigest))
+		long availableMillis = availableTemplateInfo.getLastModifiedMillis();
+		long ourMillis = ourTemplateInfo.getLastModifiedMillis();
+		if (ourMillis < availableMillis)
 			return true;
-		
+
 		return false;
-		
-//			long availableMillis = availableTemplateInfo.getLastModifiedMillis();
-//			long ourMillis = ourTemplateInfo.getLastModifiedMillis();
-//			return (ourMillis < availableMillis);
 	}
 
 	public void pullNextBulletin()

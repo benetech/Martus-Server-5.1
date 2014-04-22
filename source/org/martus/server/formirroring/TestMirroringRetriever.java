@@ -150,24 +150,31 @@ public class TestMirroringRetriever extends TestCaseEnhanced
 		verifyModifiedTime(accountId1, template1);
 		verifyModifiedTime(accountId2, template2a);
 		verifyModifiedTime(accountId2, template2b);
+	}
+	
+	public void testShouldPullTemplate() throws Exception
+	{
+		String templateFilename = "filename.mct";
+		long earlier = 27;
+		long now = 39;
+		long later = 55;
+		String digest = "blah blah";
+		String otherDigest = "yada yada";
 		
-		assertFalse("Would re-pull 1?", realRetriever.shouldPullTemplate(accountId1, template1));
-		assertFalse("Would re-pull 2a?", realRetriever.shouldPullTemplate(accountId2, template2a));
-		assertFalse("Would re-pull 2b?", realRetriever.shouldPullTemplate(accountId2, template2b));
-
-		CustomFieldTemplate newCft1 = createTemplate("1", "Updated description");
-		TemplateInfoForMirroring newTemplate1 = extractTemplateInfo(newCft1);
-		supplier.addTemplateToMirror(accountId1, newTemplate1, newCft1.getExportedTemplateAsBase64String(getSecurity()));
+		TemplateInfoForMirroring current = new TemplateInfoForMirroring(templateFilename, digest, now);
+		TemplateInfoForMirroring identical = new TemplateInfoForMirroring(templateFilename, digest, now);
+		TemplateInfoForMirroring sameButEarlier = new TemplateInfoForMirroring(templateFilename, digest, earlier);
+		TemplateInfoForMirroring sameButLater = new TemplateInfoForMirroring(templateFilename, digest, later);
+		TemplateInfoForMirroring differentSimultaneous = new TemplateInfoForMirroring(templateFilename, otherDigest, now);
+		TemplateInfoForMirroring differentEarlier = new TemplateInfoForMirroring(templateFilename, otherDigest, earlier);
+		TemplateInfoForMirroring differentLater = new TemplateInfoForMirroring(templateFilename, otherDigest, later);
 		
-		assertTrue("Won't re-pull 1?", realRetriever.shouldPullTemplate(accountId1, newTemplate1));
-		NetworkResponse newAvailable1 = realGateway.getListOfFormTemplateInfos(getSecurity(), accountId1);
-		assertEquals(1, newAvailable1.getResultVector().size());
-		String newInfo1String = (String) newAvailable1.getResultVector().get(0);
-		assertEquals("Other server has different info than we set?", newTemplate1.asString(), newInfo1String);
-
-		realRetriever.pullAllTemplates();
-		assertFalse("Will re-re-pull 1?", realRetriever.shouldPullTemplate(accountId1, newTemplate1));
-//		TemplateInfoForMirroring updatedTemplate1 = new TemplateInfoForMirroring(template1.getFilename(), template1.getDigest(), template1.getLastModifiedMillis() + 5*1000);
+		assertFalse(MirroringRetriever.shouldPullTemplate(current, identical));
+		assertFalse(MirroringRetriever.shouldPullTemplate(current, sameButEarlier));
+		assertTrue(MirroringRetriever.shouldPullTemplate(current, sameButLater));
+		assertFalse(MirroringRetriever.shouldPullTemplate(current, differentSimultaneous));
+		assertFalse(MirroringRetriever.shouldPullTemplate(current, differentEarlier));
+		assertTrue(MirroringRetriever.shouldPullTemplate(current, differentLater));
 	}
 
 	private void verifyModifiedTime(String accountId, TemplateInfoForMirroring templateInfo) throws Exception
