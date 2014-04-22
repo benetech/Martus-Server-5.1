@@ -73,12 +73,17 @@ public class TemplateInfoForMirroring
 		return name;
 	}
 	
+	public String getDigest() 
+	{
+		return digest;
+	}
+
 	public long getLastModifiedMillis()
 	{
 		return lastModifiedMillis;
 	}
 	
-	private static String computeDigest(File file) throws Exception
+	public static String computeDigest(File file) throws Exception
 	{
 		FileInputStream in = new FileInputStream(file);
 		try
