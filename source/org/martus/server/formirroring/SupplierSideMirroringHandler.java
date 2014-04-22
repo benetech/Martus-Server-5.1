@@ -218,6 +218,25 @@ public class SupplierSideMirroringHandler implements SupplierSideMirroringInterf
 				result.add(data.toArray());
 				return result;
 			}
+			case cmdGetListOfFormTemplates:
+			{
+				logInfo("getListOfFormTemplates");
+				String authorAccountId = (String)parameters.get(1);
+				Vector templateInfoVector = supplier.listAvailableFormTemplateInfos(authorAccountId);
+				result.add(OK);
+				result.add(templateInfoVector.toArray());
+				return result;
+			}
+			case cmdGetFormTemplate:
+			{
+				logInfo("getFormTemplate");
+				String authorAccountId = (String)parameters.get(1);
+				String templateFilename = (String)parameters.get(2);
+				Vector template = supplier.getFormTemplate(authorAccountId, templateFilename);
+				result.add(OK);
+				result.add(template.toArray());
+				return result;
+			}
 			default:
 			{
 				logNotice("request: Unknown command");
@@ -266,6 +285,12 @@ public class SupplierSideMirroringHandler implements SupplierSideMirroringInterf
 			return cmdGetBulletinChunkForMirroring;
 		if(cmdString.equals(CMD_MIRRORING_GET_BULLETIN_CHUNK_TYPO))
 			return cmdGetBulletinChunkForMirroring;
+		
+		if(cmdString.equals(CMD_MIRRORING_GET_LIST_OF_FORM_TEMPLATES))
+			return cmdGetListOfFormTemplates;
+		
+		if(cmdString.equals(CMD_MIRRORING_GET_FORM_TEMPLATE))
+			return cmdGetFormTemplate;
 
 		return cmdUnknown;
 	}
@@ -327,6 +352,8 @@ public class SupplierSideMirroringHandler implements SupplierSideMirroringInterf
 	final static int cmdGetBulletinUploadRecordForMirroring = 4;
 	final static int cmdGetBulletinChunkForMirroring = 5;
 	final static int cmdListAvailableIdsForMirroring = 6;
+	final static int cmdGetListOfFormTemplates = 7;
+	final static int cmdGetFormTemplate = 8;
 	
 	ServerSupplierInterface supplier;
 	MartusCrypto verifier;

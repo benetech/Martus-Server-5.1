@@ -27,6 +27,7 @@ Boston, MA 02111-1307, USA.
 package org.martus.server.formirroring;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
@@ -49,8 +50,6 @@ import org.martus.common.fieldspec.CustomFieldTemplate;
 import org.martus.common.fieldspec.FieldSpec;
 import org.martus.common.fieldspec.FormTemplateParsingException;
 import org.martus.common.fieldspec.StandardFieldSpecs;
-import org.martus.common.network.NetworkInterfaceConstants;
-import org.martus.common.network.NetworkResponse;
 import org.martus.common.packet.BulletinHeaderPacket;
 import org.martus.common.packet.FieldDataPacket;
 import org.martus.common.packet.UniversalId;
@@ -58,6 +57,7 @@ import org.martus.common.test.UniversalIdForTesting;
 import org.martus.server.forclients.MockMartusServer;
 import org.martus.server.forclients.ServerForClients;
 import org.martus.server.main.ServerBulletinStore;
+import org.martus.util.StreamableBase64;
 import org.martus.util.TestCaseEnhanced;
 
 import com.sun.org.apache.xml.internal.security.utils.Base64;
@@ -119,12 +119,11 @@ public class TestServerForMirroring extends TestCaseEnhanced
 		super.tearDown();
 	}
 	
-	public void testListFormTemplates() throws Exception
+	public void testListAvailableFormTemplateInfos() throws Exception
 	{
 		String clientAccountId = clientSecurity1.getPublicKeyString();
-		NetworkResponse emptyResponse = new NetworkResponse(server.listAvailableFormTemplates(clientAccountId));
-		assertEquals("Error?", NetworkInterfaceConstants.OK, emptyResponse.getResultCode());
-		assertEquals("Already has forms?", 0, emptyResponse.getResultVector().size());
+		Vector emptyResponse = server.listAvailableFormTemplateInfos(clientAccountId);
+		assertEquals("Already has forms?", 0, emptyResponse.size());
 
 		ServerBulletinStore store = coreServer.getStore();
 		MartusCrypto security = server.getSecurity();
@@ -146,9 +145,7 @@ public class TestServerForMirroring extends TestCaseEnhanced
 		TemplateInfoForMirroring storedInfo1 = new TemplateInfoForMirroring((File)storedTemplates.get(0));
 		TemplateInfoForMirroring storedInfo2 = new TemplateInfoForMirroring((File)storedTemplates.get(1));
 		
-		NetworkResponse response = new NetworkResponse(server.listAvailableFormTemplates(clientAccountId));
-		assertEquals("Error?", NetworkInterfaceConstants.OK, response.getResultCode());
-		Vector resultVector = response.getResultVector();
+		Vector resultVector = server.listAvailableFormTemplateInfos(clientAccountId);
 		assertEquals("Wrong count?", 2, resultVector.size());
 		TemplateInfoForMirroring gotInfo1 = new TemplateInfoForMirroring((String)resultVector.get(0));
 		TemplateInfoForMirroring gotInfo2 = new TemplateInfoForMirroring((String)resultVector.get(1));
@@ -156,6 +153,24 @@ public class TestServerForMirroring extends TestCaseEnhanced
 		assertEquals(storedInfo1, gotInfo1);
 		assertEquals(storedInfo2, gotInfo2);
 		assertTrue("Wrong order?", gotInfo1.asString().compareTo(gotInfo2.asString()) < 0);
+	}
+	
+	public void testGetFormTemplate() throws Exception
+	{
+		ServerBulletinStore store = coreServer.getStore();
+		String clientAccountId = clientSecurity1.getPublicKeyString();
+		MartusCrypto security = server.getSecurity();
+
+		String formTitle = "First";
+		createAndSaveSampleTemplate(store, clientAccountId, formTitle, security);
+		String formFilename = ServerForClients.calculateFileNameFromString(formTitle);
+		File templateFile = store.getFormTemplateFileFromAccount(clientAccountId, formFilename);
+		String templateFilename = templateFile.getName();
+		Vector templateVector = server.getFormTemplate(clientAccountId, templateFilename);
+		assertEquals("templateVector1 doesn't have the required one element?", 1, templateVector.size());
+		String gotTemplateBase64 = (String) templateVector.get(0);
+		String savedTemplateBase64 = StreamableBase64.readAllAndEncodeBase64(templateFile);
+		assertEquals(savedTemplateBase64, gotTemplateBase64);
 	}
 
 	public void createAndSaveSampleTemplate(ServerBulletinStore store,

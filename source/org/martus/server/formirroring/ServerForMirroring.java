@@ -43,7 +43,6 @@ import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.ReadableDatabase;
 import org.martus.common.network.MartusXmlRpcServer;
-import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.network.mirroring.MirroringInterface;
 import org.martus.common.network.mirroring.SupplierSideMirroringInterface;
 import org.martus.common.packet.BulletinHeaderPacket;
@@ -267,24 +266,37 @@ public class ServerForMirroring implements ServerSupplierInterface
 	}
 
 	@Override
-	public Vector listAvailableFormTemplates(String authorAccountId) 
+	public Vector listAvailableFormTemplateInfos(String authorAccountId) 
 	{
 		Vector result = new Vector();
 		try 
 		{
 			Vector templateFiles = getStore().getListOfFormTemplatesForAccount(authorAccountId);
 			Vector templateInfosVector = extractTemplateInfosFromFiles(templateFiles);
-			result.add(NetworkInterfaceConstants.OK);
-			result.add(templateInfosVector.toArray(new String[0]));
+			return templateInfosVector;
 		} 
 		catch (Exception e) 
 		{
 			logger.logError("Exception getting list of form templates", e);
-			result.add(NetworkInterfaceConstants.SERVER_ERROR);
 		}
 		return result;
 	}
 
+	public Vector getFormTemplate(String authorAccountId, String templateFilename)
+	{
+		Vector templateVector = new Vector();
+		try {
+			File templateFile = getStore().getFormTemplateFileFromAccount(authorAccountId, templateFilename);
+			String base64Template = StreamableBase64.readAllAndEncodeBase64(templateFile);
+			templateVector.add(base64Template);
+		} 
+		catch (Exception e) 
+		{
+			logError(e);
+		}
+		return templateVector;
+	}
+	
 	private Vector<String> extractTemplateInfosFromFiles(Vector templateFiles) throws Exception
 	{
 		Vector<String> infos = new Vector<String>();

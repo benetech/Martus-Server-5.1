@@ -33,14 +33,16 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
 
+import org.martus.common.MartusLogger;
 import org.martus.common.bulletin.BulletinConstants;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MockMartusSecurity;
 import org.martus.common.database.Database;
-import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.Database.RecordHiddenException;
+import org.martus.common.database.DatabaseKey;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.packet.UniversalId;
+import org.martus.server.forclients.ServerForClients;
 import org.martus.util.StreamableBase64;
 
 class FakeServerSupplier implements ServerSupplierInterface
@@ -50,6 +52,7 @@ class FakeServerSupplier implements ServerSupplierInterface
 		accountsToMirror = new Vector();
 		bulletinsToMirror = new Vector();
 		availableIdsToMirror = new Vector();
+		templatesForAccount = new HashMap<String, HashMap<String, Template>>();
 		security = MockMartusSecurity.createOtherServer();
 		
 		burContentsDraft = new HashMap();
@@ -75,6 +78,19 @@ class FakeServerSupplier implements ServerSupplierInterface
 		BulletinMirroringInformation bulletinInfo = new BulletinMirroringInformation(db, key, sig);
 		Vector data = bulletinInfo.getInfoWithUniversalId();
 		availableIdsToMirror.add(data);
+	}
+
+	public void addTemplateToMirror(String accountId, TemplateInfoForMirroring info, String base64Template) throws Exception 
+	{
+		String filename = info.getFilename();
+		Template template = new Template(filename, info, base64Template);
+		HashMap templates = templatesForAccount.get(accountId);
+		if(templates == null)
+		{
+			templates = new HashMap<String, Template>();
+			templatesForAccount.put(accountId, templates);
+		}
+		templates.put(filename, template);
 	}
 
 	void addBur(UniversalId uid, String bur, String status)
@@ -203,21 +219,59 @@ class FakeServerSupplier implements ServerSupplierInterface
 	}
 	
 	@Override
-	public Vector listAvailableFormTemplates(String authorAccountId) 
+	public Vector listAvailableFormTemplateInfos(String authorAccountId) 
 	{
-		Vector result = new Vector();
-		result.add(NetworkInterfaceConstants.SERVER_ERROR);
-		return result;
+		HashMap<String, Template> templates = templatesForAccount.get(authorAccountId);
+		Vector templatesVector = new Vector();
+		for (String filename : templates.keySet()) 
+		{
+			Template template = templates.get(filename);
+			TemplateInfoForMirroring info = template.getInfo();
+			templatesVector.add(info.asString());
+		}
+		return templatesVector;
+	}
+	
+	@Override
+	public Vector getFormTemplate(String authorAccountId, String templateFilename) 
+	{
+		HashMap<String, Template> templates = templatesForAccount.get(authorAccountId);
+		Template template = templates.get(templateFilename);
+		Vector vector = new Vector();
+		vector.add(template.getBase64Contents());
+		return vector;
+	}
+	
+	private static class Template
+	{
+		public Template(String filenameToUse, TemplateInfoForMirroring infoToUse, String base64ToUse)
+		{
+			info = infoToUse;
+			base64 = base64ToUse;
+		}
+		
+		public TemplateInfoForMirroring getInfo() 
+		{
+			return info;
+		}
+
+		public Object getBase64Contents() 
+		{
+			return base64;
+		}
+
+		private TemplateInfoForMirroring info;
+		private String base64;
 	}
 
-	public void log(String message){}
-	public void logError(String message){}
-	public void logError(Exception e){}
-	public void logError(String message, Exception e){}
-	public void logInfo(String message){}
-	public void logNotice(String message){}
-	public void logWarning(String message){}
-	public void logDebug(String message){}
+	public void log(String message){ MartusLogger.log(message);}
+	public void logError(String message){MartusLogger.logError(message);}
+	public void logError(Exception e){MartusLogger.logException(e);}
+	public void logError(String message, Exception e){MartusLogger.logException(e);}
+	public void logInfo(String message){MartusLogger.logVerbose(message);}
+	public void logNotice(String message){MartusLogger.logVerbose(message);}
+	public void logWarning(String message){MartusLogger.logWarning(message);}
+	public void logDebug(String message){MartusLogger.log(message);}
 	
 	String authorizedCaller;
 	String returnResultTag;
@@ -230,6 +284,7 @@ class FakeServerSupplier implements ServerSupplierInterface
 	Vector accountsToMirror;
 	Vector bulletinsToMirror;
 	Vector availableIdsToMirror;
+	HashMap<String, HashMap<String, Template>> templatesForAccount;
 	
 	String gotAccount;
 	String gotLocalId;

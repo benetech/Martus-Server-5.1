@@ -28,6 +28,7 @@ package org.martus.server.formirroring;
 
 import java.util.Set;
 import java.util.Vector;
+
 import org.martus.common.LoggerInterface;
 
 public interface ServerSupplierInterface extends LoggerInterface
@@ -40,5 +41,6 @@ public interface ServerSupplierInterface extends LoggerInterface
 	public Vector getBulletinChunkWithoutVerifyingCaller(String authorAccountId, String bulletinLocalId,
 			int chunkOffset, int maxChunkSize);
 	public Set listAvailableIdsForMirroring(String authorAccountId);
-	public Vector listAvailableFormTemplates(String authorAccountId);
+	public Vector listAvailableFormTemplateInfos(String authorAccountId);
+	public Vector getFormTemplate(String authorAccountId, String templateName);
 }
