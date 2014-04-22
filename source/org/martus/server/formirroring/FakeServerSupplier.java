@@ -42,7 +42,6 @@ import org.martus.common.database.Database.RecordHiddenException;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.network.NetworkInterfaceConstants;
 import org.martus.common.packet.UniversalId;
-import org.martus.server.forclients.ServerForClients;
 import org.martus.util.StreamableBase64;
 
 class FakeServerSupplier implements ServerSupplierInterface
