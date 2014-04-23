@@ -161,11 +161,7 @@ public class ServerBulletinStore extends BulletinStore
 				logger.logError("failed to delete file: "+ toFile.toString());
 		}
 		
-		if(fromFile.renameTo(toFile))
-		{
-			MartusServerUtilities.createSignatureFileFromFileOnServer(toFile, getSignatureGenerator());
-		}
-		else
+		if(!fromFile.renameTo(toFile))
 		{
 			String errorMsg = "Unable to Rename temp FormTemplate to account's FormTemplates directory, From TempFile = " + fromFile.getAbsolutePath() + ", To Account Template File = " + toFile.getAbsolutePath();
 			throw new IOException(errorMsg);
