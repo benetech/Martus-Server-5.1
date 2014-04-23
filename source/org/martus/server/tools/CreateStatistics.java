@@ -51,8 +51,8 @@ import org.martus.common.database.BulletinUploadRecord;
 import org.martus.common.database.Database;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.FileDatabase;
-import org.martus.common.database.ServerFileDatabase;
 import org.martus.common.database.FileDatabase.TooManyAccountsException;
+import org.martus.common.database.ServerFileDatabase;
 import org.martus.common.fieldspec.FieldSpec;
 import org.martus.common.fieldspec.StandardFieldSpecs;
 import org.martus.common.packet.BulletinHeaderPacket;
@@ -66,9 +66,9 @@ import org.martus.server.forclients.AuthorizeLogEntry;
 import org.martus.server.forclients.ServerForClients;
 import org.martus.server.main.MartusServer;
 import org.martus.server.main.ServerBulletinStore;
+import org.martus.util.StreamableBase64.InvalidBase64Exception;
 import org.martus.util.UnicodeReader;
 import org.martus.util.UnicodeWriter;
-import org.martus.util.StreamableBase64.InvalidBase64Exception;
 import org.martus.util.inputstreamwithseek.FileInputStreamWithSeek;
 
 
@@ -265,10 +265,10 @@ public class CreateStatistics
 			public void visit(String accountId)
 			{
 				errorOccured = false;
-				File accountDir = fileDatabase.getAbsoluteAccountDirectory(accountId);
-				File bucket = accountDir.getParentFile();
 				try
 				{
+					File accountDir = fileDatabase.getAbsoluteAccountDirectory(accountId);
+					File bucket = accountDir.getParentFile();
 					getPublicCode(accountId);
 					getContactInfo(accountId);
 					getAuthorizedInfo(publicCode);
