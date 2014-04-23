@@ -145,6 +145,8 @@ public class MirroringRetriever implements LoggerInterface
 		File file = store.getFormTemplateFileFromAccount(accountId, templateInfo.getFilename());
 		FileTime time = FileTime.fromMillis(templateInfo.getLastModifiedMillis());
 		Files.setLastModifiedTime(file.toPath(), time);
+		logDebug("Set mtime of " + file.getAbsolutePath());
+		logDebug(time.toString() + "->" + Files.getLastModifiedTime(file.toPath()).toString() + ": " + time.toMillis());
 	}
 
 	public String pullTemplate(String accountId, TemplateInfoForMirroring templateInfo) throws Exception
