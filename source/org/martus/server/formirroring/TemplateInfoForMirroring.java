@@ -45,7 +45,7 @@ public class TemplateInfoForMirroring
 		String[] pieces = infoAsString.split("\\t");
 		name = pieces[0];
 		lastModifiedMillis = Long.parseLong(pieces[1]);
-		size = Long.parseLong(pieces[1]);
+		size = Long.parseLong(pieces[2]);
 	}
 
 	public TemplateInfoForMirroring(String filename, long lastModifiedMillisToUse, long fileSize) 
@@ -57,7 +57,7 @@ public class TemplateInfoForMirroring
 
 	public String asString() 
 	{
-		return name + TAB + lastModifiedMillis;
+		return getFilename() + TAB + getLastModifiedMillis() + TAB + getFileSize();
 	}
 	
 	public String getFilename()
