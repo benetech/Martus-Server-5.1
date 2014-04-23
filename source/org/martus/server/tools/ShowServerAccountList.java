@@ -29,15 +29,16 @@ package org.martus.server.tools;
 import java.io.BufferedReader;
 import java.io.File;
 
+import org.martus.common.MartusLogger;
 import org.martus.common.MartusUtilities;
 import org.martus.common.MartusUtilities.FileVerificationException;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MartusCrypto.CryptoInitializationException;
 import org.martus.common.database.Database;
 import org.martus.common.database.FileDatabase;
-import org.martus.common.database.ServerFileDatabase;
 import org.martus.common.database.FileDatabase.MissingAccountMapException;
 import org.martus.common.database.FileDatabase.MissingAccountMapSignatureException;
+import org.martus.common.database.ServerFileDatabase;
 import org.martus.common.utilities.MartusServerUtilities;
 import org.martus.util.UnicodeReader;
 
@@ -122,19 +123,25 @@ public class ShowServerAccountList
 	{
 		public void visit(String accountString)
 		{
-			File accountDir = fileDatabase.getAbsoluteAccountDirectory(accountString);
-			File bucket = accountDir.getParentFile();
-			String publicCode = "";
-			try
+			try {
+				File accountDir = fileDatabase.getAbsoluteAccountDirectory(accountString);
+				File bucket = accountDir.getParentFile();
+				String publicCode = "";
+				try
+				{
+					publicCode = MartusCrypto.computeFormattedPublicCode(accountString);
+				}
+				catch(Exception e)
+				{
+					publicCode = "ERROR: " + e;
+				}
+				
+				System.out.println(publicCode + "=" + bucket.getName() + "/" + accountDir.getName());
+			} 
+			catch (Exception e) 
 			{
-				publicCode = MartusCrypto.computeFormattedPublicCode(accountString);
+				MartusLogger.logException(e);
 			}
-			catch(Exception e)
-			{
-				publicCode = "ERROR: " + e;
-			}
-			
-			System.out.println(publicCode + "=" + bucket.getName() + "/" + accountDir.getName());
 		}
 	}
 
