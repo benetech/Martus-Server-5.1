@@ -143,10 +143,10 @@ public class MirroringRetriever implements LoggerInterface
 		String base64Template = pullTemplate(accountId, templateInfo);
 		ServerForClients.saveBase64FormTemplate(store, accountId, base64Template, getSecurity(), logger);
 		File file = store.getFormTemplateFileFromAccount(accountId, templateInfo.getFilename());
-		FileTime time = FileTime.fromMillis(templateInfo.getLastModifiedMillis());
-		Files.setLastModifiedTime(file.toPath(), time);
+		long time = templateInfo.getLastModifiedMillis();
+		file.setLastModified(time);
 		logDebug("Set mtime of " + file.getAbsolutePath());
-		logDebug(time.toString() + "->" + Files.getLastModifiedTime(file.toPath()).toString() + ": " + time.toMillis());
+		logDebug(time + "->" + file.lastModified());
 	}
 
 	public String pullTemplate(String accountId, TemplateInfoForMirroring templateInfo) throws Exception

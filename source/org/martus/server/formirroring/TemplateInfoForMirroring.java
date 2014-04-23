@@ -27,16 +27,13 @@ Boston, MA 02111-1307, USA.
 package org.martus.server.formirroring;
 
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 public class TemplateInfoForMirroring 
 {
 	public TemplateInfoForMirroring(File file) throws Exception
 	{
 		name = file.getName();
-		Path path = file.toPath();
-		lastModifiedMillis = Files.getLastModifiedTime(path).toMillis();
+		lastModifiedMillis = file.lastModified();
 		size = file.length();
 	}
 	
