@@ -2208,7 +2208,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	public boolean simulateBadConnection;
 	public boolean useEmbeddedPresentationFiles;
 	private boolean loggedShutdownRequested;
-	public static String tokenAuthorityBase;
+	public String tokenAuthorityBase;
 	
 	public char[] insecurePassword;
 	public long amplifierDataSynchIntervalMillis;
