@@ -1797,7 +1797,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	}
 
 
-	public void processCommandLine(String[] args)
+	public void processCommandLine(String[] args) throws Exception
 	{
 		long indexEveryXMinutes = 0;
 		String indexEveryXMinutesTag = "--amplifier-indexing-minutes=";
@@ -1812,6 +1812,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 		String enableAmplifierListenerTag = "--amplifier-listener";
 		String simulateBadConnectionTag = "--simulate-bad-connection";
 		String embeddedPresentationFiles = "--embedded-presentation";
+		String tokenAuthority = "--token-authority=";
 		
 		setAmplifierEnabled(false);
 		String amplifierIndexingMessage = "";
@@ -1852,7 +1853,20 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 				MirroringRetriever.inactiveSleepMillis = new Integer(minutes).longValue() * 60 * 1000;
 				logNotice("Mirror sleep duration: " + MirroringRetriever.inactiveSleepMillis/1000/60 + " minutes");
 			}
+			
+			if(argument.startsWith(tokenAuthority))
+			{
+				tokenAuthorityBase = argument.substring(tokenAuthority.length());
+				logNotice("Token authority: " + tokenAuthorityBase);
+			}
 		}
+		
+		if(tokenAuthorityBase == null)
+		{
+			logError("Must specify --token-authority");
+			serverExit(ServerSideUtilities.EXIT_INVALID_COMMAND_LINE);
+		}
+		
 		if(indexEveryXMinutes==0)
 		{
 			indexEveryXMinutes = MartusAmplifier.DEFAULT_MINUTES_TO_SYNC;
@@ -2194,6 +2208,7 @@ public class MartusServer implements NetworkInterfaceConstants, ServerCallbackIn
 	public boolean simulateBadConnection;
 	public boolean useEmbeddedPresentationFiles;
 	private boolean loggedShutdownRequested;
+	public static String tokenAuthorityBase;
 	
 	public char[] insecurePassword;
 	public long amplifierDataSynchIntervalMillis;
