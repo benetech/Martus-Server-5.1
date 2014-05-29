@@ -781,11 +781,6 @@ public class TestServerForClients extends TestCaseEnhanced
 		String validTokenFilename = FileDatabase.buildTokenFilename(validToken);
 		File validTokenFile = new File(validTokenFilename);
 		assertTrue(MockServerForClients.doesFilenameMatchToken(validTokenFile, validToken.getToken()));
-
-		String validSubstring = validTokenString.substring(0, 2);
-		MartusAccountAccessToken substringToken = new MartusAccountAccessToken(validSubstring);
-		String substringTokenFilename = FileDatabase.buildTokenFilename(substringToken);
-		assertFalse(ServerForClients.doesFilenameMatchToken(validTokenFile, substringToken.getToken()));
 	}
 
 	public void testGetMartusAccountIdFromAccessToken() throws Exception

@@ -486,6 +486,13 @@ public class ServerSideNetworkHandler implements ServerSideNetworkInterface, Net
 				invalidTokenResult.add(INVALID_DATA);
 				return invalidTokenResult;
 			}
+			catch(Exception e)
+			{
+				logError(e);
+				Vector serverErrorResult = new Vector();
+				serverErrorResult.add(SERVER_ERROR);
+				return serverErrorResult;
+			}
 		}
 		finally
 		{
