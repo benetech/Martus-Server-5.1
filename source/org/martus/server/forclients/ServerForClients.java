@@ -31,16 +31,18 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
+import java.net.ConnectException;
 import java.net.InetAddress;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.net.UnknownHostException;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Vector;
 
-import org.martus.common.DammCheckDigitAlgorithm;
 import org.martus.common.LoggerInterface;
 import org.martus.common.MagicWordEntry;
 import org.martus.common.MagicWords;
@@ -53,7 +55,6 @@ import org.martus.common.MartusUtilities.FileVerificationException;
 import org.martus.common.Version;
 import org.martus.common.crypto.MartusCrypto;
 import org.martus.common.crypto.MartusCrypto.CreateDigestException;
-import org.martus.common.crypto.MartusSecurity;
 import org.martus.common.database.Database.RecordHiddenException;
 import org.martus.common.database.DatabaseKey;
 import org.martus.common.database.DeleteRequestRecord;
@@ -401,30 +402,46 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 	
 	public String getTokensFromMartusCentralTokenAuthority(String accountId) throws Exception
 	{
-		//TODO: get and store real token from Martus Central Token Authority (Martus.org)
-		String publicCode = MartusSecurity.computePublicCode40(accountId);
-		String first5 = publicCode.substring(0, 5);
-		DammCheckDigitAlgorithm damm = new DammCheckDigitAlgorithm();
-		String token = first5 + damm.getCheckDigit(first5);
-		Date currentDate = new Date();
-		DateFormat df = new SimpleDateFormat("MM/dd/yy HH:mm:ss");
-		
-		String validMartusAccessJsonTokenString = "{\""
-				+MartusAccountAccessToken.MARTUS_ACCOUNT_ACCESS_TOKEN_JSON_TAG+"\":{\""
-					+MartusAccountAccessToken.MARTUS_ACCESS_TOKEN_CREATION_DATE_JSON_TAG+"\":\""
-						+df.format(currentDate)+"\",\""
-					+MartusAccountAccessToken.MARTUS_ACCESS_TOKEN_JSON_TAG+"\":\""
-						+token+"\",\""
-					+MartusAccountAccessToken.MARTUS_ACCESS_ACCOUNT_ID_JSON_TAG+"\":\""
-						+accountId
-				+"\"}}";
-		return validMartusAccessJsonTokenString;  
+		String encodedPublicKey = URLEncoder.encode(accountId, "UTF-8");
+		String tokenAuthorityCall = coreServer.tokenAuthorityBase + "/tokens/byKey/" + encodedPublicKey;
+		URL url = new URL(tokenAuthorityCall);
+		return callRestJsonUtf8(url);
+	}
+
+	public String callRestJsonUtf8(URL url) throws Exception 
+	{
+		logInfo("Calling: " + url);
+		InputStream in = url.openStream();
+		UnicodeReader reader = new UnicodeReader(in);
+		try
+		{
+			String response = reader.readAll();
+			if(response == null)
+				throw new IOException("No data available");
+			
+			EnhancedJsonObject json = new EnhancedJsonObject(response);
+			String code = json.optString("Code");
+			if(code.equals("200"))
+				return response;
+			
+			if(code.equals("404"))
+				throw new TokenNotFoundException();
+			
+			throw new IOException("Error: " + code);
+		}
+		finally
+		{
+			reader.close();
+			in.close();
+		}
 	}
 	
-	public String getAccountIdForTokenFromMartusCentralTokenAuthority(MartusAccountAccessToken token)
+	public String getAccountIdForTokenFromMartusCentralTokenAuthority(MartusAccountAccessToken token) throws Exception
 	{
-		//TODO: try to get real token from Martus Central Token Authority (Martus.org)
-		return null;
+		String encodedToken = URLEncoder.encode(token.getToken(), "UTF-8");
+		String tokenAuthorityCall = coreServer.tokenAuthorityBase + "/keys/byToken/" + encodedToken;
+		URL url = new URL(tokenAuthorityCall);
+		return callRestJsonUtf8(url);
 	}
 	
 	private void storeAccessTokenForAccountIfNecessary(String networkJsonData)
@@ -544,6 +561,11 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			result.add(NetworkInterfaceConstants.OK);
 			result.add(tokens.toArray());
 		} 
+		catch (ConnectException e) 
+		{
+			logWarning("Token Authority unavailable");
+			result.add(NetworkInterfaceConstants.SERVER_ERROR);
+		} 
 		catch (FileNotFoundException e) 
 		{
 			logWarning("Token Authority unavailable, no access token");
@@ -571,7 +593,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		return innerPackage.getString(MartusAccountAccessToken.MARTUS_ACCESS_TOKEN_JSON_TAG);
 	}
 
-	private String getAccountIdForToken(MartusAccountAccessToken tokenToFind) throws TokenNotFoundException, TokenInvalidException
+	private String getAccountIdForToken(MartusAccountAccessToken tokenToFind) throws Exception
 	{
 		String networkTokenAccountAccessData = getAccountIdForTokenFromMartusCentralTokenAuthority(tokenToFind);
 		if(networkTokenAccountAccessData != null && networkTokenAccountAccessData.length() > 0)
@@ -616,7 +638,7 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 		} 
 		catch (MartusAccountAccessToken.TokenNotFoundException e) 
 		{
-			logWarning("Token Authority unavailable, no access token");
+			logWarning("Token not found");
 			result.add(NetworkInterfaceConstants.NO_TOKEN_AVAILABLE);
 		} 
 		catch (Exception e) 

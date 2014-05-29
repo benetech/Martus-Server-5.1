@@ -242,7 +242,7 @@ public class MockServerForClients extends ServerForClients implements ServerForN
 	}
 	
 	
-	public String getAccountIdForTokenFromMartusCentralTokenAuthority(MartusAccountAccessToken token)
+	public String getAccountIdForTokenFromMartusCentralTokenAuthority(MartusAccountAccessToken token) throws Exception
 	{
 		if(martusAccountAccessJsonTokenResponse != null)
 		{
