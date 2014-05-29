@@ -419,6 +419,11 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			if(response == null)
 				throw new IOException("No data available");
 			
+			if(response.startsWith("success: "))
+				response = response.substring(9);
+			else if(response.startsWith("error: "))
+				response = response.substring(7);
+			
 			EnhancedJsonObject json = new EnhancedJsonObject(response);
 			String code = json.optString("Code");
 			if(code.equals("200"))
