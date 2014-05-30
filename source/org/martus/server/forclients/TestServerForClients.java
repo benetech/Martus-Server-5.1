@@ -775,7 +775,7 @@ public class TestServerForClients extends TestCaseEnhanced
 	
 	public void testDoesFilenameMatchToken() throws Exception
 	{
-		String validTokenString = "133594";
+		String validTokenString = "11223344";
 
 		MartusAccountAccessToken validToken = new MartusAccountAccessToken(validTokenString);
 		String validTokenFilename = FileDatabase.buildTokenFilename(validToken);
