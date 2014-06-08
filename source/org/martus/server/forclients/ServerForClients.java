@@ -715,7 +715,12 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 			MartusCrypto security, LoggerInterface logger) throws Exception
 	{
 		StringReader reader = new StringReader(base64TemplateData);
+		
+		// FIXME: The following line of code creates the account directory,
+		// so the following call won't throw an exception
+		store.getDatabase().getFolderForAccount(myAccountId);
 		File accountFolderForTemplates = store.getAbsoluteFormTemplatesFolderForAccount(myAccountId);
+		
 		accountFolderForTemplates.mkdirs();			
 		
 		File tempFormTemplateFile = File.createTempFile("Temp-", null, accountFolderForTemplates);
