@@ -228,14 +228,28 @@ public class ServerForClients implements ServerForNonSSLClientsInterface, Server
 
 	public void displayClientStatistics()
 	{
-		System.out.println();
-		System.out.println(clientsThatCanUpload.size() + " client(s) currently allowed to upload");
-		System.out.println(clientsBanned.size() + " client(s) are currently banned");
-		System.out.println(magicWords.getNumberOfActiveWords() + " active magic word(s)");
-		System.out.println(magicWords.getNumberOfInactiveWords() + " inactive magic word(s)");
-		System.out.println(getNumberOfTestAccounts() + " client(s) are known test accounts");
-		System.out.println(getNumberOfNewsItems() +" News items");
-		System.out.println();
+		logInfo("");
+		logInfo(clientsThatCanUpload.size() + " client(s) currently allowed to upload");
+		logInfo(clientsBanned.size() + " client(s) are currently banned");
+		logInfo(magicWords.getNumberOfActiveWords() + " active magic word(s)");
+		logInfo(magicWords.getNumberOfInactiveWords() + " inactive magic word(s)");
+		logInfo(getNumberOfTestAccounts() + " client(s) are known test accounts");
+		logInfo(getNumberOfNewsItems() +" News items");
+		logInfo("");
+		try 
+		{
+			MartusAccountAccessToken validButImpossibleToken = new MartusAccountAccessToken("0000000");
+			String result = getAccountIdForTokenFromMartusCentralTokenAuthority(validButImpossibleToken);
+			logError("Token authority unexpected response: " + result);
+		}
+		catch (TokenNotFoundException e)
+		{
+			logInfo("Token authority is available.");
+		}
+		catch (Exception e) 
+		{
+			logError(e);
+		} 
 	}
 
 	public void verifyConfigurationFiles()
