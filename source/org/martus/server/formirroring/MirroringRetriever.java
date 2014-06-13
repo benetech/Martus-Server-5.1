@@ -66,11 +66,15 @@ public class MirroringRetriever implements LoggerInterface
 	
 	public void pullEverything()
 	{
+		if(isSleeping())
+			return;
+		
 		while(!isSleeping())
 		{
 			pullNextBulletin();
-			pullAllTemplates();
 		}
+
+		pullAllTemplates();
 	}
 	
 	public void pullAllTemplates()
